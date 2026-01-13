@@ -1,47 +1,69 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #FFFFFF;
-  --color-foreground: #1E293B;
+  --color-background: #0f172a;
+  /* Slate 950 base */
+  --color-foreground: #e2e8f0;
+  --color-teal-primary: #14b8a6;
+  /* Teal 500 */
+  --color-teal-glow: rgba(20, 184, 166, 0.5);
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-lg border border-slate-200/50 shadow-xl;
+  .bg-gradient-mesh {
+    background-color: #0f172a;
+    background-image:
+      radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
   }
 
-  .glass-panel {
-    @apply bg-white/40 backdrop-blur-md border border-white/60;
+  .glass-industrial {
+    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
 
-  /* Mesh Gradient Animation */
-  .animate-blob {
-    animation: blob 7s infinite;
+  .text-glow-teal {
+    text-shadow: 0 0 15px var(--color-teal-glow);
   }
 
-  .animation-delay-2000 {
-    animation-delay: 2s;
+  .shadow-glow-teal {
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
   }
 
-  .animation-delay-4000 {
-    animation-delay: 4s;
+  /* 3D Flip Utilities */
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
 
-  @keyframes blob {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Retaining animations for smooth feel */
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 15s ease infinite;
+  }
+
+  @keyframes gradient-x {
     0% {
-      transform: translate(0px, 0px) scale(1);
+      background-position: 0% 50%
     }
 
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
-    }
-
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
+    50% {
+      background-position: 100% 50%
     }
 
     100% {
-      transform: translate(0px, 0px) scale(1);
+      background-position: 0% 50%
     }
   }
 }

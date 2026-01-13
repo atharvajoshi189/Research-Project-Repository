@@ -14,7 +14,7 @@ export default function Home() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-
+                                           
   // Filter projects as user types
   useEffect(() => {
     if (query.trim()) {

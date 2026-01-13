@@ -89,6 +89,7 @@ export default function LoginPage() {
             </div>
 
             {/* RIGHT SIDE - FORM (40%) */}
+            {/* RIGHT SIDE - FORM (40%) */}
             <div className="w-full lg:w-[40%] flex items-center justify-center p-8 bg-white relative">
                 <motion.div
                     initial={{ x: 50, opacity: 0 }}
@@ -110,7 +111,7 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none bg-slate-50 hover:bg-white"
+                                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
                                     placeholder="student@college.edu"
                                 />
                             </div>
@@ -123,7 +124,7 @@ export default function LoginPage() {
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none bg-slate-50 hover:bg-white"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
                                         placeholder="••••••••"
                                     />
                                     <button
@@ -150,7 +151,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-cyan-500/20 text-sm font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-cyan-500/40"
                         >
                             {isLoading ? (
                                 <Loader2 className="animate-spin h-5 w-5" />
