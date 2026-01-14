@@ -50,7 +50,7 @@ export default function LoginPage() {
     return (
         <div className="fixed inset-0 z-50 flex min-h-screen bg-white">
             {/* LEFT SIDE - BRANDING (60%) */}
-            <div className="hidden lg:flex w-[60%] relative overflow-hidden bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-700 items-center justify-center">
+            <div className="hidden lg:flex w-[60%] relative overflow-hidden bg-gradient-to-br from-[#6b031c] via-[#911161] to-[#c2185b] items-center justify-center">
                 {/* Mesh Gradient Effect Overlay */}
                 <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)] animate-pulse" />
 
@@ -81,7 +81,7 @@ export default function LoginPage() {
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
-                        className="text-xl text-teal-50 font-light max-w-md"
+                        className="text-xl text-pink-50 font-light max-w-md"
                     >
                         Empowering Research, One Project at a Time.
                     </motion.p>
@@ -111,7 +111,7 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
+                                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
                                     placeholder="student@college.edu"
                                 />
                             </div>
@@ -124,7 +124,7 @@ export default function LoginPage() {
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none bg-slate-50/50 hover:bg-white focus:bg-white backdrop-blur-sm"
                                         placeholder="••••••••"
                                     />
                                     <button
@@ -140,18 +140,18 @@ export default function LoginPage() {
 
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-slate-300 rounded" />
+                                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-slate-300 rounded" />
                                 <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-600">Remember me</label>
                             </div>
                             <div className="text-sm">
-                                <a href="#" className="font-medium text-cyan-600 hover:text-cyan-500">Forgot password?</a>
+                                <a href="#" className="font-medium text-pink-600 hover:text-pink-500">Forgot password?</a>
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-cyan-500/20 text-sm font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-cyan-500/40"
+                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-pink-500/20 text-sm font-bold text-white bg-gradient-to-r from-[#6b031c] to-[#911161] hover:from-[#800422] hover:to-[#a3126d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-pink-500/40"
                         >
                             {isLoading ? (
                                 <Loader2 className="animate-spin h-5 w-5" />
@@ -163,7 +163,7 @@ export default function LoginPage() {
                         <div className="text-center mt-4">
                             <p className="text-sm text-slate-600">
                                 Don't have an account?{' '}
-                                <Link href="/signup" className="font-medium text-cyan-600 hover:text-cyan-500 transition-colors">
+                                <Link href="/signup" className="font-medium text-pink-600 hover:text-pink-500 transition-colors">
                                     Create an account
                                 </Link>
                             </p>
