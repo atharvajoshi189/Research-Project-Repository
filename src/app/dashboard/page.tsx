@@ -26,7 +26,17 @@ export default function StudentDashboard() {
                 router.push('/login');
                 return;
             }
-            setUser(session.user);
+
+            // Fetch Profile Data
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+            // Merge profile data with session user
+            setUser({ ...session.user, ...profile });
+
             fetchStudentProjects(session.user.id);
         };
         fetchUserData();
@@ -248,7 +258,7 @@ export default function StudentDashboard() {
                         <BookOpen size={14} /> The Scholar's Hub
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                        Welcome back, <span className="text-teal-600">{user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
+                        Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
                     </h1>
                     <p className="text-slate-500 text-lg">Manage your academic legacy.</p>
                 </header>
