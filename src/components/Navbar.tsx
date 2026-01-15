@@ -19,7 +19,18 @@ export default function Navbar() {
 
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error("Error checking session:", error.message);
+                if (error.message.includes("Refresh Token")) {
+                    // Token is invalid, force sign out to clear storage
+                    await supabase.auth.signOut();
+                    setUser(null);
+                    return;
+                }
+            }
+
             setUser(session?.user || null);
         };
         checkUser();
