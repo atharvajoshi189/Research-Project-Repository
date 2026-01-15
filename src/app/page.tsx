@@ -1,26 +1,41 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, Clock, Tag, FileText, ArrowRight, Mic, LayoutGrid, Users, Trophy, Activity, Zap, Shield, Database, Globe } from 'lucide-react';
+import { Search, BookOpen, Clock, Tag, FileText, ArrowRight, Mic, LayoutGrid, Users, Trophy, Activity, Zap, Shield, Database, Globe, Github } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { projects, Project } from '@/lib/mockData';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<Project[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    const { data } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (data) setProjects(data);
+  };
 
   // Filter projects as user types
   useEffect(() => {
     if (query.trim()) {
       const matches = projects.filter(p =>
         p.title.toLowerCase().includes(query.toLowerCase()) ||
-        p.techStack.some(t => t.toLowerCase().includes(query.toLowerCase()))
+        p.techStack?.some((t: string) => t.toLowerCase().includes(query.toLowerCase()))
       ).slice(0, 5);
       setSuggestions(matches);
       setShowDropdown(true);
@@ -29,7 +44,7 @@ export default function Home() {
       setShowDropdown(false);
     }
     setSelectedIndex(-1);
-  }, [query]);
+  }, [query, projects]);
 
   // Handle outside click
   useEffect(() => {
@@ -70,7 +85,7 @@ export default function Home() {
         {/* Top Right: Powder Blue #E0E7FF */}
         <div className="absolute top-[5%] -right-[10%] w-[70vw] h-[70vh] bg-[#E0E7FF] rounded-full blur-[140px] opacity-80 animate-blob animation-delay-2000 mix-blend-multiply"></div>
         {/* Bottom Accent */}
-        <div className="absolute -bottom-[20%] left-[20%] w-[50vw] h-[50vh] bg-indigo-50/50 rounded-full blur-[100px] opacity-60"></div>
+        <div className="absolute -bottom-[20%] left-[20%] w-[50vw] h-[50vh] bg-teal-50/50 rounded-full blur-[100px] opacity-60"></div>
       </div>
 
       {/* Immersive Hero & Search */}
@@ -81,12 +96,12 @@ export default function Home() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="space-y-8"
         >
-          <span className="inline-block px-5 py-2 rounded-full bg-white/80 border border-indigo-100 text-indigo-600 font-semibold text-xs tracking-widest uppercase shadow-sm backdrop-blur-md">
+          <span className="inline-block px-5 py-2 rounded-full bg-white/80 border border-teal-100 text-teal-600 font-semibold text-xs tracking-widest uppercase shadow-sm backdrop-blur-md">
             Computer Science & Engineering
           </span>
           <h1 className="text-7xl md:text-8xl font-black text-slate-900 tracking-tight leading-[1.1]">
             Design Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400 pb-2">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-400 pb-2">
               Intellectual Legacy
             </span>
           </h1>
@@ -129,10 +144,10 @@ export default function Home() {
                   placeholder="Search projects, authors, or technologies..."
                 />
                 <div className="flex items-center gap-3">
-                  <button type="button" className="p-3 text-slate-400 hover:text-indigo-600 transition-colors bg-slate-50 rounded-full hover:bg-slate-100">
+                  <button type="button" className="p-3 text-slate-400 hover:text-teal-600 transition-colors bg-slate-50 rounded-full hover:bg-slate-100">
                     <Mic size={20} />
                   </button>
-                  <button type="submit" className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-200 transition-all transform active:scale-95 text-base">
+                  <button type="submit" className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-200 transition-all transform active:scale-95 text-base">
                     Search
                   </button>
                 </div>
@@ -157,24 +172,26 @@ export default function Home() {
                         <button
                           onClick={() => router.push(`/project/${project.id}`)}
                           className={`w-full text-left px-6 py-4 flex items-center gap-4 transition-all group
-                                                        ${index === selectedIndex ? 'bg-indigo-50 border-l-4 border-indigo-500' : 'hover:bg-indigo-50 hover:border-l-4 hover:border-indigo-500 border-l-4 border-transparent'}
+                                                        ${index === selectedIndex ? 'bg-teal-50 border-l-4 border-teal-500' : 'hover:bg-teal-50 hover:border-l-4 hover:border-teal-500 border-l-4 border-transparent'}
                                                     `}
                         >
-                          <div className="p-2 bg-indigo-100/50 rounded-lg text-indigo-500 group-hover:text-indigo-600 transition-colors">
+                          <div className="p-2 bg-teal-100/50 rounded-lg text-teal-500 group-hover:text-teal-600 transition-colors">
                             <FileText size={20} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className={`text-base font-bold truncate group-hover:text-indigo-700 transition-colors ${index === selectedIndex ? 'text-indigo-700' : 'text-slate-800'}`}>
+                            <h4 className={`text-base font-bold truncate group-hover:text-teal-700 transition-colors ${index === selectedIndex ? 'text-teal-700' : 'text-slate-800'}`}>
                               {project.title}
                             </h4>
                             <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 font-medium">
-                              <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
-                                {project.techStack[0]}
-                              </span>
+                              {project.techStack && project.techStack[0] && (
+                                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
+                                  {project.techStack[0]}
+                                </span>
+                              )}
                               <span>• {project.category}</span>
                             </div>
                           </div>
-                          <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 text-indigo-500 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                          <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 text-teal-500 -translate-x-2 group-hover:translate-x-0 transition-all" />
                         </button>
                       </li>
                     ))
@@ -199,7 +216,7 @@ export default function Home() {
           <span className="text-sm font-semibold text-slate-400 mr-2 py-1.5">Trending: </span>
           {['#TensorFlow', '#NextJS', '#IoT', '#CyberSecurity', '#Blockchain'].map((tag, i) => (
             <Link key={i} href={`/search?q=${encodeURIComponent(tag.replace('#', ''))}`}>
-              <span className="px-4 py-1.5 rounded-full bg-white/50 border border-slate-200 text-slate-600 text-sm hover:bg-white hover:border-indigo-400 hover:text-indigo-600 transition-all cursor-pointer shadow-sm">
+              <span className="px-4 py-1.5 rounded-full bg-white/50 border border-slate-200 text-slate-600 text-sm hover:bg-white hover:border-teal-400 hover:text-teal-600 transition-all cursor-pointer shadow-sm">
                 {tag}
               </span>
             </Link>
@@ -211,9 +228,9 @@ export default function Home() {
       <section className="px-4 pb-20 w-full max-w-[90rem] mx-auto">
         <div className="flex items-center justify-between mb-8 px-4">
           <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <LayoutGrid className="text-indigo-500" /> Featured Projects
+            <LayoutGrid className="text-teal-500" /> Featured Projects
           </h2>
-          <Link href="/search" className="text-indigo-600 font-semibold hover:underline flex items-center gap-1">
+          <Link href="/search" className="text-teal-600 font-semibold hover:underline flex items-center gap-1">
             View All <ArrowRight size={16} />
           </Link>
         </div>
@@ -234,12 +251,26 @@ export default function Home() {
                                             ${project.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                       {project.status}
                     </span>
-                    <div className="p-2 bg-white rounded-full text-slate-400 group-hover:text-indigo-500 transition-colors shadow-sm">
-                      <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform" />
+                    <div className="flex gap-2">
+                      {project.github_url && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.open(project.github_url, '_blank');
+                          }}
+                          className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 transition-colors shadow-sm z-10 relative"
+                          title="View Source Code"
+                        >
+                          <Github size={16} />
+                        </button>
+                      )}
+                      <div className="p-2 bg-white rounded-full text-slate-400 group-hover:text-teal-500 transition-colors shadow-sm">
+                        <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform" />
+                      </div>
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 leading-snug group-hover:text-indigo-600 transition-colors">
+                  <h3 className="text-xl font-bold text-slate-900 mb-3 leading-snug group-hover:text-teal-600 transition-colors">
                     {project.title}
                   </h3>
 
@@ -250,10 +281,10 @@ export default function Home() {
                   <div className="flex items-center justify-between mt-auto border-t border-slate-100 pt-4">
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
                       <Users size={14} className="text-slate-400" />
-                      {project.authors.length} Authors
+                      {Array.isArray(project.authors) ? project.authors.length : 1} Authors
                     </div>
-                    <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">
-                      {project.year}
+                    <span className="text-xs font-bold text-teal-500 bg-teal-50 px-2 py-1 rounded-md">
+                      {project.academic_year || project.year}
                     </span>
                   </div>
                 </div>
@@ -309,7 +340,7 @@ export default function Home() {
                 <div className="w-6 h-6 rounded-full bg-white border-2 border-emerald-400 z-10 flex-shrink-0 mt-1"></div>
                 <div>
                   <p className="text-sm font-medium text-slate-900 leading-snug">
-                    New <b>{item.type}</b> uploaded on <span className="text-indigo-600">'{item.title}'</span>
+                    New <b>{item.type}</b> uploaded on <span className="text-teal-600">'{item.title}'</span>
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
                     by {item.team} • {item.time}
@@ -322,7 +353,7 @@ export default function Home() {
       </section>
 
       {/* 3. Hall of Fame (Gamified) */}
-      <section className="w-full bg-gradient-to-b from-transparent to-indigo-50/50 py-24">
+      <section className="w-full bg-gradient-to-b from-transparent to-teal-50/50 py-24">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <div className="mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100 border border-yellow-200 text-yellow-700 text-xs font-bold uppercase tracking-widest mb-4">
@@ -384,7 +415,7 @@ const DomainCard = ({ title, count, icon: Icon, color }: { title: string, count:
       <Icon size={32} />
     </div>
     <div>
-      <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{title}</h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-teal-600 transition-colors">{title}</h3>
       <p className="text-sm text-slate-500 font-medium">{count}</p>
     </div>
   </div>
@@ -400,7 +431,7 @@ const ContributorCard = ({ rank, name, count, role, color, bg, isWinner }: any) 
     </div>
     <h4 className="text-lg font-bold text-slate-900">{name}</h4>
     <p className="text-xs text-slate-500 mb-2">{role}</p>
-    <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold">
+    <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold">
       {count} Uploads
     </span>
   </div>

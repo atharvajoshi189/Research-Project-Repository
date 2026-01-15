@@ -2,24 +2,58 @@
 
 import { useState, Suspense, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX } from 'lucide-react';
+import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github } from 'lucide-react';
 import NextLink from 'next/link';
-import { projects, Project } from '@/lib/mockData';
+import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-
-// Constant data source - prevents irreversible data loss
-const ALL_PROJECTS = projects;
 
 function SearchContent() {
     const searchParams = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
     const initialCategory = searchParams.get('category') || '';
 
+    const [allProjects, setAllProjects] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState(initialQuery);
     const [selectedYear, setSelectedYear] = useState<string[]>([]);
     const [selectedTech, setSelectedTech] = useState<string[]>([]); // Tech stack filter
     const [selectedCategory, setSelectedCategory] = useState<string[]>(initialCategory ? [initialCategory] : []);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch logic that handles both initial load and search
+    useEffect(() => {
+        const fetchProjects = async () => {
+            setLoading(true);
+            try {
+                let data = [];
+
+                if (searchTerm) {
+                    // Use RPC for smart search (Title, Tech, Leader, Collaborator)
+                    const { data: searchData, error } = await supabase.rpc('search_projects', { keyword: searchTerm });
+                    if (error) throw error;
+                    data = searchData || [];
+                } else {
+                    // Default fetch
+                    const { data: allData, error } = await supabase.from('projects').select('*').eq('status', 'approved');
+                    if (error) throw error;
+                    data = allData || [];
+                }
+
+                setAllProjects(data);
+            } catch (err) {
+                console.error("Search error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce search to avoid too many RPC calls
+        const debounce = setTimeout(() => {
+            fetchProjects();
+        }, 300);
+
+        return () => clearTimeout(debounce);
+    }, [searchTerm]);
 
     // Sync state with URL params on mount/update
     useEffect(() => {
@@ -32,25 +66,36 @@ function SearchContent() {
     const filteredProjects = useMemo(() => {
         // 1. Reset check: If no filters are active, return everything (implicit in logic below)
 
-        return ALL_PROJECTS.filter(project => {
-            // Search Bar Logic (Title OR Tech Stack) - Case Insensitive
-            const matchesSearch = searchTerm === '' ||
-                project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                project.techStack.some(t => t.toLowerCase().includes(searchTerm.toLowerCase()));
+        return allProjects.filter(project => {
+            // Search Bar Logic - NOW HANDLED BY RPC, but we keep this as a secondary client-side filter 
+            // incase user types faster than RPC or filters the RPC results further?
+            // Actually, if we rely on RPC, `allProjects` IS the search result. 
+            // So we just need to apply the OTHER filters (Year, Category, Tech - but Tech is also in RPC? RPC returns projects matching keyword anywhere)
+            // If user searches "Python", RPC returns python projects.
+            // If user THEN clicks "2025", we filter the RPC results. 
+            // So matchesSearch is effectively true here if we assume allProjects contains relevant items.
+            // BUT: if we want to support client-side filtering ON TOP of RPC results without refetching for every dropdown:
 
-            // Year Logic (OR)
-            const matchesYear = selectedYear.length === 0 || selectedYear.includes(project.year);
+            // matchesSearch is redundant if searchTerm was sent to RPC. 
+            // However, to keep it robust (e.g. if we want to filter within the returned set for refined matches or if RPC returns broadly):
+            // Let's just return true for search match portion since `allProjects` is ALREADY filtered by search term via RPC.
+            const matchesSearch = true;
+
+            // Note: Use existing tech/year/category filters on the result set.
+
+            // Year Logic (OR) - checking both year and academic_year
+            const matchesYear = selectedYear.length === 0 || selectedYear.includes(project.year) || selectedYear.includes(project.academic_year);
 
             // Category Logic (OR)
             const matchesCategory = selectedCategory.length === 0 || selectedCategory.includes(project.category);
 
             // Tech Stack Logic (OR) - Checks if project has ANY of the selected techs
-            const matchesTech = selectedTech.length === 0 || project.techStack.some(tech => selectedTech.includes(tech));
+            const matchesTech = selectedTech.length === 0 || (project.techStack && project.techStack.some((tech: string) => selectedTech.includes(tech)));
 
             // Combine with AND
             return matchesSearch && matchesYear && matchesCategory && matchesTech;
         });
-    }, [searchTerm, selectedYear, selectedCategory, selectedTech]);
+    }, [searchTerm, selectedYear, selectedCategory, selectedTech, allProjects]);
 
     const toggleFilter = (list: string[], setList: any, item: string) => {
         if (list.includes(item)) {
@@ -170,7 +215,7 @@ function SearchContent() {
                                 <div className="absolute -inset-1 rounded-full bg-teal-400/20 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500"></div>
                                 <div className="relative bg-white rounded-full shadow-[0_0_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center overflow-hidden transition-shadow group-focus-within:shadow-[0_0_20px_-5px_rgba(45,212,191,0.2)]">
                                     <SearchIcon className="ml-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={22} />
-                                    <input
+                                    <input suppressHydrationWarning
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -197,7 +242,11 @@ function SearchContent() {
                             className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20"
                         >
                             <AnimatePresence mode="popLayout" initial={false}>
-                                {filteredProjects.length === 0 ? (
+                                {loading ? (
+                                    <div className="col-span-full flex justify-center py-20">
+                                        <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : filteredProjects.length === 0 ? (
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -246,8 +295,22 @@ function SearchContent() {
                                                                     {project.category}
                                                                 </span>
                                                             </div>
-                                                            <div className="p-3 bg-white rounded-full text-slate-300 group-hover:text-teal-500 group-hover:shadow-md transition-all duration-300">
-                                                                <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                                                            <div className="flex gap-2">
+                                                                {project.github_url && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            window.open(project.github_url, '_blank');
+                                                                        }}
+                                                                        className="p-3 bg-white rounded-full text-slate-300 hover:text-slate-900 transition-all duration-300 z-10 relative shadow-sm"
+                                                                        title="View Source Code"
+                                                                    >
+                                                                        <Github size={20} />
+                                                                    </button>
+                                                                )}
+                                                                <div className="p-3 bg-white rounded-full text-slate-300 group-hover:text-teal-500 group-hover:shadow-md transition-all duration-300">
+                                                                    <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -261,14 +324,14 @@ function SearchContent() {
 
                                                         <div className="mt-auto pt-6 border-t border-slate-100/50 flex flex-wrap items-center justify-between gap-4">
                                                             <div className="flex flex-wrap gap-2">
-                                                                {project.techStack.slice(0, 4).map(tech => (
+                                                                {project.techStack && project.techStack.slice(0, 4).map((tech: string) => (
                                                                     <span key={tech} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-teal-100 text-slate-600 group-hover:border-teal-200 group-hover:text-teal-600 transition-colors">
                                                                         #{tech}
                                                                     </span>
                                                                 ))}
                                                             </div>
                                                             <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full">
-                                                                {project.year}
+                                                                {project.academic_year || project.year}
                                                             </div>
                                                         </div>
                                                     </div>

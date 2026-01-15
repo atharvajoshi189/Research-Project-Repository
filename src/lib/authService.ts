@@ -1,6 +1,14 @@
 import { supabase } from './supabaseClient';
 
-export const signUpUser = async (email: string, pass: string, fullName: string, role: string) => {
+export const signUpUser = async (
+    email: string,
+    pass: string,
+    fullName: string,
+    role: string,
+    academicYear?: string,
+    section?: string,
+    collegeId?: string
+) => {
     // 1. Supabase Auth mein user create karein
     const { data, error } = await supabase.auth.signUp({
         email,
@@ -14,7 +22,14 @@ export const signUpUser = async (email: string, pass: string, fullName: string, 
         const { error: profileError } = await supabase
             .from('profiles')
             .insert([
-                { id: data.user.id, full_name: fullName, role: role }
+                {
+                    id: data.user.id,
+                    full_name: fullName,
+                    role: role,
+                    academic_year: academicYear || null,
+                    section: section || null,
+                    college_id: collegeId || null
+                }
             ]);
 
         if (profileError) throw profileError;

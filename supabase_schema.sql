@@ -8,6 +8,7 @@ create table projects (
   github_url text, -- New field
   pdf_url text,
   category text,
+  status text default 'pending', -- approved, rejected, pending
   student_id uuid, -- Added missing field
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

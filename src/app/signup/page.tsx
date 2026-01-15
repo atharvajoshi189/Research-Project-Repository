@@ -14,6 +14,9 @@ export default function SignupPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState<'student' | 'faculty'>('student');
+    const [academicYear, setAcademicYear] = useState('');
+    const [section, setSection] = useState('');
+    const [collegeId, setCollegeId] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -23,7 +26,15 @@ export default function SignupPage() {
 
         try {
             // 1. Sign up user
-            const { user } = await signUpUser(email, password, fullName, role);
+            const { user } = await signUpUser(
+                email,
+                password,
+                fullName,
+                role,
+                role === 'student' ? academicYear : undefined,
+                role === 'student' ? section : undefined,
+                role === 'student' ? collegeId : undefined
+            );
 
             if (!user) {
                 throw new Error('Signup failed. Please try again.');
@@ -144,6 +155,53 @@ export default function SignupPage() {
                                 placeholder="student@college.edu"
                             />
                         </div>
+
+                        {role === 'student' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">College ID</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={collegeId}
+                                        onChange={(e) => setCollegeId(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none bg-slate-50 hover:bg-white"
+                                        placeholder="e.g. 2022001"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Academic Year</label>
+                                        <select
+                                            required
+                                            value={academicYear}
+                                            onChange={(e) => setAcademicYear(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none bg-slate-50 hover:bg-white appearance-none cursor-pointer"
+                                        >
+                                            <option value="" disabled>Select Year</option>
+                                            <option value="1st Year">1st Year</option>
+                                            <option value="2nd Year">2nd Year</option>
+                                            <option value="3rd Year">3rd Year</option>
+                                            <option value="4th Year">4th Year</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Section</label>
+                                        <select
+                                            required
+                                            value={section}
+                                            onChange={(e) => setSection(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none bg-slate-50 hover:bg-white appearance-none cursor-pointer"
+                                        >
+                                            <option value="" disabled>Select Section</option>
+                                            <option value="Section A">Section A</option>
+                                            <option value="Section B">Section B</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>

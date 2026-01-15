@@ -1,19 +1,106 @@
 "use client";
 
 import { useParams, useRouter } from 'next/navigation';
-import { projects } from '@/lib/mockData';
+import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Github, Copy, FileText, Share2, Users, Calendar, Award, Code2, QrCode, BookOpen, ExternalLink, ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState, useCallback } from 'react';
+import { getSmartDownloadUrl } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 export default function ProjectDetails() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
 
-    const project = projects.find(p => p.id === id);
+    const [project, setProject] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
+    const [similarProjects, setSimilarProjects] = useState<any[]>([]);
+    const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
 
-    if (!project) {
+    const [collaborators, setCollaborators] = useState<any[]>([]);
+
+    const fetchSimilarProjects = useCallback(async (category: string, currentId: string) => {
+        if (!category) return;
+        const { data } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('category', category)
+            .neq('id', currentId)
+            .eq('status', 'approved')
+            .limit(3);
+
+        if (data) setSimilarProjects(data);
+    }, []);
+
+    useEffect(() => {
+        const fetchProjectAndIncrementViews = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('projects')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                console.error('Error fetching project:', error);
+                setNotFound(true);
+                setProject(null);
+            } else {
+                setProject(data);
+                fetchSimilarProjects(data.category, data.id);
+
+                // Fetch Collaborators
+                const { data: collabData } = await supabase
+                    .from('project_collaborators')
+                    .select('*, profiles(full_name, email, avatar_url)')
+                    .eq('project_id', id);
+
+                if (collabData) setCollaborators(collabData);
+
+                // Increment Views (RPC)
+                await supabase.rpc('increment_views', { row_id: id });
+            }
+            setLoading(false);
+        };
+
+        if (id) {
+            fetchProjectAndIncrementViews();
+        }
+    }, [id, fetchSimilarProjects]);
+
+    const handleDownload = async () => {
+        if (!project?.pdf_url) {
+            toast.error("No document available");
+            return;
+        }
+
+        // Increment Downloads (RPC)
+        await supabase.rpc('increment_downloads', { row_id: id });
+
+        const url = getSmartDownloadUrl(project.pdf_url);
+        window.open(url, '_blank');
+    };
+
+    const handleViewSource = () => {
+        if (!project?.github_url) {
+            toast.error("No source code linked");
+            return;
+        }
+        window.open(project.github_url, '_blank');
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen grid place-items-center bg-white">
+                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (notFound || !project) { // Updated condition to use notFound state
         return (
             <div className="min-h-screen grid place-items-center bg-white">
                 <div className="text-center">
@@ -27,10 +114,11 @@ export default function ProjectDetails() {
         );
     }
 
-    const similarProjects = projects.filter(p => p.category === project.category && p.id !== project.id).slice(0, 3);
+    const authors = Array.isArray(project.authors) ? project.authors : (project.authors ? [project.authors] : []);
 
     return (
         <div className="min-h-screen w-full relative overflow-hidden bg-slate-50/50">
+
             {/* 1. Aura Background */}
             <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none overflow-hidden">
                 <div className="absolute top-0 right-0 w-[50vw] h-[50vh] bg-teal-50 rounded-full blur-[120px] opacity-60"></div>
@@ -67,21 +155,21 @@ export default function ProjectDetails() {
                     <div className="flex flex-wrap items-center gap-8 text-slate-600">
                         <div className="flex items-center gap-3">
                             <div className="flex -space-x-3">
-                                {project.authors.map((author, i) => (
-                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-xs font-bold text-indigo-700 shadow-sm relative z-10">
-                                        {author.split(' ')[0][0]}
+                                {authors.map((author: string, i: number) => (
+                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-xs font-bold text-teal-700 shadow-sm relative z-10">
+                                        {author.charAt(0)}
                                     </div>
                                 ))}
                             </div>
                             <span className="font-semibold text-sm">
-                                {project.authors.join(', ')}
+                                {authors.join(', ')}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 font-medium bg-white px-4 py-2 rounded-full border border-slate-200">
-                            <Award size={18} className="text-amber-500" /> Guide: Prof. R. K. Patil
+                            <Award size={18} className="text-amber-500" /> Guide: {project.guide_name || 'Prof. R. K. Patil'}
                         </div>
                         <div className="flex items-center gap-2 font-medium">
-                            <Calendar size={18} className="text-slate-400" /> {project.year}
+                            <Calendar size={18} className="text-slate-400" /> {project.academic_year || project.year || '2024-2025'}
                         </div>
                     </div>
                 </motion.div>
@@ -97,15 +185,28 @@ export default function ProjectDetails() {
                         className="lg:col-span-8 space-y-10"
                     >
                         {/* Abstract */}
-                        <section className="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/60 shadow-sm">
+                        <section className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
                             <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                                 <BookOpen className="text-teal-500" /> Abstract
                             </h2>
-                            <p className="text-lg text-slate-600 leading-relaxed font-medium">
-                                {project.abstract}
-                                <br /><br />
-                                This project explores novel approaches to the problem, leveraging cutting-edge algorithms to optimize performance and scalability. The results demonstrate a significant improvement over existing methods, paving the way for future research in this domain.
-                            </p>
+                            <div className={`relative transition-all duration-500 ease-in-out ${isAbstractExpanded ? 'max-h-none' : 'max-h-48 overflow-hidden'}`}>
+                                <p className="text-lg text-slate-600 leading-8 font-medium whitespace-pre-line text-justify">
+                                    {project.abstract}
+                                </p>
+                                {!isAbstractExpanded && (
+                                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent" />
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setIsAbstractExpanded(!isAbstractExpanded)}
+                                className="mt-4 text-teal-600 font-bold text-sm flex items-center gap-2 hover:text-teal-700 transition-colors"
+                            >
+                                {isAbstractExpanded ? (
+                                    <>Read Less <ChevronRight className="-rotate-90" size={16} /></>
+                                ) : (
+                                    <>Read More <ChevronRight className="rotate-90" size={16} /></>
+                                )}
+                            </button>
                         </section>
 
                         {/* Methodology Timeline */}
@@ -129,18 +230,28 @@ export default function ProjectDetails() {
                             </div>
                         </section>
 
-                        {/* Tech Stack */}
-                        <section>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6">Technologies Used</h2>
-                            <div className="flex flex-wrap gap-4">
-                                {project.techStack.map((tech) => (
-                                    <div key={tech} className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                        <span className="w-2 h-2 rounded-full bg-teal-400"></span>
-                                        <span className="font-bold text-slate-700">{tech}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+
+
+                        {/* Tech Stack - Added by Antigravity */}
+                        {project.tech_stack && project.tech_stack.length > 0 && (
+                            <section className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                                <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                                    <Code2 className="text-teal-500" /> Technologies Used
+                                </h2>
+                                <div className="flex flex-wrap gap-3">
+                                    {(Array.isArray(project.tech_stack) ? project.tech_stack : project.tech_stack.split(',')).map((tech: string, i: number) => (
+                                        <span
+                                            key={i}
+                                            className="px-4 py-2 bg-teal-50 text-teal-700 rounded-xl font-bold text-sm border border-teal-100 shadow-md shadow-teal-50 hover:shadow-lg hover:-translate-y-0.5 transition-all text-center cursor-default"
+                                        >
+                                            {tech.trim()}
+                                        </span>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+
                     </motion.div>
 
                     {/* Right Column (35%) */}
@@ -156,12 +267,14 @@ export default function ProjectDetails() {
                                 <FileText size={20} className="text-slate-400" /> Actions
                             </h3>
                             <div className="space-y-4">
-                                <button className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-400 text-white font-bold shadow-lg shadow-teal-200 hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+                                <button onClick={handleDownload} className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-400 text-white font-bold shadow-lg shadow-teal-200 hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
                                     <Download size={20} /> Download PDF
                                 </button>
-                                <button className="w-full py-4 rounded-xl bg-slate-900 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
-                                    <Github size={20} /> View Source Code
-                                </button>
+                                {project.github_url && (
+                                    <button onClick={handleViewSource} className="w-full py-4 rounded-xl bg-slate-900 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+                                        <Github size={20} /> View Source Code
+                                    </button>
+                                )}
                                 <button className="w-full py-4 rounded-xl bg-white border-2 border-slate-100 text-slate-700 font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-3">
                                     <Copy size={20} /> Copy Citation
                                 </button>
@@ -186,6 +299,40 @@ export default function ProjectDetails() {
                                 <span className="px-4 py-2 bg-white/90 backdrop-blur rounded-lg shadow-lg font-bold text-sm">Read Online</span>
                             </div>
                         </div>
+
+                        {/* Contributors Section - GitHub Style */}
+                        {collaborators.length > 0 && (
+                            <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
+                                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                    <Users size={20} className="text-slate-400" /> Contributors
+                                </h3>
+                                <div className="space-y-3">
+                                    {collaborators.filter(c => c.status === 'accepted' || c.role === 'leader').map((collab: any) => (
+                                        <div key={collab.id} className="flex items-center gap-3 group">
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border-2 border-white nav-shadow group-hover:scale-110 transition-transform">
+                                                {collab.profiles?.full_name?.charAt(0) || '?'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-800 truncate">
+                                                    {collab.profiles?.full_name || 'Unknown'}
+                                                </p>
+                                                <div className="flex gap-2 mt-1">
+                                                    {collab.role === 'leader' ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide border border-amber-200">
+                                                            Leader
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 uppercase tracking-wide border border-blue-100">
+                                                            Contributor
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
 
@@ -212,7 +359,7 @@ export default function ProjectDetails() {
                                     <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors">{p.title}</h3>
                                     <p className="text-slate-500 text-sm line-clamp-3 mb-4 flex-1">{p.abstract}</p>
                                     <div className="flex items-center justify-between text-xs font-semibold text-slate-400 pt-4 border-t border-slate-50">
-                                        <span>{p.year}</span>
+                                        <span>{p.academic_year || p.year}</span>
                                         <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform text-teal-500">View <ArrowRight size={12} /></span>
                                     </div>
                                 </div>
@@ -222,8 +369,7 @@ export default function ProjectDetails() {
                         )}
                     </div>
                 </section>
-
             </div>
-        </div>
+        </div >
     );
 }

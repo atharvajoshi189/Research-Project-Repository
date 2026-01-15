@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard } from 'lucide-react';
+import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Navbar() {
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [user, setUser] = useState<any>(null);
@@ -53,7 +54,8 @@ export default function Navbar() {
         { label: 'Home', href: '/', icon: Home },
         { label: 'Browse', href: '/search', icon: Search },
         { label: 'Upload', href: '/upload', icon: UploadCloud },
-        { label: 'Admin', href: '/admin', icon: LayoutDashboard },
+        ...(user ? [{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }] : []),
+        { label: 'Admin', href: '/admin', icon: LayoutDashboard }, // Assuming Admin is separate, or we can hide it for non-admins if we had role logic
     ];
 
     return (
@@ -68,8 +70,8 @@ export default function Navbar() {
 
                 {/* Row 1: Logo Gallery */}
                 <div
-                    className={`w-full max-w-[90rem] mx-auto px-8 lg:px-12 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden flex justify-between items-center relative
-                ${isScrolled ? '-translate-y-full opacity-0 h-0 py-0' : 'translate-y-0 opacity-100 h-28 py-4'}
+                    className={`w-full max-w-[90rem] mx-auto px-8 lg:px-12 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex justify-between items-center relative z-20
+                ${isScrolled ? '-translate-y-full opacity-0 h-0 py-0 overflow-hidden' : 'translate-y-0 opacity-100 h-28 py-4'}
             `}
                 >
                     {/* ... logos ... */}
@@ -86,28 +88,58 @@ export default function Navbar() {
                     </div>
 
                     {/* Right: ACM Logo + Auth Buttons */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-6 relative z-50">
                         <img src="/logos/acm.png" className="h-16 w-auto object-contain transition-all duration-300 hover:scale-105 hover:drop-shadow-lg" alt="ACM" />
 
                         {/* Auth Navigation */}
                         <div className="flex items-center gap-3">
                             {user ? (
-                                <>
-                                    <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-full border border-slate-200">
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                        className="flex items-center gap-3 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-200 hover:bg-white hover:shadow-md transition-all group"
+                                    >
                                         <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm">
                                             {user.email?.charAt(0).toUpperCase()}
                                         </div>
-                                        <span className="text-sm font-medium text-slate-700">
-                                            Hi, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="px-4 py-2 rounded-full border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-all duration-300"
-                                    >
-                                        Logout
+                                        <div className="text-left hidden lg:block">
+                                            <p className="text-xs font-bold text-slate-700 leading-tight">
+                                                {user.user_metadata?.full_name?.split(' ')[0] || 'Student'}
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 font-medium">{user.email?.split('@')[0]}</p>
+                                        </div>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </button>
-                                </>
+
+                                    <AnimatePresence>
+                                        {isProfileOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-20 py-2"
+                                            >
+                                                <div className="px-4 py-2 border-b border-slate-50 mb-1">
+                                                    <p className="text-xs font-bold text-slate-900 truncate">{user.user_metadata?.full_name || 'User'}</p>
+                                                    <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                                                </div>
+
+                                                <Link href="/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-teal-600 transition-colors">
+                                                    <LayoutDashboard size={16} /> My Workspace
+                                                </Link>
+                                                <Link href="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-teal-600 transition-colors">
+                                                    <Settings size={16} /> Profile Settings
+                                                </Link>
+
+                                                <div className="h-px bg-slate-50 my-1"></div>
+
+                                                <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors">
+                                                    <LogOut size={16} /> Sign Out
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             ) : (
                                 <>
                                     <Link href="/login" className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 font-semibold text-sm hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50/50 transition-all duration-300">
@@ -123,7 +155,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Row 2: Premium Nav Bar */}
-                <div className={`w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 py-2 shadow-sm' : 'bg-white/50 backdrop-blur-md border-t border-b border-slate-100 py-3'}`}>
+                <div className={`w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] relative z-10 ${isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 py-2 shadow-sm' : 'bg-white/50 backdrop-blur-md border-t border-b border-slate-100 py-3'}`}>
                     <nav className="flex justify-center items-center gap-2 relative">
                         <div className="flex bg-slate-100/0 rounded-full p-1 relative">
                             {navItems.map((item, index) => {
