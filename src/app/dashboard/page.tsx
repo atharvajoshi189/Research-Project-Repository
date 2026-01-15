@@ -526,7 +526,13 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
                         <Share2 size={16} />
                     </button>
                     {isPending && (
-                        <Link href={`/upload?edit=${project.id}`} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors" title="Edit Project">
+                        <Link href={`/upload?edit=${project.id}`} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors" title="Edit Pending Project">
+                            <Edit size={16} />
+                        </Link>
+                    )}
+                    {/* Add Edit Button for Leaders (Always visible if leader) */}
+                    {project.userRole === 'leader' && !isPending && (
+                        <Link href={`/project/edit/${project.id}`} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors" title="Edit Project">
                             <Edit size={16} />
                         </Link>
                     )}
