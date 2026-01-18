@@ -13,6 +13,15 @@ export const signUpUser = async (
     const { data, error } = await supabase.auth.signUp({
         email,
         password: pass,
+        options: {
+            data: {
+                full_name: fullName,
+                role: role,
+                academic_year: academicYear,
+                section: section,
+                college_id: collegeId
+            }
+        }
     });
 
     if (error) throw error;
@@ -21,7 +30,7 @@ export const signUpUser = async (
     if (data.user) {
         const { error: profileError } = await supabase
             .from('profiles')
-            .insert([
+            .upsert([
                 {
                     id: data.user.id,
                     full_name: fullName,
