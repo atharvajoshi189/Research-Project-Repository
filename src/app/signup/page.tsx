@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, GraduationCap, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff, Loader2, GraduationCap, Building2, ArrowRight, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { signUpUser } from '@/lib/authService';
 
@@ -45,232 +45,277 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex min-h-screen bg-slate-950 font-sans">
-            {/* LEFT SIDE - BRANDING (60%) */}
-            <div className="hidden lg:flex w-[60%] relative overflow-hidden items-center justify-center">
-                {/* Rich Teal Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 animate-gradient-x"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.15),transparent_60%)]"></div>
-
-                <div className="relative z-10 flex flex-col items-center text-center p-12">
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="mb-8"
-                    >
-                        {/* 3D Glass Logo Placeholder - Teal Tint */}
-                        <div className="w-40 h-40 bg-teal-500/10 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-2xl border border-white/10 transform rotate-3 hover:rotate-0 transition-all duration-500 group relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-teal-400/20 to-transparent opacity-50 rounded-2xl"></div>
-                            <span className="text-6xl font-black text-white/90 drop-shadow-lg group-hover:text-white transition-colors">DP</span>
-                        </div>
-                    </motion.div>
-
-                    <motion.h1
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.8 }}
-                        className="text-6xl font-black text-white mb-2 tracking-tighter uppercase"
-                    >
-                        Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500 text-glow-teal">Community</span>
-                    </motion.h1>
-
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "100px" }}
-                        transition={{ delay: 0.8, duration: 1 }}
-                        className="h-1 bg-teal-500 rounded-full mb-6"
-                    />
-
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
-                        className="text-lg text-slate-300 font-medium max-w-md tracking-wide"
-                    >
-                        INNOVATING FOR TOMORROW
-                    </motion.p>
-                </div>
-            </div>
-
-            {/* RIGHT SIDE - FORM (40%) */}
-            <div className="w-full lg:w-[40%] flex items-center justify-center p-8 bg-slate-900 relative perspective-1000">
-                {/* Gradient Overlay for Right Side */}
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950"></div>
-
+        <div className="fixed inset-0 z-[100] w-full h-full flex items-center justify-center overflow-hidden bg-[#020617] font-sans">
+            {/* VIBRANT ANIMATED BACKGROUND BLOBS - BLUE & WHITE TONES */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
-                    initial={{ x: 50, opacity: 0 }}
                     animate={{
-                        x: 0,
-                        opacity: 1,
-                        rotateY: role === 'faculty' ? 180 : 0
+                        scale: [1, 1.2, 1],
+                        x: [0, 50, 0],
+                        y: [0, 100, 0],
                     }}
                     transition={{
-                        delay: 0.2,
-                        duration: 0.8,
-                        rotateY: { duration: 0.8, ease: "easeInOut" }
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: "easeInOut"
                     }}
-                    className="w-full max-w-md relative z-10 group preserve-3d"
+                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-600/30 rounded-full blur-[120px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1.2, 1, 1.2],
+                        x: [0, -70, 0],
+                        y: [0, -50, 0],
+                    }}
+                    transition={{
+                        duration: 10,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                    className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] bg-cyan-500/20 rounded-full blur-[150px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        x: [0, 100, 0],
+                        y: [0, -80, 0],
+                    }}
+                    transition={{
+                        duration: 12,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                    className="absolute -bottom-[20%] left-[10%] w-[70%] h-[70%] bg-indigo-600/20 rounded-full blur-[180px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1.1, 1, 1.1],
+                        rotate: [0, 360],
+                    }}
+                    transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[100px]"
+                />
+            </div>
+
+            {/* CONTENT WRAPPER */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-[520px] px-4 perspective-1000"
+            >
+                {/* 3D Container */}
+                <motion.div
+                    animate={{ rotateY: role === 'faculty' ? 180 : 0 }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    className="relative w-full preserve-3d"
                 >
-                    {/* Inner Card - Front (Student) */}
-                    <div className={`w-full space-y-8 backface-hidden ${role === 'faculty' ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'}`}>
-                        {/* Glass Panel Background */}
-                        <div className="absolute -inset-6 bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl -z-10 transition-all duration-500 ease-out group-hover:scale-[1.02] group-hover:bg-slate-800/80 group-hover:border-teal-500/30 group-hover:shadow-[0_0_40px_rgba(20,184,166,0.2)]"></div>
-
-                        <div className="text-center lg:text-left mb-8">
-                            <h2 className="text-3xl font-bold text-white tracking-tight uppercase border-l-4 border-teal-500 pl-4">Student Access</h2>
-                            <p className="mt-2 text-slate-400 pl-4 text-sm font-medium">Join the research network</p>
-                        </div>
-
-                        <div className="space-y-5">
-                            {/* Role Toggle Snippet - Repurposed as triggers */}
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setRole('student')}
-                                    className="flex items-center justify-center py-3 px-4 rounded-lg border border-teal-500 bg-teal-500/20 text-teal-400 font-medium text-sm"
-                                >
-                                    <GraduationCap className="mr-2 w-4 h-4" /> Student
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRole('faculty')}
-                                    className="flex items-center justify-center py-3 px-4 rounded-lg border border-slate-700 bg-slate-800/50 text-slate-500 hover:border-slate-600 font-medium text-sm"
-                                >
-                                    <Building2 className="mr-2 w-4 h-4" /> Faculty
-                                </button>
-                            </div>
-
-                            <SignupForm
-                                role="student"
-                                fullName={fullName} setFullName={setFullName}
-                                email={email} setEmail={setEmail}
-                                password={password} setPassword={setPassword}
-                                showPassword={showPassword} setShowPassword={setShowPassword}
-                                isLoading={isLoading}
-                                onSubmit={handleSignup}
-                            />
-                        </div>
+                    {/* FRONT: STUDENT SIGNUP */}
+                    <div
+                        className="w-full relative"
+                        style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                    >
+                        <GlassCard
+                            title="Student Signup"
+                            subtitle="Join the academic research community."
+                            role="student"
+                            otherRole="faculty"
+                            onToggleRole={() => setRole('faculty')}
+                            fullName={fullName}
+                            email={email}
+                            password={password}
+                            setFullName={setFullName}
+                            setEmail={setEmail}
+                            setPassword={setPassword}
+                            showPassword={showPassword}
+                            setShowPassword={setShowPassword}
+                            isLoading={isLoading}
+                            handleSignup={handleSignup}
+                        />
                     </div>
 
-                    {/* Inner Card - Back (Faculty) */}
-                    <div className={`w-full space-y-8 backface-hidden rotate-y-180 absolute top-0 left-0 ${role === 'student' ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'}`}>
-                        {/* Glass Panel Background */}
-                        <div className="absolute -inset-6 bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl -z-10 transition-all duration-500 ease-out group-hover:scale-[1.02] group-hover:bg-slate-800/80 group-hover:border-teal-500/30 group-hover:shadow-[0_0_40px_rgba(20,184,166,0.2)]"></div>
-
-                        <div className="text-center lg:text-left mb-8">
-                            <h2 className="text-3xl font-bold text-white tracking-tight uppercase border-l-4 border-teal-500 pl-4">Faculty Portal</h2>
-                            <p className="mt-2 text-slate-400 pl-4 text-sm font-medium">Elevate academic management</p>
-                        </div>
-
-                        <div className="space-y-5">
-                            {/* Role Toggle Snippet - Repurposed as triggers */}
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setRole('student')}
-                                    className="flex items-center justify-center py-3 px-4 rounded-lg border border-slate-700 bg-slate-800/50 text-slate-500 hover:border-slate-600 font-medium text-sm"
-                                >
-                                    <GraduationCap className="mr-2 w-4 h-4" /> Student
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRole('faculty')}
-                                    className="flex items-center justify-center py-3 px-4 rounded-lg border border-teal-500 bg-teal-500/20 text-teal-400 font-medium text-sm"
-                                >
-                                    <Building2 className="mr-2 w-4 h-4" /> Faculty
-                                </button>
-                            </div>
-
-                            <SignupForm
-                                role="faculty"
-                                fullName={fullName} setFullName={setFullName}
-                                email={email} setEmail={setEmail}
-                                password={password} setPassword={setPassword}
-                                showPassword={showPassword} setShowPassword={setShowPassword}
-                                isLoading={isLoading}
-                                onSubmit={handleSignup}
-                            />
-                        </div>
+                    {/* BACK: FACULTY SIGNUP */}
+                    <div
+                        className="w-full absolute top-0 left-0"
+                        style={{
+                            backfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                            WebkitBackfaceVisibility: 'hidden'
+                        }}
+                    >
+                        <GlassCard
+                            title="Faculty Portal"
+                            subtitle="Elevate your academic management."
+                            role="faculty"
+                            otherRole="student"
+                            onToggleRole={() => setRole('student')}
+                            fullName={fullName}
+                            email={email}
+                            password={password}
+                            setFullName={setFullName}
+                            setEmail={setEmail}
+                            setPassword={setPassword}
+                            showPassword={showPassword}
+                            setShowPassword={setShowPassword}
+                            isLoading={isLoading}
+                            handleSignup={handleSignup}
+                        />
                     </div>
                 </motion.div>
-            </div>
+
+                {/* Decorative Bottom Glow */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-4/5 h-20 bg-blue-500/10 blur-[60px] rounded-full -z-1" />
+            </motion.div>
         </div>
     );
 }
 
-// Sub-component for the form fields to avoid duplication
-function SignupForm({ role, fullName, setFullName, email, setEmail, password, setPassword, showPassword, setShowPassword, isLoading, onSubmit }: any) {
+function GlassCard({
+    title, subtitle, role, otherRole, onToggleRole,
+    fullName, email, password, setFullName, setEmail, setPassword,
+    showPassword, setShowPassword, isLoading, handleSignup
+}: any) {
     return (
-        <form onSubmit={onSubmit} className="space-y-5">
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Full Name</label>
-                    <input
-                        type="text"
-                        required
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-950/60 border border-slate-700 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all rounded-lg font-medium"
-                        placeholder="Enter full name"
-                    />
-                </div>
+        <div className="relative overflow-hidden rounded-[40px] border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)] px-8 py-10 md:px-12 md:py-12">
+            {/* Inner Glow/Highlight */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent opacity-30" />
 
-                <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">College Email</label>
-                    <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-950/60 border border-slate-700 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all rounded-lg font-medium"
-                        placeholder={role === 'faculty' ? "faculty@college.edu" : "student@college.edu"}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Password</label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-950/60 border border-slate-700 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all rounded-lg font-medium"
-                            placeholder="••••••••"
+            <div className="relative">
+                {/* Logo & Header */}
+                <div className="text-center mb-8">
+                    <motion.div
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="inline-flex items-center justify-center p-2 mb-6 rounded-full bg-white shadow-xl border-4 border-white"
+                    >
+                        <img
+                            src="/logos/college-logo.jpg"
+                            alt="College Logo"
+                            className="w-20 h-20 object-contain rounded-full"
                         />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-                        >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
+                    </motion.div>
+                    <motion.h1
+                        initial={{ y: -10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-4xl font-extrabold text-white tracking-tight"
+                    >
+                        {title}
+                    </motion.h1>
+                    <motion.p
+                        initial={{ y: -10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                        className="mt-2 text-blue-100/60 font-medium"
+                    >
+                        {subtitle}
+                    </motion.p>
+                </div>
+
+                {/* Role Switcher */}
+                <div className="flex bg-white/5 p-1.5 rounded-2xl mb-8 border border-white/5">
+                    <button
+                        onClick={() => role === 'faculty' ? onToggleRole() : null}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all duration-300 ${role === 'student' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    >
+                        <GraduationCap size={18} />
+                        Student
+                    </button>
+                    <button
+                        onClick={() => role === 'student' ? onToggleRole() : null}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all duration-300 ${role === 'faculty' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    >
+                        <Building2 size={18} />
+                        Faculty
+                    </button>
+                </div>
+
+                {/* Signup Form */}
+                <form onSubmit={handleSignup} className="space-y-5">
+                    <div className="space-y-4 text-left">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Full Name</label>
+                            <input
+                                type="text"
+                                required
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                className="w-full px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all duration-300 hover:bg-white/[0.05]"
+                                placeholder="Enter your full name"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">College Email</label>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all duration-300 hover:bg-white/[0.05]"
+                                placeholder={role === 'faculty' ? 'faculty@college.edu' : 'student@college.edu'}
+                            />
+                        </div>
+
+                        <div className="group relative">
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Password</label>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all duration-300 hover:bg-white/[0.05]"
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-5 top-[44px] text-slate-500 hover:text-white transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                     </div>
+
+                    <div className="pt-4">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            disabled={isLoading}
+                            className="relative w-full overflow-hidden group py-5 rounded-2xl font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/20"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 bg-[length:200%_100%] group-hover:bg-[100%_0] transition-all duration-500" />
+                            <div className="relative flex items-center justify-center gap-2">
+                                {isLoading ? (
+                                    <Loader2 className="animate-spin h-6 w-6" />
+                                ) : (
+                                    <>
+                                        {role === 'faculty' ? 'Initialize Faculty Portal' : 'Create Student Account'}
+                                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </div>
+                        </motion.button>
+                    </div>
+                </form>
+
+                {/* Footer Link */}
+                <div className="mt-10 text-center">
+                    <p className="text-slate-500 font-medium tracking-wide">
+                        ALREADY AUTHORIZED?{' '}
+                        <Link href="/login" className="text-white font-bold ml-1 hover:text-blue-400 transition-all decoration-blue-500 decoration-2 underline-offset-4">
+                            LOG IN
+                        </Link>
+                    </p>
                 </div>
             </div>
-
-            <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-4 px-4 mt-6 border border-transparent rounded-lg shadow-lg shadow-teal-900/20 text-sm font-bold text-white bg-teal-600 hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest shadow-glow-teal"
-            >
-                {isLoading ? (
-                    <Loader2 className="animate-spin h-5 w-5" />
-                ) : (
-                    "Initiate Access"
-                )}
-            </button>
-
-            <div className="text-center mt-6 pt-6 border-t border-white/5">
-                <p className="text-xs text-slate-500 font-medium">
-                    ALREADY AUTHORIZED?{' '}
-                    <Link href="/login" className="font-bold text-teal-500 hover:text-teal-400 transition-colors uppercase">
-                        Sign In
-                    </Link>
-                </p>
-            </div>
-        </form>
+        </div>
     );
 }
 

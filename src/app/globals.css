@@ -9,6 +9,24 @@
   --color-teal-glow: rgba(20, 184, 166, 0.5);
 }
 
+/* 3D Flip Utilities - Tailwind 4 @utility syntax */
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@utility perspective-1000 {
+  perspective: 1000px !important;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@utility rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
 @layer utilities {
   .bg-gradient-mesh {
     background-color: #0f172a;
@@ -28,23 +46,6 @@
 
   .shadow-glow-teal {
     box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
-  }
-
-  /* 3D Flip Utilities */
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
-
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
-
-  .rotate-y-180 {
-    transform: rotateY(180deg);
   }
 
   /* Retaining animations for smooth feel */

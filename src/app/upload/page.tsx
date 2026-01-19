@@ -177,8 +177,8 @@ export default function UploadPage() {
                                         setStep(2);
                                     }}
                                     className={`p-6 border-2 rounded-xl transition-all text-left group ${formData.category === cat
-                                            ? 'border-indigo-500 bg-indigo-50'
-                                            : 'border-slate-100 hover:border-indigo-500 hover:bg-indigo-50'
+                                        ? 'border-indigo-500 bg-indigo-50'
+                                        : 'border-slate-100 hover:border-indigo-500 hover:bg-indigo-50'
                                         }`}
                                 >
                                     <span className="font-bold text-slate-700 group-hover:text-indigo-700 block mb-1">{cat}</span>
