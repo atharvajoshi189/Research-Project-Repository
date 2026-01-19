@@ -1,10 +1,11 @@
 "use client";
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import Sidebar from '@/components/admin/Sidebar';
+// import Sidebar from '@/components/admin/Sidebar';
 import StatsCards from '@/components/admin/StatsCards';
-import { Search, Filter, Download, Trash2, Check, MoreHorizontal, Bell, User as UserIcon, ExternalLink } from 'lucide-react';
+import { Search, Filter, Download, Trash2, Check, MoreHorizontal, Bell, User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
 import { getSmartDownloadUrl } from '@/lib/utils';
@@ -22,19 +23,15 @@ export default function AdminPage() {
     const [stats, setStats] = useState({
         total: 0,
         pending: 0,
-        users: 124, // Mocked for now
-        storage: '0 MB',
+        users: 124,
     });
 
     useEffect(() => {
         fetchProjects();
-        // Simulate fetching storage size (Mocking realistic data)
-        setStats(prev => ({ ...prev, storage: '450 MB' }));
     }, [filterStatus]);
 
     const fetchProjects = async () => {
         setLoading(true);
-        // Assuming guide_name exists as per user request
         let query = supabase.from('projects').select('*').order('created_at', { ascending: false });
 
         if (filterStatus === 'pending') {
@@ -47,7 +44,7 @@ export default function AdminPage() {
             toast.error("Failed to fetch projects");
             console.error(error);
         } else {
-            console.log("Fetched Projects:", data); // Debugging
+            console.log("Fetched Projects:", data);
             setProjects(data || []);
             const total = data?.length || 0;
             const pending = data?.filter((p: any) => p.status === 'pending').length || 0;
@@ -170,11 +167,76 @@ export default function AdminPage() {
         window.open(downloadUrl, '_blank');
     };
 
-    return (
-        <div className="flex bg-[#F8FAFC] min-h-screen font-sans text-slate-900 relative">
-            <Sidebar />
+    // Using useAI might technically check the context but since the sidebar doesn't update, 
+    // and the page background is driven by AITheme in layout, we just need to ensure transparency.
+    // The user requested: "If AI Mode is toggled, ensure the Admin page also follows the dark glassmorphism theme"
+    // Since AIBackground is global, the background is already dark purple.
+    // We just need to make sure this page doesn't have a solid white background covering it.
 
-            <main className="ml-0 lg:ml-64 flex-1 p-8 lg:p-12 transition-all">
+    // Navigation Links
+    const navLinks = [
+        { name: 'Dashboard', value: 'all' },
+        { name: 'Pending', value: 'pending' },
+    ];
+
+    return (
+        <div className="min-h-screen font-sans relative bg-slate-50 dark:bg-transparent">
+            {/* Top Navigation Bar */}
+            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0a0514]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        {/* Logo / Brand */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
+                                A
+                            </div>
+                            <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">DevRepo Admin</span>
+
+                            {/* Desktop Nav */}
+                            <nav className="hidden md:flex items-center ml-8 space-x-1">
+                                <Link href="/admin" className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${!filterStatus || filterStatus === 'all' ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
+                                    Dashboard
+                                </Link>
+                                <Link href="/admin?filter=pending" className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${filterStatus === 'pending' ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
+                                    Pending Approvals
+                                </Link>
+                                <Link href="/admin/users" className="px-3 py-2 text-sm font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                                    Users
+                                </Link>
+                            </nav>
+                        </div>
+
+                        {/* Right Side Actions */}
+                        <div className="flex items-center gap-4">
+                            <button className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors relative">
+                                <Bell size={20} />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0a0514]"></span>
+                            </button>
+
+                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
+
+                            {/* Profile Dropdown Trigger */}
+                            <div className="flex items-center gap-3 group cursor-pointer">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">Admin User</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Department Head</p>
+                                </div>
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-white dark:ring-white/10 group-hover:ring-teal-200 dark:group-hover:ring-teal-900 transition-all">
+                                    AD
+                                </div>
+                                {/* Simple Dropdown for Logout */}
+                                <div className="relative group">
+                                    <button className="p-1 text-slate-400 hover:text-slate-600">
+                                        <LogOut size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all relative z-10">
 
                 {/* Reject Modal */}
                 {rejectId && (
@@ -210,38 +272,26 @@ export default function AdminPage() {
                     </div>
                 )}
 
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                            {filterStatus === 'pending' ? 'Pending Queue' : 'Dashboard Overview'}
-                        </h1>
-                        <p className="text-slate-500 mt-1">Manage departmental projects and submissions.</p>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-white shadow-sm shadow-slate-200/50">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold">
-                                AD
-                            </div>
-                            <span className="text-sm font-semibold text-slate-700 pr-2">Admin User</span>
-                        </div>
-                        <button className="p-3 bg-white rounded-full text-slate-400 hover:text-teal-600 shadow-sm border border-slate-100 transition-all relative">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                        </button>
-                    </div>
+                {/* Page Title Area */}
+                <div className="mb-8">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {filterStatus === 'pending' ? 'Pending Approvals' : 'Dashboard Overview'}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                        {filterStatus === 'pending'
+                            ? 'Review and take action on project submissions requiring your attention.'
+                            : 'Welcome back! Here is what’s happening in your department today.'}
+                    </p>
                 </div>
 
                 <StatsCards
                     totalProjects={stats.total}
                     pendingProjects={stats.pending}
                     totalUsers={stats.users}
-                    storageUsed={stats.storage}
                 />
 
                 {/* Toolbar */}
-                <div className="bg-white p-5 rounded-t-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center z-10 relative">
+                <div className="bg-white dark:bg-slate-900/60 p-5 rounded-t-3xl border border-slate-100 dark:border-white/5 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center z-10 relative backdrop-blur-3xl">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
@@ -249,20 +299,20 @@ export default function AdminPage() {
                             placeholder="Search by Student Name, Title or Roll No..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-100 focus:bg-white transition-all text-sm font-medium text-slate-700 placeholder:text-slate-400"
+                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl focus:ring-2 focus:ring-teal-100 dark:focus:ring-cyan-900 focus:bg-white dark:focus:bg-black/20 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
                         />
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         {selectedIds.length > 0 ? (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-200 bg-teal-50 px-4 py-2 rounded-xl">
-                                <span className="text-xs font-bold text-teal-700 whitespace-nowrap">{selectedIds.length} Selected</span>
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-200 bg-teal-50 dark:bg-teal-900/30 px-4 py-2 rounded-xl">
+                                <span className="text-xs font-bold text-teal-700 dark:text-teal-300 whitespace-nowrap">{selectedIds.length} Selected</span>
                                 <div className="h-4 w-px bg-teal-200 mx-1"></div>
                                 <button onClick={() => handleBulkAction('approve')} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline px-2">Approve</button>
                                 <button onClick={() => handleBulkAction('delete')} className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline px-2">Delete</button>
                             </div>
                         ) : (
-                            <button onClick={downloadCSV} className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:border-teal-200 hover:text-teal-600 hover:shadow-lg hover:shadow-teal-50/50 font-semibold text-sm transition-all">
+                            <button onClick={downloadCSV} className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 hover:border-teal-200 hover:text-teal-600 hover:shadow-lg hover:shadow-teal-50/50 font-semibold text-sm transition-all">
                                 <Download size={18} />
                                 <span className="hidden sm:inline">Export CSV</span>
                             </button>
@@ -271,9 +321,9 @@ export default function AdminPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white border-x border-b border-slate-100 rounded-b-3xl overflow-hidden shadow-sm shadow-slate-200/40">
+                <div className="bg-white dark:bg-slate-900/60 border-x border-b border-slate-100 dark:border-white/5 rounded-b-3xl overflow-hidden shadow-sm shadow-slate-200/40 backdrop-blur-3xl">
                     <table className="w-full text-left">
-                        <thead className="bg-[#fcfcfd] border-b border-slate-100">
+                        <thead className="bg-[#fcfcfd] dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                             <tr>
                                 <th className="p-6 w-14">
                                     <input
@@ -290,14 +340,14 @@ export default function AdminPage() {
                                 <th className="py-5 px-6 text-xs font-extrabold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                             {loading ? (
                                 <tr><td colSpan={6} className="p-12 text-center text-slate-400 font-medium">Loading projects...</td></tr>
                             ) : filteredProjects.length === 0 ? (
                                 <tr><td colSpan={6} className="p-12 text-center text-slate-400 font-medium">No projects found matching your search.</td></tr>
                             ) : (
                                 filteredProjects.map((project) => (
-                                    <tr key={project.id} className="hover:bg-teal-50/30 transition-colors group cursor-default">
+                                    <tr key={project.id} className="hover:bg-teal-50/30 dark:hover:bg-white/5 transition-colors group cursor-default">
                                         <td className="p-6">
                                             <input
                                                 type="checkbox"
@@ -307,8 +357,8 @@ export default function AdminPage() {
                                             />
                                         </td>
                                         <td className="p-6">
-                                            <div className="font-bold text-slate-800 text-base mb-1">{project.title}</div>
-                                            <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">
+                                            <div className="font-bold text-slate-800 dark:text-slate-200 text-base mb-1">{project.title}</div>
+                                            <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400">
                                                 {project.academic_year}
                                             </div>
                                         </td>
@@ -317,12 +367,12 @@ export default function AdminPage() {
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex -space-x-2 overflow-hidden">
                                                         {(Array.isArray(project.authors) ? project.authors : project.authors ? [project.authors] : []).map((author: string, i: number) => (
-                                                            <div key={i} title={author} className="h-8 w-8 rounded-full ring-2 ring-white bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-[10px] font-bold text-teal-800 shadow-sm">
+                                                            <div key={i} title={author} className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-[10px] font-bold text-teal-800 shadow-sm">
                                                                 {author.charAt(0)}
                                                             </div>
                                                         ))}
                                                     </div>
-                                                    <div className="text-xs font-bold text-slate-700 truncate max-w-[120px]">
+                                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
                                                         {/* Show first author name provided it exists */}
                                                         {Array.isArray(project.authors) && project.authors.length > 0 ? project.authors[0] : (typeof project.authors === 'string' ? project.authors : 'Unknown')}
                                                         {Array.isArray(project.authors) && project.authors.length > 1 && <span className="text-slate-400 font-medium"> +{project.authors.length - 1}</span>}
@@ -334,7 +384,7 @@ export default function AdminPage() {
                                             </div>
                                         </td>
                                         <td className="p-6">
-                                            <span className="px-3 py-1.5 bg-white border border-slate-100 rounded-lg text-xs font-semibold text-slate-600 shadow-sm">
+                                            <span className="px-3 py-1.5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 shadow-sm">
                                                 {project.category}
                                             </span>
                                         </td>
