@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, X, FileText, AlertCircle } from 'lucide-react';
+import StudentCard from '@/components/StudentCard';
 
 export default function AdminDashboard() {
     return (
@@ -34,6 +35,17 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Component Preview: Student Card */}
+            <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-6">Recently Joined Member</h2>
+                <StudentCard
+                    name="Atharva Joshi"
+                    role="Frontend Lead"
+                    number="BE-CS-2024-042"
+                    branch="Computer Science & Engineering"
+                />
             </div>
 
             {/* Approval Queue */}
