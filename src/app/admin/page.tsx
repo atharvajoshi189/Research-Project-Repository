@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 // import Sidebar from '@/components/admin/Sidebar';
 import StatsCards from '@/components/admin/StatsCards';
@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
 import { getSmartDownloadUrl } from '@/lib/utils';
 
-export default function AdminPage() {
+function AdminContent() {
     const searchParams = useSearchParams();
     const filterStatus = searchParams.get('filter') || 'all';
 
@@ -180,63 +180,8 @@ export default function AdminPage() {
     ];
 
     return (
-        <div className="min-h-screen font-sans relative bg-slate-50 dark:bg-transparent">
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0a0514]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Logo / Brand */}
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
-                                A
-                            </div>
-                            <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">DevRepo Admin</span>
-
-                            {/* Desktop Nav */}
-                            <nav className="hidden md:flex items-center ml-8 space-x-1">
-                                <Link href="/admin" className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${!filterStatus || filterStatus === 'all' ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
-                                    Dashboard
-                                </Link>
-                                <Link href="/admin?filter=pending" className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${filterStatus === 'pending' ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
-                                    Pending Approvals
-                                </Link>
-                                <Link href="/admin/users" className="px-3 py-2 text-sm font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
-                                    Users
-                                </Link>
-                            </nav>
-                        </div>
-
-                        {/* Right Side Actions */}
-                        <div className="flex items-center gap-4">
-                            <button className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors relative">
-                                <Bell size={20} />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0a0514]"></span>
-                            </button>
-
-                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
-
-                            {/* Profile Dropdown Trigger */}
-                            <div className="flex items-center gap-3 group cursor-pointer">
-                                <div className="text-right hidden sm:block">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">Admin User</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Department Head</p>
-                                </div>
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-white dark:ring-white/10 group-hover:ring-teal-200 dark:group-hover:ring-teal-900 transition-all">
-                                    AD
-                                </div>
-                                {/* Simple Dropdown for Logout */}
-                                <div className="relative group">
-                                    <button className="p-1 text-slate-400 hover:text-slate-600">
-                                        <LogOut size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all relative z-10">
+        <div className="min-h-screen font-sans relative">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all relative z-10 pt-24">
 
                 {/* Reject Modal */}
                 {rejectId && (
@@ -425,5 +370,13 @@ export default function AdminPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function AdminPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen grid place-items-center"><div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <AdminContent />
+        </Suspense>
     );
 }
