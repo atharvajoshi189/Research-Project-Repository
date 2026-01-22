@@ -1,11 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, Clock, Tag, FileText, ArrowRight, Mic, LayoutGrid, Users, Trophy, Activity, Zap, Shield, Database, Globe, Github } from 'lucide-react';
+import { Search, BookOpen, Clock, Tag, FileText, ArrowRight, Mic, LayoutGrid, Users, Trophy, Activity, Zap, Shield, Database, Globe, Github, Sparkles, BrainCircuit, Cpu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { useAITheme } from '@/context/AIThemeContext';
+import LightTechBackground from '@/components/LightTechBackground';
 
 export default function Home() {
   const router = useRouter();
@@ -15,6 +17,10 @@ export default function Home() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const [projects, setProjects] = useState<any[]>([]);
+
+  // Use Global AI Context
+  const { isAIActive, toggleAIMode } = useAITheme();
+  const [isThinking, setIsThinking] = useState(false); // New state for "Thinking" animation
 
   useEffect(() => {
     fetchProjects();
@@ -59,10 +65,25 @@ export default function Home() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-      router.push(`/project/${suggestions[selectedIndex].id}`);
-    } else if (query.trim()) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
+
+    if (isAIActive) {
+      // AI Mode "Thinking" Effect
+      if (!query.trim()) return;
+
+      setIsThinking(true);
+
+      // Simulate processing delay for effect (optional, or just go directly)
+      setTimeout(() => {
+        router.push(`/ai-mode?query=${encodeURIComponent(query)}`);
+      }, 1500);
+
+    } else {
+      // Standard Search Logic
+      if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+        router.push(`/project/${suggestions[selectedIndex].id}`);
+      } else if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query)}`);
+      }
     }
   };
 
@@ -77,38 +98,45 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full">
-      {/* 1. Full-Page Mesh Gradient Background */}
-      <div className="fixed inset-0 top-0 left-0 w-full h-full -z-50 overflow-hidden pointer-events-none bg-white">
-        {/* Top Left: Faint Teal #E0FBFC */}
-        <div className="absolute -top-[10%] -left-[10%] w-[70vw] h-[70vh] bg-[#E0FBFC] rounded-full blur-[120px] opacity-80 animate-blob mix-blend-multiply"></div>
-        {/* Top Right: Powder Blue #E0E7FF */}
-        <div className="absolute top-[5%] -right-[10%] w-[70vw] h-[70vh] bg-[#E0E7FF] rounded-full blur-[140px] opacity-80 animate-blob animation-delay-2000 mix-blend-multiply"></div>
-        {/* Bottom Accent */}
-        <div className="absolute -bottom-[20%] left-[20%] w-[50vw] h-[50vh] bg-teal-50/50 rounded-full blur-[100px] opacity-60"></div>
-      </div>
+    <div className={`relative w-full transition-colors duration-1000 ${isThinking ? 'overflow-hidden h-screen' : ''}`}>
+
+      {/* 1. Standard Background Blob (Only visible in normal mode, handled by Layout for AI mode) */}
+      {!isAIActive && <LightTechBackground />}
+
+      {/* Dim Overlay when Thinking */}
+      <AnimatePresence>
+        {isThinking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[60] bg-[#05010d]/80 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Immersive Hero & Search */}
-      <section className="flex flex-col items-center justify-center text-center space-y-16 pt-32 pb-20 px-4 w-full max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="space-y-8"
-        >
-          <span className="inline-block px-5 py-2 rounded-full bg-white/80 border border-teal-100 text-teal-600 font-semibold text-xs tracking-widest uppercase shadow-sm backdrop-blur-md">
-            Computer Science & Engineering
-          </span>
-          <h1 className="text-7xl md:text-8xl font-black text-slate-900 tracking-tight leading-[1.1]">
-            Design Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-400 pb-2">
-              Intellectual Legacy
+      <section className={`flex flex-col items-center justify-center text-center space-y-16 pt-32 pb-20 px-4 w-full max-w-7xl mx-auto transition-all duration-800 ${isThinking ? 'z-[70] relative scale-105' : ''}`}>
+        {!isAIActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className={`space-y-8 ${isThinking ? 'opacity-20 blur-sm' : ''}`}
+          >
+            <span className={`inline-block px-5 py-2 rounded-full border text-xs tracking-widest uppercase shadow-sm backdrop-blur-md transition-colors duration-800 ${isAIActive ? 'bg-white/10 border-white/20 text-cyan-300' : 'bg-white/80 border-teal-100 text-teal-600'}`}>
+              Computer Science & Engineering
             </span>
-          </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
-            Search across thousands of research papers and innovative projects in seconds.
-          </p>
-        </motion.div>
+            <h1 className={`text-7xl md:text-8xl font-black tracking-tight leading-[1.1] transition-colors duration-800 ${isAIActive ? 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'text-slate-900'}`}>
+              Design Your
+              <span className={`block pb-2 ${isAIActive ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-fuchsia-400 animate-pulse' : 'text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-400'}`}>
+                Intellectual Legacy
+              </span>
+            </h1>
+            <p className={`text-xl max-w-2xl mx-auto leading-relaxed font-medium transition-colors duration-800 ${isAIActive ? 'text-slate-300' : 'text-slate-500'}`}>
+              Search across thousands of research papers and innovative projects in seconds.
+            </p>
+          </motion.div>
+        )}
 
         {/* 3. The "Aura" Search Bar */}
         <motion.div
@@ -120,44 +148,104 @@ export default function Home() {
         >
           <form onSubmit={handleSearch} className="relative group">
 
-            {/* Soft Teal Aura Glow */}
-            <div className="absolute -inset-4 rounded-full bg-teal-400/20 opacity-0 group-focus-within:opacity-100 blur-2xl transition-opacity duration-500"></div>
+            {/* Dynamic Glow Effect for AI Mode */}
+            <div className={`absolute -inset-1 rounded-full opacity-0 blur-xl transition-all duration-1000 ${isAIActive ? 'bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 opacity-60 group-hover:opacity-80 group-focus-within:opacity-100 animate-pulse' : 'bg-teal-400/20 group-focus-within:opacity-100'}`}></div>
 
             <motion.div
-              className="relative rounded-full bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-slate-100/50"
-              whileHover={{ y: -2, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.12)" }}
+
+              className={`relative rounded-full shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] transition-all duration-300
+                  ${isAIActive
+                  ? `bg-[#0f0c29]/60 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(6,182,212,0.2)] neural-pulse ${isThinking ? 'scale-110 border-cyan-400/50 shadow-[0_0_60px_rgba(6,182,212,0.6)]' : ''}`
+                  : 'bg-white/60 backdrop-blur-[12px] border-[1px] border-transparent hover:border-slate-300'}
+              `}
+              style={!isAIActive ? {
+                background: 'linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)) padding-box, linear-gradient(to right, #3b82f6, #a855f7) border-box',
+                border: '1px solid transparent',
+              } : {}}
+              whileHover={{ y: isThinking ? 0 : -2, boxShadow: isAIActive ? "0 0 50px rgba(6,182,212,0.3)" : "0 20px 40px -10px rgba(0,0,0,0.12)" }}
               whileTap={{ scale: 0.99 }}
-              animate={showDropdown ? { borderBottomLeftRadius: '2rem', borderBottomRightRadius: '2rem' } : {}}
+              animate={showDropdown && !isAIActive ? { borderBottomLeftRadius: '2rem', borderBottomRightRadius: '2rem' } : {}}
             >
-              <div className="w-full h-full bg-white/80 backdrop-blur-sm rounded-full flex items-center pr-3 pl-8 overflow-hidden py-2">
-                <div className="pr-5 pointer-events-none text-slate-400">
-                  <Search className="w-6 h-6" />
+              <div className={`w-full h-full backdrop-blur-sm rounded-full flex items-center pr-3 pl-8 overflow-hidden py-2 ${isAIActive ? 'bg-transparent' : 'bg-white/80'}`}>
+                <div className={`pr-5 pointer-events-none transition-colors duration-500 ${isAIActive ? 'text-cyan-400' : 'text-slate-400'}`}>
+                  {isAIActive ? <BrainCircuit className="w-6 h-6 animate-pulse" /> : <Search className="w-6 h-6" />}
                 </div>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  onFocus={() => { if (query) setShowDropdown(true) }}
+                  onFocus={() => { if (query && !isAIActive) setShowDropdown(true) }}
                   autoComplete="off"
-                  className="w-full bg-transparent text-slate-800 text-xl font-medium placeholder-slate-400 focus:outline-none py-4"
-                  placeholder="Search projects, authors, or technologies..."
+                  readOnly={isThinking}
+                  className={`w-full bg-transparent text-xl font-medium focus:outline-none py-4 transition-colors duration-500 
+                      ${isAIActive
+                      ? 'text-white placeholder-slate-400 selection:bg-cyan-500/30'
+                      : 'text-slate-800 placeholder-slate-400'
+                    }`}
+                  placeholder={isAIActive ? "Ask Grok anything (e.g., 'Find IoT projects using Next.js')" : "Search projects, authors, or technologies..."}
                 />
+
+                {/* Thinking Animation Overlay inside Input */}
+                {isThinking && (
+                  <div className="absolute inset-0 left-16 right-40 flex items-center bg-[#0f0c29]">
+                    <span className="text-cyan-300 text-lg font-mono animate-pulse flex items-center gap-2">
+                      <Cpu className="animate-spin text-purple-400" size={18} /> Initializing Neural Search...
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
-                  <button type="button" className="p-3 text-slate-400 hover:text-teal-600 transition-colors bg-slate-50 rounded-full hover:bg-slate-100">
-                    <Mic size={20} />
-                  </button>
-                  <button type="submit" className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-200 transition-all transform active:scale-95 text-base">
-                    Search
+
+                  {/* AI Toggle Button (Hidden while thinking) */}
+                  {!isThinking && (
+                    <div className="flex items-center gap-2 mr-2">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${isAIActive ? 'text-cyan-400' : 'text-slate-400'}`}>
+                        AI Mode
+                      </span>
+                      <button
+                        type="button"
+                        onClick={toggleAIMode}
+                        className={`w-10 h-5 rounded-full p-0.5 transition-all duration-300 flex items-center border
+                            ${isAIActive ? 'bg-slate-900 border-cyan-500 shadow-none' : 'bg-slate-100 border-slate-200'}
+                        `}
+                      >
+                        <motion.div
+                          layout
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          className={`w-4 h-4 rounded-full shadow-sm flex items-center justify-center
+                                ${isAIActive ? 'bg-cyan-400 translate-x-5' : 'bg-white translate-x-0'}
+                            `}
+                        >
+                          <Sparkles size={8} className={isAIActive ? 'text-indigo-900' : 'text-slate-400'} />
+                        </motion.div>
+                      </button>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={isThinking} className={`
+                    font-bold px-8 py-4 rounded-full transition-all transform active:scale-95 text-base flex items-center gap-2
+                    ${isAIActive
+                      ? 'bg-gradient-to-r from-cyan-600 to-purple-600 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 text-white'
+                      : 'bg-slate-900 text-white hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-200'}
+                    ${isThinking ? 'opacity-0 scale-0 w-0 px-0 overflow-hidden' : 'opacity-100 scale-100'}
+                  `}>
+                    {isAIActive ? (
+                      <>
+                        Ask AI <ArrowRight size={18} />
+                      </>
+                    ) : (
+                      "Search"
+                    )}
                   </button>
                 </div>
               </div>
             </motion.div>
           </form>
 
-          {/* Suggestions */}
+          {/* Suggestions (Standard Mode Only) */}
           <AnimatePresence>
-            {showDropdown && query.trim() && (
+            {showDropdown && query.trim() && !isAIActive && (
               <motion.div
                 initial={{ opacity: 0, y: -20, scale: 0.98 }}
                 animate={{ opacity: 1, y: 12, scale: 1 }}
@@ -207,232 +295,229 @@ export default function Home() {
         </motion.div>
 
         {/* 4. "Aura" Trending Technology Cloud */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-wrap justify-center gap-3 pt-8 max-w-2xl mx-auto"
-        >
-          <span className="text-sm font-semibold text-slate-400 mr-2 py-1.5">Trending: </span>
-          {['#TensorFlow', '#NextJS', '#IoT', '#CyberSecurity', '#Blockchain'].map((tag, i) => (
-            <Link key={i} href={`/search?q=${encodeURIComponent(tag.replace('#', ''))}`}>
-              <span className="px-4 py-1.5 rounded-full bg-white/50 border border-slate-200 text-slate-600 text-sm hover:bg-white hover:border-teal-400 hover:text-teal-600 transition-all cursor-pointer shadow-sm">
-                {tag}
-              </span>
-            </Link>
-          ))}
-        </motion.div>
+        {!isAIActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className={`flex flex-wrap justify-center gap-3 pt-8 max-w-2xl mx-auto transition-opacity duration-500 ${isThinking ? 'opacity-0' : 'opacity-100'}`}
+          >
+            <span className={`text-sm font-semibold mr-2 py-1.5 ${isAIActive ? 'text-slate-400' : 'text-slate-400'}`}>Trending: </span>
+            {['#TensorFlow', '#NextJS', '#IoT', '#CyberSecurity', '#Blockchain'].map((tag, i) => (
+              <Link key={i} href={`/search?q=${encodeURIComponent(tag.replace('#', ''))}`}>
+                <span className={`px-4 py-1.5 rounded-full border text-sm transition-all cursor-pointer shadow-sm
+                    ${isAIActive
+                    ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-cyan-400 hover:text-cyan-400'
+                    : 'bg-white/50 border-slate-200 text-slate-600 hover:bg-white hover:border-teal-400 hover:text-teal-600'}
+                `}>
+                  {tag}
+                </span>
+              </Link>
+            ))}
+          </motion.div>
+        )}
       </section>
 
       {/* Featured Projects Grid */}
-      <section className="px-4 pb-20 w-full max-w-[90rem] mx-auto">
-        <div className="flex items-center justify-between mb-8 px-4">
-          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <LayoutGrid className="text-teal-500" /> Featured Projects
-          </h2>
-          <Link href="/search" className="text-teal-600 font-semibold hover:underline flex items-center gap-1">
-            View All <ArrowRight size={16} />
-          </Link>
-        </div>
+      {!isAIActive && (
+        <section className={`px-4 pb-20 w-full max-w-[90rem] mx-auto transition-opacity duration-500 ${isThinking ? 'opacity-20 blur-sm' : ''}`}>
+          <div className="flex items-center justify-between mb-8 px-4">
+            <h2 className={`text-2xl font-bold flex items-center gap-2 ${isAIActive ? 'text-white' : 'text-slate-900'}`}>
+              <LayoutGrid className={isAIActive ? 'text-cyan-400' : 'text-teal-500'} /> Featured Projects
+            </h2>
+            <Link href="/search" className={`font-semibold hover:underline flex items-center gap-1 ${isAIActive ? 'text-cyan-400' : 'text-teal-600'}`}>
+              View All <ArrowRight size={16} />
+            </Link>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {projects.slice(0, 8).map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Link href={`/project/${project.id}`}>
-                <div className="group h-full bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-2 cursor-pointer flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                                            ${project.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {project.status}
-                    </span>
-                    <div className="flex gap-2">
-                      {project.github_url && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            window.open(project.github_url, '_blank');
-                          }}
-                          className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 transition-colors shadow-sm z-10 relative"
-                          title="View Source Code"
-                        >
-                          <Github size={16} />
-                        </button>
-                      )}
-                      <div className="p-2 bg-white rounded-full text-slate-400 group-hover:text-teal-500 transition-colors shadow-sm">
-                        <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {projects.slice(0, 8).map((project, i) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Link href={`/project/${project.id}`}>
+                  <div className={`group h-full backdrop-blur-md border rounded-3xl p-6 transition-all hover:-translate-y-2 cursor-pointer flex flex-col
+                      ${isAIActive
+                      ? 'ai-card'
+                      : 'bg-white/60 border-white/50 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]'}
+                  `}>
+                    <div className="flex justify-between items-start mb-4">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                           ${project.status === 'Completed'
+                          ? (isAIActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700')
+                          : (isAIActive ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700')}
+                      `}>
+                        {project.status}
+                      </span>
+                      <div className="flex gap-2">
+                        {/* Github Icon Logic */}
+                        <div className={`p-2 rounded-full transition-colors shadow-sm ${isAIActive ? 'bg-white/10 text-slate-400 group-hover:text-cyan-400' : 'bg-white text-slate-400 group-hover:text-teal-500'}`}>
+                          <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 leading-snug group-hover:text-teal-600 transition-colors">
-                    {project.title}
-                  </h3>
+                    <h3 className={`text-xl font-bold mb-3 leading-snug transition-colors ${isAIActive ? 'text-sharp-white group-hover:text-cyan-400' : 'text-slate-900 group-hover:text-teal-600'}`}>
+                      {project.title}
+                    </h3>
 
-                  <p className="text-slate-500 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
-                    {project.abstract}
-                  </p>
+                    <p className={`text-sm line-clamp-3 mb-6 flex-1 leading-relaxed ${isAIActive ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {project.abstract}
+                    </p>
 
-                  <div className="flex items-center justify-between mt-auto border-t border-slate-100 pt-4">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                      <Users size={14} className="text-slate-400" />
-                      {Array.isArray(project.authors) ? project.authors.length : 1} Authors
+                    <div className={`flex items-center justify-between mt-auto border-t pt-4 ${isAIActive ? 'border-white/10' : 'border-slate-100'}`}>
+                      <div className={`flex items-center gap-2 text-xs font-semibold ${isAIActive ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <Users size={14} className={isAIActive ? 'text-slate-500' : 'text-slate-400'} />
+                        {Array.isArray(project.authors) ? project.authors.length : 1} Authors
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${isAIActive ? 'text-cyan-400 bg-cyan-950/30' : 'text-teal-500 bg-teal-50'}`}>
+                        {project.academic_year || project.year}
+                      </span>
                     </div>
-                    <span className="text-xs font-bold text-teal-500 bg-teal-50 px-2 py-1 rounded-md">
-                      {project.academic_year || project.year}
-                    </span>
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* 1. Impact Stats Bar */}
-      <section className="w-full bg-white/40 border-y border-white/50 backdrop-blur-md py-16 mb-24">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <StatCounter count="250+" label="Total Projects" icon={Database} color="text-teal-500" />
-          <StatCounter count="85+" label="Research Papers" icon={BookOpen} color="text-blue-500" />
-          <StatCounter count="15+" label="Active Domains" icon={Globe} color="text-indigo-500" />
-          <StatCounter count="500+" label="Student Contributors" icon={Users} color="text-purple-500" />
-        </div>
-      </section>
-
-      {/* 2. & 5. Discovery & Pulse Section (Side by Side) */}
-      <section className="max-w-7xl mx-auto px-6 mb-32 grid grid-cols-1 lg:grid-cols-3 gap-12">
-
-        {/* Left: Domain Discovery */}
-        <div className="lg:col-span-2">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">Explore Domains</h2>
-            <p className="text-slate-500">Curated collections of student excellence.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DomainCard title="AI & Machine Learning" count="120 Projects" icon={Zap} color="bg-purple-50 text-purple-600" />
-            <DomainCard title="Blockchain Technology" count="45 Projects" icon={Database} color="bg-blue-50 text-blue-600" />
-            <DomainCard title="Cyber Security" count="32 Projects" icon={Shield} color="bg-teal-50 text-teal-600" />
-            <DomainCard title="Web & App Dev" count="88 Projects" icon={LayoutGrid} color="bg-indigo-50 text-indigo-600" />
-          </div>
-        </div>
-
-        {/* Right: Recent Activity Pulse */}
-        <div className="bg-white/60 backdrop-blur-md border border-slate-100 rounded-3xl p-8">
-          <h3 className="flex items-center gap-2 font-bold text-slate-900 mb-6">
-            <Activity className="text-emerald-500" /> Live Activity Pulse
-          </h3>
-          <div className="space-y-6 relative">
-            {/* Timeline Line */}
-            <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-slate-200"></div>
-
-            {[
-              { title: "Quantum Cryptography", type: "Research Paper", team: "Team Alpha", time: "2h ago" },
-              { title: "Smart Agri-Tech", type: "Project", team: "Green Soul", time: "5h ago" },
-              { title: "DeFi Exchange", type: "Micro-Project", team: "BitBuilders", time: "1d ago" },
-              { title: "AI Traffic Control", type: "Thesis", team: "UrbanFlow", time: "1d ago" },
-            ].map((item, i) => (
-              <div key={i} className="flex gap-4 relative">
-                <div className="w-6 h-6 rounded-full bg-white border-2 border-emerald-400 z-10 flex-shrink-0 mt-1"></div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900 leading-snug">
-                    New <b>{item.type}</b> uploaded on <span className="text-teal-600">'{item.title}'</span>
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    by {item.team} • {item.time}
-                  </p>
-                </div>
-              </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* 1. Impact Stats Bar */}
+      {!isAIActive && (
+        <section className={`w-full border-y backdrop-blur-md py-16 mb-24 transition-colors duration-800 ${isAIActive ? 'bg-[#0f0c29]/50 border-white/10' : 'bg-white/40 border-white/50'}`}>
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <StatCounter count="250+" label="Total Projects" icon={Database} color={isAIActive ? "text-cyan-500" : "text-teal-500"} isAI={isAIActive} />
+            <StatCounter count="85+" label="Research Papers" icon={BookOpen} color="text-blue-500" isAI={isAIActive} />
+            <StatCounter count="15+" label="Active Domains" icon={Globe} color="text-indigo-500" isAI={isAIActive} />
+            <StatCounter count="500+" label="Student Contributors" icon={Users} color="text-purple-500" isAI={isAIActive} />
+          </div>
+        </section>
+      )}
+
+      {/* 2. & 5. Discovery & Pulse Section */}
+      {!isAIActive && (
+        <section className="max-w-7xl mx-auto px-6 mb-32 grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+          {/* Left: Domain Discovery */}
+          <div className="lg:col-span-2">
+            <div className="mb-8">
+              <h2 className={`text-3xl font-bold mb-2 ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>Explore Domains</h2>
+              <p className={isAIActive ? 'text-sharp-gray' : 'text-slate-500'}>Curated collections of student excellence.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DomainCard title="AI & Machine Learning" count="120 Projects" icon={Zap} color="bg-purple-50 text-purple-600" isAI={isAIActive} />
+              <DomainCard title="Blockchain Technology" count="45 Projects" icon={Database} color="bg-blue-50 text-blue-600" isAI={isAIActive} />
+              <DomainCard title="Cyber Security" count="32 Projects" icon={Shield} color="bg-teal-50 text-teal-600" isAI={isAIActive} />
+              <DomainCard title="Web & App Dev" count="88 Projects" icon={LayoutGrid} color="bg-indigo-50 text-indigo-600" isAI={isAIActive} />
+            </div>
+          </div>
+
+          {/* Right: Recent Activity Pulse */}
+          <div className={`backdrop-blur-md border rounded-3xl p-8 ${isAIActive ? 'ai-card' : 'bg-white/60 border-slate-100'}`}>
+            <h3 className={`flex items-center gap-2 font-bold mb-6 ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>
+              <Activity className={isAIActive ? "text-cyan-400" : "text-emerald-500"} /> Live Activity Pulse
+            </h3>
+            <div className="space-y-6 relative">
+              {/* Timeline Line */}
+              <div className={`absolute left-3 top-2 bottom-2 w-0.5 ${isAIActive ? 'bg-white/10' : 'bg-slate-200'}`}></div>
+
+              {[
+                { title: "Quantum Cryptography", type: "Research Paper", team: "Team Alpha", time: "2h ago" },
+                { title: "Smart Agri-Tech", type: "Project", team: "Green Soul", time: "5h ago" },
+                { title: "DeFi Exchange", type: "Micro-Project", team: "BitBuilders", time: "1d ago" },
+                { title: "AI Traffic Control", type: "Thesis", team: "UrbanFlow", time: "1d ago" },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 relative">
+                  <div className={`w-6 h-6 rounded-full border-2 z-10 flex-shrink-0 mt-1 ${isAIActive ? 'bg-slate-900 border-cyan-500' : 'bg-white border-emerald-400'}`}></div>
+                  <div>
+                    <p className={`text-sm font-medium leading-snug ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>
+                      New <b>{item.type}</b> uploaded on <span className={isAIActive ? "text-cyan-400" : "text-teal-600"}>'{item.title}'</span>
+                    </p>
+                    <p className={`text-xs mt-1 ${isAIActive ? 'text-sharp-gray' : 'text-slate-500'}`}>
+                      by {item.team} • {item.time}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 3. Hall of Fame (Gamified) */}
-      <section className="w-full bg-gradient-to-b from-transparent to-teal-50/50 py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100 border border-yellow-200 text-yellow-700 text-xs font-bold uppercase tracking-widest mb-4">
-              <Trophy size={14} /> Top Contributors
+      {!isAIActive && (
+        <section className="w-full bg-gradient-to-b from-transparent to-teal-50/50 py-24">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <div className="mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100 border border-yellow-200 text-yellow-700 text-xs font-bold uppercase tracking-widest mb-4">
+                <Trophy size={14} /> Top Contributors
+              </div>
+              <h2 className={`text-4xl font-extrabold mb-4 ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>Repository Hall of Fame</h2>
+              <p className={isAIActive ? 'text-sharp-gray' : 'text-slate-500'}>Recognizing the most active researchers and guides.</p>
             </div>
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Repository Hall of Fame</h2>
-            <p className="text-slate-500">Recognizing the most active researchers and guides.</p>
-          </div>
 
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-end">
-            {/* Rank 2 */}
-            <ContributorCard
-              rank={2}
-              name="Priya Sharma"
-              count={12}
-              role="Student"
-              color="border-slate-300"
-              bg="bg-slate-100"
-            />
-            {/* Rank 1 */}
-            <ContributorCard
-              rank={1}
-              name="Dr. R. K. Patil"
-              count={28}
-              role="Faculty Guide"
-              color="border-yellow-400"
-              bg="bg-yellow-50"
-              isWinner
-            />
-            {/* Rank 3 */}
-            <ContributorCard
-              rank={3}
-              name="Amit Verma"
-              count={9}
-              role="Student"
-              color="border-orange-300"
-              bg="bg-orange-50"
-            />
+            <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-end">
+              <ContributorCard rank={2} name="Priya Sharma" count={12} role="Student" color="border-slate-300" bg="bg-slate-100" isAI={isAIActive} />
+              <ContributorCard rank={1} name="Dr. R. K. Patil" count={28} role="Faculty Guide" color="border-yellow-400" bg="bg-yellow-50" isWinner isAI={isAIActive} />
+              <ContributorCard rank={3} name="Amit Verma" count={9} role="Student" color="border-orange-300" bg="bg-orange-50" isAI={isAIActive} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
 
-const StatCounter = ({ count, label, icon: Icon, color }: any) => (
-  <div className="flex flex-col items-center group">
-    <div className={`mb-3 p-3 rounded-2xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform ${color}`}>
-      <Icon size={32} />
+function StatCounter({ count, label, icon: Icon, color, isAI }: any) {
+  return (
+    <div className="flex flex-col items-center group">
+      <div className={`mb-3 p-3 rounded-2xl border transition-transform group-hover:scale-110 
+        ${isAI
+          ? 'bg-transparent border-white/20 text-cyan-400'
+          : `bg-white border-slate-100 shadow-sm ${color}`
+        }`}>
+        <Icon size={32} />
+      </div>
+      <span className={`text-4xl md:text-5xl font-black mb-2 ${isAI ? 'text-sharp-white' : 'text-slate-900'}`}>{count}</span>
+      <span className={`font-medium text-sm uppercase tracking-wider ${isAI ? 'text-sharp-gray' : 'text-slate-500'}`}>{label}</span>
     </div>
-    <span className="text-4xl md:text-5xl font-black text-slate-900 mb-2">{count}</span>
-    <span className="text-slate-500 font-medium text-sm uppercase tracking-wider">{label}</span>
-  </div>
-);
+  );
+}
 
-const DomainCard = ({ title, count, icon: Icon, color }: { title: string, count: string, icon: any, color: string }) => (
-  <div className="bg-white border border-slate-100 p-6 rounded-2xl hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] transition-all cursor-pointer group hover:-translate-y-1 flex items-center gap-4">
-    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${color}`}>
-      <Icon size={32} />
-    </div>
-    <div>
-      <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-teal-600 transition-colors">{title}</h3>
-      <p className="text-sm text-slate-500 font-medium">{count}</p>
-    </div>
-  </div>
-);
-
-const ContributorCard = ({ rank, name, count, role, color, bg, isWinner }: any) => (
-  <div className={`flex flex-col items-center ${isWinner ? '-mt-12 scale-110' : ''}`}>
-    <div className={`w-24 h-24 rounded-full border-4 ${color} ${bg} flex items-center justify-center mb-4 shadow-xl relative`}>
-      <span className="text-2xl font-bold text-slate-700">{name[0]}</span>
-      <div className="absolute -bottom-3 px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full border-2 border-white">
-        #{rank}
+function DomainCard({ title, count, icon: Icon, color, isAI }: any) {
+  return (
+    <div className={`border p-6 rounded-2xl transition-all cursor-pointer group hover:-translate-y-1 flex items-center gap-4
+        ${isAI ? 'ai-card' : 'bg-white border-slate-100 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)]'}
+    `}>
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${isAI ? 'bg-white/5 text-cyan-400' : color}`}>
+        <Icon size={32} />
+      </div>
+      <div>
+        <h3 className={`text-lg font-bold mb-1 transition-colors ${isAI ? 'text-sharp-white group-hover:text-cyan-400' : 'text-slate-900 group-hover:text-teal-600'}`}>{title}</h3>
+        <p className={`text-sm font-medium ${isAI ? 'text-sharp-gray' : 'text-slate-500'}`}>{count}</p>
       </div>
     </div>
-    <h4 className="text-lg font-bold text-slate-900">{name}</h4>
-    <p className="text-xs text-slate-500 mb-2">{role}</p>
-    <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold">
-      {count} Uploads
-    </span>
-  </div>
-);
+  );
+}
+
+function ContributorCard({ rank, name, count, role, color, bg, isWinner, isAI }: any) {
+  return (
+    <div className={`flex flex-col items-center ${isWinner ? '-mt-12 scale-110' : ''}`}>
+      <div className={`w-24 h-24 rounded-full border-4 ${color} ${bg} flex items-center justify-center mb-4 shadow-xl relative`}>
+        <span className="text-2xl font-bold text-slate-700">{name[0]}</span>
+        <div className="absolute -bottom-3 px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full border-2 border-white">
+          #{rank}
+        </div>
+      </div>
+      <h4 className={`text-lg font-bold ${isAI ? 'text-sharp-white' : 'text-slate-900'}`}>{name}</h4>
+      <p className={`text-xs ${isAI ? 'text-sharp-gray' : 'text-slate-500'} mb-2`}>{role}</p>
+      <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold">
+        {count} Uploads
+      </span>
+    </div>
+  );
+}

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import { AIThemeProvider } from "@/context/AIThemeContext";
+import ClientLayout from "@/components/ClientLayout";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -15,8 +16,6 @@ export const metadata: Metadata = {
   description: "Academic project archive",
 };
 
-import Footer from "@/components/Footer";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,14 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${jakarta.variable} font-sans antialiased bg-white text-slate-900 overflow-x-hidden flex flex-col min-h-screen`}
-      >
-        <Navbar />
-        <main className="pt-48 pb-0 flex-grow w-full">
-          {children}
-        </main>
-        <Footer />
+      <body className={`${jakarta.variable} font-sans antialiased`}>
+        <AIThemeProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </AIThemeProvider>
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       </body>
     </html>
