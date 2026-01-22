@@ -44,4 +44,146 @@
       transform: translate(0px, 0px) scale(1);
     }
   }
+
+  /* --- ANTYGRAVITY NEBULA ENGINE --- */
+
+  /* 1. Animated Nebula Background */
+  .bg-nebula {
+    background: radial-gradient(circle at 50% 50%, #2E0249, #0F0C29, #000000);
+    background-size: 200% 200%;
+    animation: nebula-move 20s ease infinite;
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+  }
+
+  /* Blob Movement Overlay */
+  .bg-nebula::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(46, 2, 73, 0.4), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(15, 12, 41, 0.4), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05), transparent 60%);
+    animation: blob-float 30s linear infinite alternate;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes nebula-move {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes blob-float {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+
+    100% {
+      transform: rotate(10deg) scale(1.1);
+    }
+  }
+
+  /* 2. Geometric Tech Grid */
+  .tech-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(100, 116, 139, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(100, 116, 139, 0.15) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+    pointer-events: none;
+  }
+
+  /* 3. Neural Pulse Effect */
+  .neural-pulse {
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    50% {
+      transform: scale(1.01);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.2);
+      border-color: rgba(168, 85, 247, 0.5);
+    }
+  }
+
+  /* 4. Text Polish */
+  .text-glow-purple {
+    text-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+  }
+
+  /* Particle Animation Helper */
+  .particle {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: particle-rise 10s infinite linear;
+  }
+
+  @keyframes particle-rise {
+    0% {
+      bottom: -10px;
+      opacity: 0;
+      transform: translateX(0);
+    }
+
+    50% {
+      opacity: 0.6;
+    }
+
+    100% {
+      bottom: 110vh;
+      opacity: 0;
+      transform: translateX(20px);
+    }
+  }
+
+  /* User Requested: Featured Projects Card Style */
+  .ai-card {
+    background: rgba(15, 12, 41, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .ai-card:hover {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Sharp text utility */
+  .text-sharp-white {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .text-sharp-gray {
+    color: #94a3b8;
+  }
 }
