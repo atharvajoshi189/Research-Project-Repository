@@ -32,16 +32,21 @@ const LightTechBackground = () => {
     }, [mouseX, mouseY]);
 
     // Random particles data
-    const particles = Array.from({ length: 15 }).map((_, i) => ({
-        id: i,
-        // Spread essentially across the viewport
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 8 + 2, // 2px to 10px
-        type: Math.random() > 0.5 ? 'circle' : 'square',
-        delay: Math.random() * 5,
-        duration: Math.random() * 10 + 10,
-    }));
+    // Random particles data - client side only to prevent hydration errors
+    const [particles, setParticles] = useState<any[]>([]);
+
+    useEffect(() => {
+        const newParticles = Array.from({ length: 15 }).map((_, i) => ({
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size: Math.random() * 8 + 2, // 2px to 10px
+            type: Math.random() > 0.5 ? 'circle' : 'square',
+            delay: Math.random() * 5,
+            duration: Math.random() * 10 + 10,
+        }));
+        setParticles(newParticles);
+    }, []);
 
     return (
         <div className="fixed inset-0 -z-50 overflow-hidden">
