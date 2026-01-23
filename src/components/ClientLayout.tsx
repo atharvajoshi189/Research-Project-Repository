@@ -25,8 +25,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             )}
 
             <div className="relative z-10 flex flex-col min-h-screen">
-                {!isAIActive && !isAIModePage && <Navbar />}
-                <main className={`flex-grow w-full transition-all duration-500 ${!isAIActive && !isAIModePage ? 'pt-24' : ''} ${isAIActive ? 'opacity-95' : ''}`}>
+                {!isAIModePage && <Navbar />}
+                <main className={`flex-grow w-full transition-all duration-500 ${!isAIModePage ? 'pt-24' : ''} ${isAIActive ? 'opacity-95' : ''}`}>
                     {children}
                 </main>
                 {!isAIActive && !isAIModePage && <Footer />}
