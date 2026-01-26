@@ -4,10 +4,9 @@ interface StatsProps {
     totalProjects: number;
     pendingProjects: number;
     totalUsers: number;
-    storageUsed: string;
 }
 
-export default function StatsCards({ totalProjects, pendingProjects, totalUsers }: Omit<StatsProps, 'storageUsed'>) {
+export default function StatsCards({ totalProjects, pendingProjects, totalUsers }: StatsProps) {
     const cards = [
         {
             label: 'Total Projects',

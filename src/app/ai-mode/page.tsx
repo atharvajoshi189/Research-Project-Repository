@@ -89,50 +89,52 @@ function AIModeContent() {
                 >
                     <form onSubmit={onSubmit} className="relative group">
 
-                        {/* Pulse Glow */}
-                        <div className={`absolute -inset-1 rounded-full opacity-60 blur-xl transition-all duration-1000 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 group-hover:opacity-80 group-focus-within:opacity-100 ${isThinking ? 'animate-pulse' : ''}`}></div>
+                        {/* REMOVED Neon Glow as per 'Zero Distraction' Request */}
 
-                        <div className={`relative rounded-full border transition-all duration-300 overflow-hidden
-                            bg-[#0f0c29]/60 backdrop-blur-xl border-white/20 shadow-[0_0_40px_rgba(6,182,212,0.2)] neural-pulse
+                        <div className={`relative rounded-full border-[1.5px] transition-all duration-300 overflow-hidden
+                            bg-[rgba(30,30,30,0.6)] backdrop-blur-[20px] border-white/10 shadow-2xl
                         `}>
                             <div className="w-full h-full flex items-center pr-3 pl-6 py-4">
-                                <BrainCircuit className="w-6 h-6 text-cyan-400 mr-4 animate-pulse" />
+                                <Sparkles className="w-5 h-5 text-slate-400 mr-4" />
 
                                 <input
                                     type="text"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    className="w-full bg-transparent text-xl font-medium text-white placeholder-slate-400 focus:outline-none"
+                                    className="w-full bg-transparent text-lg font-medium text-slate-200 placeholder-slate-500 focus:outline-none"
                                     placeholder="Ask Grok... (e.g., 'Analyze Blockchain trends')"
                                     autoComplete="off"
                                 />
 
                                 {/* Exit / Actions */}
                                 <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            toggleAIMode();
-                                            router.push('/');
-                                        }}
-                                        className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all border border-red-500/20"
-                                        title="Exit AI Mode"
-                                    >
-                                        <X size={16} />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:block">Exit</span>
-                                    </button>
 
                                     <button
                                         type="submit"
                                         disabled={isThinking}
-                                        className="w-10 h-10 rounded-full bg-cyan-600/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105"
+                                        className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all"
                                     >
-                                        {isThinking ? <Sparkles className="animate-spin" size={18} /> : <ArrowRight size={18} />}
+                                        {isThinking ? <Sparkles className="animate-spin" size={16} /> : <ArrowRight size={18} />}
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </form>
+
+                    {/* Distinct Exit Button (Top Right of container or fixed on screen? Prompt said Top Right Corner) */}
+                    {/* The Prompt said: "Exit Button: Place a small 'Exit AI Mode' button in the top right corner to return to the standard home page." */}
+                    <div className="fixed top-6 right-6 z-[60]">
+                        <button
+                            onClick={() => {
+                                toggleAIMode();
+                                router.push('/');
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest backdrop-blur-md"
+                        >
+                            <X size={14} /> Exit AI Mode
+                        </button>
+                    </div>
+
                 </motion.div>
 
                 {/* 2. Loading State */}

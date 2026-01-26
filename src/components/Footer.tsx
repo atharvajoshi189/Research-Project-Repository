@@ -7,6 +7,8 @@ import { useAITheme } from '@/context/AIThemeContext';
 export default function Footer() {
     const { isAIActive } = useAITheme();
 
+    if (isAIActive) return null; // Zero Distraction in AI Mode
+
     return (
         <footer className={`relative transition-all duration-800 border-t ${isAIActive ? 'bg-[#0f0c29]/80 backdrop-blur-md border-white/10 text-slate-200' : 'bg-slate-50 border-slate-200'}`}>
             {/* Gradient Top Line */}

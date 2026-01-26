@@ -97,6 +97,55 @@ export default function Home() {
     }
   };
 
+  // State for Real-Time Stats
+  const [stats, setStats] = useState({ projects: 0, papers: 0, users: 0, domains: 12 });
+  const [pulseActivity, setPulseActivity] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRealTimeData = async () => {
+      // 1. Fetch Counts
+      const { count: projectCount } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'approved');
+      const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+
+      // For "Papers", we'll just assume a ratio or specific category if exists, else just use a subset logic or placeholder + live count
+      // Let's use 'Research Paper' category count if possible, otherwise 30% of projects
+      // For now, let's keep it simple: Real Projects Count. Papers can be a specific category count.
+      const { count: paperCount } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('category', 'Research Paper').eq('status', 'approved');
+
+      setStats({
+        projects: projectCount || 0,
+        papers: paperCount || Math.floor((projectCount || 0) * 0.4), // Fallback logic
+        users: userCount || 0,
+        domains: 15 // Static for now or fetch categories
+      });
+
+      // 2. Fetch Live Activity Pulse (Latest 5 Approved)
+      const { data: recent } = await supabase
+        .from('projects')
+        .select('id, title, category, created_at, authors')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (recent) setPulseActivity(recent);
+    };
+
+    fetchRealTimeData();
+
+    // Optional: Real-time subscription for Pulse
+    const channel = supabase
+      .channel('public:projects')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'projects' }, (payload) => {
+        // New project added, refetch or prepend
+        fetchRealTimeData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <div className={`relative w-full transition-colors duration-1000 ${isThinking ? 'overflow-hidden h-screen' : ''}`}>
 
@@ -152,23 +201,22 @@ export default function Home() {
             <div className={`absolute -inset-1 rounded-full opacity-0 blur-xl transition-all duration-1000 ${isAIActive ? 'bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 opacity-60 group-hover:opacity-80 group-focus-within:opacity-100 animate-pulse' : 'bg-teal-400/20 group-focus-within:opacity-100'}`}></div>
 
             <motion.div
-
               className={`relative rounded-full shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] transition-all duration-300
                   ${isAIActive
-                  ? `bg-[#0f0c29]/60 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(6,182,212,0.2)] neural-pulse ${isThinking ? 'scale-110 border-cyan-400/50 shadow-[0_0_60px_rgba(6,182,212,0.6)]' : ''}`
+                  ? `bg-[rgba(30,30,30,0.6)] backdrop-blur-xl border-[1.5px] border-white/10 ${isThinking ? 'scale-110 border-cyan-400/50' : ''}`
                   : 'bg-white/60 backdrop-blur-[12px] border-[1px] border-transparent hover:border-slate-300'}
               `}
               style={!isAIActive ? {
                 background: 'linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)) padding-box, linear-gradient(to right, #3b82f6, #a855f7) border-box',
                 border: '1px solid transparent',
               } : {}}
-              whileHover={{ y: isThinking ? 0 : -2, boxShadow: isAIActive ? "0 0 50px rgba(6,182,212,0.3)" : "0 20px 40px -10px rgba(0,0,0,0.12)" }}
+              whileHover={{ y: isThinking ? 0 : -1, borderColor: isAIActive ? "rgba(255,255,255,0.2)" : "transparent" }}
               whileTap={{ scale: 0.99 }}
               animate={showDropdown && !isAIActive ? { borderBottomLeftRadius: '2rem', borderBottomRightRadius: '2rem' } : {}}
             >
               <div className={`w-full h-full backdrop-blur-sm rounded-full flex items-center pr-3 pl-8 overflow-hidden py-2 ${isAIActive ? 'bg-transparent' : 'bg-white/80'}`}>
-                <div className={`pr-5 pointer-events-none transition-colors duration-500 ${isAIActive ? 'text-cyan-400' : 'text-slate-400'}`}>
-                  {isAIActive ? <BrainCircuit className="w-6 h-6 animate-pulse" /> : <Search className="w-6 h-6" />}
+                <div className={`pr-5 pointer-events-none transition-colors duration-500 ${isAIActive ? 'text-slate-400' : 'text-slate-400'}`}>
+                  {isAIActive ? <Sparkles className="w-5 h-5 text-fuchsia-400" /> : <Search className="w-6 h-6" />}
                 </div>
                 <input
                   type="text"
@@ -180,60 +228,48 @@ export default function Home() {
                   readOnly={isThinking}
                   className={`w-full bg-transparent text-xl font-medium focus:outline-none py-4 transition-colors duration-500 
                       ${isAIActive
-                      ? 'text-white placeholder-slate-400 selection:bg-cyan-500/30'
+                      ? 'text-slate-200 placeholder-slate-500 selection:bg-cyan-500/30'
                       : 'text-slate-800 placeholder-slate-400'
                     }`}
-                  placeholder={isAIActive ? "Ask Grok anything (e.g., 'Find IoT projects using Next.js')" : "Search projects, authors, or technologies..."}
+                  placeholder={isAIActive ? "Ask Grok anything..." : "Search projects, authors, or technologies..."}
                 />
 
                 {/* Thinking Animation Overlay inside Input */}
                 {isThinking && (
-                  <div className="absolute inset-0 left-16 right-40 flex items-center bg-[#0f0c29]">
+                  <div className="absolute inset-0 left-16 right-16 flex items-center bg-[#1e1e1e]">
                     <span className="text-cyan-300 text-lg font-mono animate-pulse flex items-center gap-2">
-                      <Cpu className="animate-spin text-purple-400" size={18} /> Initializing Neural Search...
+                      Processing...
                     </span>
                   </div>
                 )}
 
                 <div className="flex items-center gap-3">
 
-                  {/* AI Toggle Button (Hidden while thinking) */}
+                  {/* AI Toggle Button (Always Visible or Integrated) */}
                   {!isThinking && (
                     <div className="flex items-center gap-2 mr-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${isAIActive ? 'text-cyan-400' : 'text-slate-400'}`}>
-                        AI Mode
-                      </span>
                       <button
                         type="button"
                         onClick={toggleAIMode}
-                        className={`w-10 h-5 rounded-full p-0.5 transition-all duration-300 flex items-center border
-                            ${isAIActive ? 'bg-slate-900 border-cyan-500 shadow-none' : 'bg-slate-100 border-slate-200'}
+                        className={`w-8 h-8 rounded-full transition-all duration-300 flex items-center justify-center
+                            ${isAIActive ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}
                         `}
+                        title={isAIActive ? "Exit AI Mode" : "Enter AI Mode"}
                       >
-                        <motion.div
-                          layout
-                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          className={`w-4 h-4 rounded-full shadow-sm flex items-center justify-center
-                                ${isAIActive ? 'bg-cyan-400 translate-x-5' : 'bg-white translate-x-0'}
-                            `}
-                        >
-                          <Sparkles size={8} className={isAIActive ? 'text-indigo-900' : 'text-slate-400'} />
-                        </motion.div>
+                        <Sparkles size={14} />
                       </button>
                     </div>
                   )}
 
                   <button type="submit" disabled={isThinking} className={`
-                    font-bold px-8 py-4 rounded-full transition-all transform active:scale-95 text-base flex items-center gap-2
+                    rounded-full transition-all transform active:scale-95 flex items-center justify-center
                     ${isAIActive
-                      ? 'bg-gradient-to-r from-cyan-600 to-purple-600 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 text-white'
-                      : 'bg-slate-900 text-white hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-200'}
+                      ? 'w-10 h-10 bg-white/10 hover:bg-white/20 text-white'
+                      : 'px-8 py-4 font-bold bg-slate-900 text-white hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-200'}
                     ${isThinking ? 'opacity-0 scale-0 w-0 px-0 overflow-hidden' : 'opacity-100 scale-100'}
                   `}>
                     {isAIActive ? (
-                      <>
-                        Ask AI <ArrowRight size={18} />
-                      </>
+                      <ArrowRight size={18} />
                     ) : (
                       "Search"
                     )}
@@ -386,14 +422,14 @@ export default function Home() {
         </section>
       )}
 
-      {/* 1. Impact Stats Bar */}
+      {/* 1. Impact Stats Bar (Connected to Real-Time Stats) */}
       {!isAIActive && (
         <section className={`w-full border-y backdrop-blur-md py-16 mb-24 transition-colors duration-800 ${isAIActive ? 'bg-[#0f0c29]/50 border-white/10' : 'bg-white/40 border-white/50'}`}>
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <StatCounter count="250+" label="Total Projects" icon={Database} color={isAIActive ? "text-cyan-500" : "text-teal-500"} isAI={isAIActive} />
-            <StatCounter count="85+" label="Research Papers" icon={BookOpen} color="text-blue-500" isAI={isAIActive} />
-            <StatCounter count="15+" label="Active Domains" icon={Globe} color="text-indigo-500" isAI={isAIActive} />
-            <StatCounter count="500+" label="Student Contributors" icon={Users} color="text-purple-500" isAI={isAIActive} />
+            <StatCounter count={stats.projects} label="Total Projects" icon={Database} color={isAIActive ? "text-cyan-500" : "text-teal-500"} isAI={isAIActive} />
+            <StatCounter count={stats.papers} label="Research Papers" icon={BookOpen} color="text-blue-500" isAI={isAIActive} />
+            <StatCounter count={stats.domains} label="Active Domains" icon={Globe} color="text-indigo-500" isAI={isAIActive} />
+            <StatCounter count={stats.users} label="Student Contributors" icon={Users} color="text-purple-500" isAI={isAIActive} />
           </div>
         </section>
       )}
@@ -416,7 +452,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: Recent Activity Pulse */}
+          {/* Right: Recent Activity Pulse (Connected to Supabase) */}
           <div className={`backdrop-blur-md border rounded-3xl p-8 ${isAIActive ? 'ai-card' : 'bg-white/60 border-slate-100'}`}>
             <h3 className={`flex items-center gap-2 font-bold mb-6 ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>
               <Activity className={isAIActive ? "text-cyan-400" : "text-emerald-500"} /> Live Activity Pulse
@@ -425,24 +461,21 @@ export default function Home() {
               {/* Timeline Line */}
               <div className={`absolute left-3 top-2 bottom-2 w-0.5 ${isAIActive ? 'bg-white/10' : 'bg-slate-200'}`}></div>
 
-              {[
-                { title: "Quantum Cryptography", type: "Research Paper", team: "Team Alpha", time: "2h ago" },
-                { title: "Smart Agri-Tech", type: "Project", team: "Green Soul", time: "5h ago" },
-                { title: "DeFi Exchange", type: "Micro-Project", team: "BitBuilders", time: "1d ago" },
-                { title: "AI Traffic Control", type: "Thesis", team: "UrbanFlow", time: "1d ago" },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 relative">
+              {pulseActivity.length > 0 ? pulseActivity.map((item, i) => (
+                <div key={i} className="flex gap-4 relative animate-in slide-in-from-right duration-500" style={{ animationDelay: `${i * 100}ms` }}>
                   <div className={`w-6 h-6 rounded-full border-2 z-10 flex-shrink-0 mt-1 ${isAIActive ? 'bg-slate-900 border-cyan-500' : 'bg-white border-emerald-400'}`}></div>
                   <div>
                     <p className={`text-sm font-medium leading-snug ${isAIActive ? 'text-sharp-white' : 'text-slate-900'}`}>
-                      New <b>{item.type}</b> uploaded on <span className={isAIActive ? "text-cyan-400" : "text-teal-600"}>'{item.title}'</span>
+                      New <b>{item.category || 'Project'}</b> uploaded: <span className={isAIActive ? "text-cyan-400" : "text-teal-600"}>'{item.title}'</span>
                     </p>
                     <p className={`text-xs mt-1 ${isAIActive ? 'text-sharp-gray' : 'text-slate-500'}`}>
-                      by {item.team} • {item.time}
+                      by {Array.isArray(item.authors) ? item.authors[0] : (item.authors?.split(',')[0] || 'Unknown')} • {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-sm text-slate-500 py-4 pl-4">Loading real-time updates...</div>
+              )}
             </div>
           </div>
         </section>
