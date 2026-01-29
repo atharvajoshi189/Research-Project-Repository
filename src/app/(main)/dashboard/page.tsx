@@ -38,6 +38,9 @@ export default function StudentDashboard() {
             setUser({ ...session.user, ...profile });
 
             fetchStudentProjects(session.user.id);
+
+            // Fetch Smart Recommendations
+            fetchRecommendationsFromAPI(session.access_token);
         };
         fetchUserData();
     }, []);
@@ -96,10 +99,13 @@ export default function StudentDashboard() {
             setInvitations(pendingInvites);
             setProjects(activeProjs);
 
-            // Trigger Recommendations based on the LATEST active project
-            if (activeProjs.length > 0) {
-                fetchRecommendations(activeProjs[0], userId);
-            }
+            // Trigger Smart Recommendations (Grok)
+            // We pass the session access token which we can get from supabase.auth.getSession() usually, 
+            // but since we are in fetchStudentProjects, let's call it from the main useEffect or pass token.
+            // Actually, we can just call it here if we assume session is valid, but we need the token.
+            // Let's rely on the main useEffect to trigger it or call it here if we have the token.
+            // Better yet, let's call it in the initial useEffect after user set.
+
 
             // 3. Stats
             const total = activeProjs.length;
@@ -136,31 +142,23 @@ export default function StudentDashboard() {
         }
     };
 
-    const fetchRecommendations = async (lastProject: any, userId: string) => {
-        if (!lastProject) return;
-
+    const fetchRecommendationsFromAPI = async (token: string) => {
         try {
-            // Find projects with same category OR overlapping tech stack
-            // Supabase doesn't support complex OR across columns easily without RPC or .or()
-            // We'll try simple category match first, then tech match if needed, or use .or() 
+            // setRecommendedProjects([]) // Optional: clear or show skeleton
+            const res = await fetch('/api/recommendations', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-            // Query: Status=Approved, Not My Project, (Same Category OR Same Tech)
-            // Tech stack is tricky as it's a string/array. 
-            // We'll stick to Category for "Smart" recommendation simplicity for now, or use a broad .or()
+            if (!res.ok) throw new Error("Failed to fetch recommendations");
 
-            const { data } = await supabase
-                .from('projects')
-                .select('*')
-                .eq('status', 'approved')
-                .neq('student_id', userId) // This is correct (Projects table uses student_id)
-                //.not('id', 'in', ...) // TODO: Ideally exclude projects where I'm a collaborator too, but less critical
-                .or(`category.eq.${lastProject.category}`) // Simple category match
-                .limit(4);
-
-            if (data) setRecommendedProjects(data);
-
+            const data = await res.json();
+            if (data.recommendations) {
+                setRecommendedProjects(data.recommendations);
+            }
         } catch (err) {
-            console.error("Error fetching recommendations:", err);
+            console.error("Error fetching smart recommendations:", err);
         }
     }
     const copyLink = (id: string) => {
@@ -258,7 +256,7 @@ export default function StudentDashboard() {
                         <BookOpen size={14} /> The Scholar's Hub
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                        Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
+                        Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
                     </h1>
                     <p className="text-slate-500 text-lg">Manage your academic legacy.</p>
                 </header>
@@ -331,22 +329,23 @@ export default function StudentDashboard() {
                 {recommendedProjects.length > 0 && (
                     <section className="mb-16">
                         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                            <span className="text-2xl">✨</span> Recommended for You
+                            <span className="text-2xl animate-pulse">✨</span> Recommended for You (Powered by Grok)
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {recommendedProjects.map((project) => (
                                 <Link href={`/project/${project.id}`} key={project.id} className="group">
-                                    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all h-full flex flex-col">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full">
+                                    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                        <div className="flex justify-between items-start mb-3 relative z-10">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">
                                                 {project.category}
                                             </span>
                                         </div>
-                                        <h3 className="font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors line-clamp-2">{project.title}</h3>
-                                        <p className="text-slate-500 text-xs line-clamp-2 mb-4 flex-grow">{project.abstract}</p>
-                                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mt-auto pt-3 border-t border-slate-50">
+                                        <h3 className="font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors line-clamp-2 relative z-10">{project.title}</h3>
+                                        <p className="text-slate-500 text-xs line-clamp-2 mb-4 flex-grow relative z-10">{project.abstract}</p>
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mt-auto pt-3 border-t border-slate-50 relative z-10">
                                             <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-                                            Recommended
+                                            AI Selected
                                         </div>
                                     </div>
                                 </Link>
