@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Project3DCard from '@/components/Project3DCard';
+import { useAITheme } from '@/context/AIThemeContext';
 
 const TECH_ICON_MAP: Record<string, string> = {
   react: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
@@ -93,6 +94,7 @@ const getTechIcon = (tech: string) => {
 
 export default function Home() {
   const router = useRouter();
+  const { isAIActive, toggleAIMode } = useAITheme();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -186,6 +188,13 @@ export default function Home() {
     }
   };
 
+  const handleAIToggle = () => {
+    toggleAIMode();
+    if (!isAIActive) {
+      router.push('/ai-mode');
+    }
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-[#FAFAFA] text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
 
@@ -260,6 +269,32 @@ export default function Home() {
                 <button type="submit" className="p-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-transform active:scale-95">
                   <ArrowRight size={20} />
                 </button>
+
+                {/* AI Toggle Switch */}
+                <div className="pl-3 border-l border-slate-200 ml-3">
+                  <button
+                    type="button"
+                    onClick={handleAIToggle}
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-500 overflow-hidden group/ai
+                      ${isAIActive
+                        ? 'bg-slate-900 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-500/50'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }
+                    `}
+                  >
+                    {/* Animated Gradient Background for AI Mode */}
+                    {isAIActive && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse-slow"></div>
+                    )}
+
+                    <div className={`relative z-10 p-1 rounded-full transition-transform duration-500 ${isAIActive ? 'rotate-[360deg] scale-110' : ''}`}>
+                      <Sparkles size={16} className={isAIActive ? "text-purple-300 fill-purple-300" : "text-slate-400"} />
+                    </div>
+                    <span className="relative z-10 transition-colors duration-300">
+                      {isAIActive ? 'AI Mode ON' : 'AI Mode'}
+                    </span>
+                  </button>
+                </div>
               </div>
 
               {/* Dropdown */}
