@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -14,6 +14,12 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        // Prefetch routes for faster navigation
+        router.prefetch('/search');
+        router.prefetch('/admin');
+    }, [router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,20 +36,25 @@ export default function LoginPage() {
 
             toast.success('Login successful!');
 
-            // 2. Fetch role and redirect
-            const role = await getUserRole(user.id);
+            // 2. Optimized Redirect (Use Metadata instead of DB call)
+            // This cuts ~500ms-1s of latency by avoiding the second roundtrip
+            const role = user.user_metadata?.role || 'student'; // Default to student if missing
 
-            if (role === 'admin' || role === 'faculty') {
-                router.push('/admin');
+            if (role === 'admin' || role === 'faculty' || role === 'hod') {
+                router.replace('/admin'); // Use replace to prevent back-navigation to login
+            } else if (role === 'teacher') {
+                router.replace('/teacher'); // Ensure teachers go to their dashboard
             } else {
-                router.push('/search');
+                router.replace('/search');
             }
 
         } catch (error: any) {
             console.error('Login Error:', error);
             toast.error(error.message || 'Something went wrong');
+            setIsLoading(false); // Only stop loading on error, keep spinning during redirect
         } finally {
-            setIsLoading(false);
+            // Do not setIsLoading(false) on success to prevent UI flicker before redirect
+            if (!isLoading) setIsLoading(false);
         }
     };
 

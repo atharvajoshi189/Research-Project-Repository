@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, GraduationCap, Building2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, GraduationCap, Building2, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { signUpUser } from '@/lib/authService';
 
@@ -13,7 +13,7 @@ export default function SignupPage() {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState<'student' | 'faculty'>('student');
+    const [role, setRole] = useState<'student' | 'teacher' | 'hod'>('student');
     const [academicYear, setAcademicYear] = useState('');
     const [section, setSection] = useState('');
     const [collegeId, setCollegeId] = useState('');
@@ -44,8 +44,8 @@ export default function SignupPage() {
             toast.success('Account created successfully!');
 
             // 2. Redirect based on role
-            if (role === 'faculty') {
-                router.push('/admin');
+            if (role === 'hod' || role === 'teacher') {
+                router.push('/dashboard'); // Teachers go to dashboard (My Mentees), HODs can go there or Admin. Let's send both to Dashboard first as per flow.
             } else {
                 router.push('/search');
             }
@@ -113,22 +113,30 @@ export default function SignupPage() {
                     <form onSubmit={handleSignup} className="space-y-5">
 
                         {/* Role Selector */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-3">
                             <button
                                 type="button"
                                 onClick={() => setRole('student')}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'student' ? 'border-cyan-500 bg-cyan-50 text-cyan-700' : 'border-slate-100 hover:border-cyan-200 text-slate-500 hover:bg-slate-50'}`}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${role === 'student' ? 'border-cyan-500 bg-cyan-50 text-cyan-700' : 'border-slate-100 hover:border-cyan-200 text-slate-500 hover:bg-slate-50'}`}
                             >
-                                <GraduationCap className={`mb-2 ${role === 'student' ? 'text-cyan-600' : 'text-slate-400'}`} />
-                                <span className="font-semibold text-sm">Student</span>
+                                <GraduationCap size={20} className={`mb-1 ${role === 'student' ? 'text-cyan-600' : 'text-slate-400'}`} />
+                                <span className="font-semibold text-xs">Student</span>
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setRole('faculty')}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'faculty' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-100 hover:border-indigo-200 text-slate-500 hover:bg-slate-50'}`}
+                                onClick={() => setRole('teacher')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${role === 'teacher' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-100 hover:border-indigo-200 text-slate-500 hover:bg-slate-50'}`}
                             >
-                                <Building2 className={`mb-2 ${role === 'faculty' ? 'text-indigo-600' : 'text-slate-400'}`} />
-                                <span className="font-semibold text-sm">Faculty / Admin</span>
+                                <User size={20} className={`mb-1 ${role === 'teacher' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                <span className="font-semibold text-xs">Teacher</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole('hod')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${role === 'hod' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-slate-100 hover:border-purple-200 text-slate-500 hover:bg-slate-50'}`}
+                            >
+                                <Building2 size={20} className={`mb-1 ${role === 'hod' ? 'text-purple-600' : 'text-slate-400'}`} />
+                                <span className="font-semibold text-xs">HOD (Admin)</span>
                             </button>
                         </div>
 
