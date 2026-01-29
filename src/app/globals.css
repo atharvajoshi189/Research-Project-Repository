@@ -7,16 +7,20 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/70 backdrop-blur-lg border border-slate-200/50 shadow-xl;
+    @apply bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0, 0, 0, 0.04)];
   }
 
   .glass-panel {
-    @apply bg-white/40 backdrop-blur-md border border-white/60;
+    @apply bg-white/40 backdrop-blur-xl border border-white/60 shadow-lg;
   }
 
-  /* Mesh Gradient Animation */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600;
+  }
+
+  /* Complex Blob Animation */
   .animate-blob {
-    animation: blob 7s infinite;
+    animation: blob 10s infinite cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .animation-delay-2000 {
@@ -33,17 +37,18 @@
     }
 
     33% {
-      transform: translate(30px, -50px) scale(1.1);
+      transform: translate(50px, -60px) scale(1.2);
     }
 
     66% {
-      transform: translate(-20px, 20px) scale(0.9);
+      transform: translate(-30px, 30px) scale(0.8);
     }
 
     100% {
       transform: translate(0px, 0px) scale(1);
     }
   }
+
 
   /* --- ANTYGRAVITY NEBULA ENGINE --- */
 
@@ -186,4 +191,42 @@
   .text-sharp-gray {
     color: #94a3b8;
   }
+
+  /* Float Animation */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  /* Gradient Rotate */
+  .animate-gradient-xy {
+    animation: gradient-xy 15s ease infinite;
+    background-size: 400% 400%;
+  }
+
+  @keyframes gradient-xy {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
 }
