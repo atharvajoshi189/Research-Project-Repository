@@ -53,10 +53,13 @@ export default function Navbar() {
     }, []);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        // Optimistic UI updates - Instant Feedback
         setUser(null);
         router.push('/');
         toast.success('Logged out successfully');
+
+        // Perform actual sign out in background
+        await supabase.auth.signOut();
     };
 
     useEffect(() => {

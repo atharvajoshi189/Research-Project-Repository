@@ -65,11 +65,14 @@ function AuthContent() {
         setIsLoading(true);
 
         try {
+            // Map 'faculty' selection to 'teacher' role for DB consistency
+            const dbRole = role === 'faculty' ? 'teacher' : role;
+
             const { user } = await signUpUser(
                 signupEmail,
                 signupPassword,
                 fullName,
-                role,
+                dbRole,
                 role === 'student' ? academicYear : undefined,
                 role === 'student' ? section : undefined,
                 role === 'student' ? collegeId : undefined

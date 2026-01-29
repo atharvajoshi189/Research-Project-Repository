@@ -61,7 +61,7 @@ export default function UploadProject() {
             const { data } = await supabase
                 .from('profiles')
                 .select('id, full_name')
-                .eq('role', 'teacher'); // Reverted: DB uses 'teacher', not 'faculty'
+                .in('role', ['teacher', 'hod', 'HOD']); // Added HOD support
             setTeachers(data || []);
             setLoadingTeachers(false);
         };
