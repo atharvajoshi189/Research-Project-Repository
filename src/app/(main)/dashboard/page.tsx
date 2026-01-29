@@ -18,6 +18,9 @@ export default function StudentDashboard() {
     const [projectDistribution, setProjectDistribution] = useState<any[]>([]);
     const [invitations, setInvitations] = useState<any[]>([]);
     const [recommendedProjects, setRecommendedProjects] = useState<any[]>([]);
+    const [mentees, setMentees] = useState<any[]>([]);
+    const [approvalRequests, setApprovalRequests] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState('active'); // 'mentees', 'active', 'approvals'
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -37,10 +40,18 @@ export default function StudentDashboard() {
             // Merge profile data with session user
             setUser({ ...session.user, ...profile });
 
-            fetchStudentProjects(session.user.id);
+            // Set Tab from URL if present
+            const params = new URLSearchParams(window.location.search);
+            const tabParam = params.get('tab');
+            if (tabParam) setActiveTab(tabParam);
+            else if (profile?.role === 'teacher') setActiveTab('mentees'); // Default for Teachers
 
-            // Fetch Smart Recommendations
-            fetchRecommendationsFromAPI(session.access_token);
+            fetchStudentProjects(session.user.id); // Unified Fetch
+
+            // Smart Recommendations only for Students
+            if (profile?.role === 'student' || !profile?.role) {
+                fetchRecommendationsFromAPI(session.access_token);
+            }
         };
         fetchUserData();
     }, []);
@@ -48,75 +59,84 @@ export default function StudentDashboard() {
     const fetchStudentProjects = async (userId: string) => {
         try {
             setLoading(true);
-            console.log("Fetching projects for user:", userId);
 
-            // 1. Fetch EVERYTHING for this user from project_collaborators
-            // This is the single source of truth for both invitations and active projects
-            const { data, error } = await supabase
-                .from('project_collaborators')
-                .select('*, projects(*)') // Reverted to wildcard to ensure no column mismatch errors
-                .eq('student_id', userId);
+            // Fetch user role first
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+            const role = profile?.role;
 
-            if (error) {
-                console.warn("Fetch error (likely schema mismatch or empty), defaulting to empty state:", error);
-                setProjects([]);
-                setInvitations([]);
-                setProjectDistribution([]);
-                setStats({ total: 0, approved: 0, pending: 0, views: 0, downloads: 0 });
-                return;
-            }
+            let activeProjs: any[] = [];
+            let pendingInvites: any[] = [];
+            let approvalReqs: any[] = [];
+            let myMenteesList: any[] = [];
 
-            if (!data || data.length === 0) {
-                setProjects([]);
-                setInvitations([]);
-                setProjectDistribution([]);
-                setStats({ total: 0, approved: 0, pending: 0, views: 0, downloads: 0 });
-                return;
-            }
+            if (role === 'teacher') {
+                // TEACHER VIEW
+                const { data: guideProjects, error: guideError } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .eq('guide_id', userId);
 
-            // 2. Separate Data locally
-            const pendingInvites: any[] = [];
-            const activeProjs: any[] = [];
+                if (guideError) throw guideError;
 
-            data.forEach((collab: any) => {
-                // Ensure project data exists
-                if (!collab.projects) return;
+                const allGuideProjects = guideProjects || [];
 
-                // Flatten the structure for easier usage
-                const projectWithRole = {
-                    ...collab.projects,
-                    userRole: collab.role,
-                    collabStatus: collab.status
-                };
+                // Active: Approved or Guide Approved
+                activeProjs = allGuideProjects.filter(p => p.status === 'approved' || p.status === 'guide_approved');
 
-                if (collab.status === 'pending') {
-                    pendingInvites.push(projectWithRole);
-                } else if (collab.status === 'accepted' || collab.role === 'leader') {
-                    activeProjs.push(projectWithRole);
+                // Approvals: Pending (Waiting for Guide)
+                approvalReqs = allGuideProjects.filter(p => p.status === 'pending');
+
+                // Mentees Logic
+                const projectIds = allGuideProjects.map(p => p.id);
+                if (projectIds.length > 0) {
+                    const { data: collaborators } = await supabase
+                        .from('project_collaborators')
+                        .select('student_id, profiles:student_id(*)')
+                        .in('project_id', projectIds)
+                        .eq('role', 'leader');
+
+                    const uniqueStudents = new Map();
+                    collaborators?.forEach((c: any) => {
+                        if (c.profiles) {
+                            uniqueStudents.set(c.student_id, c.profiles);
+                        }
+                    });
+                    myMenteesList = Array.from(uniqueStudents.values());
                 }
-            });
+
+            } else {
+                // STUDENT VIEW
+                const { data, error } = await supabase
+                    .from('project_collaborators')
+                    .select('*, projects(*)')
+                    .eq('student_id', userId);
+
+                if (error) {
+                    console.warn("Fetch error:", error);
+                } else if (data && data.length > 0) {
+                    data.forEach((collab: any) => {
+                        if (!collab.projects) return;
+                        const projectWithRole = { ...collab.projects, userRole: collab.role, collabStatus: collab.status };
+                        if (collab.status === 'pending') pendingInvites.push(projectWithRole);
+                        else if (collab.status === 'accepted' || collab.role === 'leader') activeProjs.push(projectWithRole);
+                    });
+                }
+            }
 
             setInvitations(pendingInvites);
             setProjects(activeProjs);
+            setMentees(myMenteesList);
+            setApprovalRequests(approvalReqs);
 
-            // Trigger Smart Recommendations (Grok)
-            // We pass the session access token which we can get from supabase.auth.getSession() usually, 
-            // but since we are in fetchStudentProjects, let's call it from the main useEffect or pass token.
-            // Actually, we can just call it here if we assume session is valid, but we need the token.
-            // Let's rely on the main useEffect to trigger it or call it here if we have the token.
-            // Better yet, let's call it in the initial useEffect after user set.
-
-
-            // 3. Stats
+            // Stats Logic
             const total = activeProjs.length;
             const approved = activeProjs.filter((p: any) => p.status === 'approved').length;
             const pending = activeProjs.filter((p: any) => p.status === 'pending').length;
             const views = activeProjs.reduce((sum: number, p: any) => sum + (p.views || 0), 0);
             const downloads = activeProjs.reduce((sum: number, p: any) => sum + (p.downloads || 0), 0);
-
             setStats({ total, approved, pending, views, downloads });
 
-            // 4. Tech Distribution
+            // Tech Distribution
             const techCounts: Record<string, number> = {};
             activeProjs.forEach((p: any) => {
                 const stacks = Array.isArray(p.tech_stack) ? p.tech_stack : (p.tech_stack ? p.tech_stack.split(',') : []);
@@ -125,17 +145,14 @@ export default function StudentDashboard() {
                     if (t) techCounts[t] = (techCounts[t] || 0) + 1;
                 });
             });
-
             const distribution = Object.entries(techCounts)
                 .map(([name, value]) => ({ name, value }))
                 .sort((a, b) => b.value - a.value)
                 .slice(0, 5);
-
             setProjectDistribution(distribution);
 
         } catch (err) {
             console.error("Unexpected error fetching projects:", err);
-            // Fallback to empty state
             setProjects([]);
         } finally {
             setLoading(false);
@@ -240,10 +257,10 @@ export default function StudentDashboard() {
         percent: stats.total > 0 ? Math.round((tech.value / stats.total) * 100) + '%' : '0%'
     }));
 
+
+
     return (
         <div className="min-h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-teal-100">
-
-
             <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none opacity-40"
                 style={{ backgroundImage: 'radial-gradient(#E2E8F0 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
             </div>
@@ -261,72 +278,136 @@ export default function StudentDashboard() {
                     <p className="text-slate-500 text-lg">Manage your academic legacy.</p>
                 </header>
 
-                {/* 0. Invitations Section */}
-                {invitations.length > 0 && (
-                    <motion.section
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-12"
-                    >
-                        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            Pending Invitations
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {invitations.map((invite: any) => (
-                                <div key={invite.id} className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-xl shadow-indigo-100/50 flex items-center justify-between group hover:border-indigo-200 transition-all">
-                                    <div>
-                                        <span className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-1 block">Project Invitation</span>
-                                        <h3 className="font-bold text-slate-900 text-lg">{invite.projects?.title || 'Untitled Project'}</h3>
-                                        <p className="text-slate-500 text-sm">
-                                            Invited as <span className="font-semibold text-slate-700 capitalize">{invite.role}</span>
-                                            {invite.projects?.authors?.[0] && (
-                                                <span className="text-slate-400 font-normal"> by {invite.projects.authors[0]}</span>
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleInvitation(invite.project_id || invite.id, 'accepted')}
-                                            className="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-teal-600 transition-colors"
-                                        >
-                                            Accept
-                                        </button>
-                                        <button
-                                            onClick={() => handleInvitation(invite.project_id || invite.id, 'rejected')}
-                                            className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-colors"
-                                        >
-                                            Decline
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.section>
+                {/* TEACHER TABS (Only for Teacher Role) */}
+                {user?.role === 'teacher' && (
+                    <div className="mb-8 border-b border-slate-200 flex gap-6">
+                        <button onClick={() => setActiveTab('mentees')} className={`pb-3 font-bold text-sm transition-all ${activeTab === 'mentees' ? 'border-b-2 border-teal-500 text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}>My Mentees</button>
+                        <button onClick={() => setActiveTab('active')} className={`pb-3 font-bold text-sm transition-all ${activeTab === 'active' ? 'border-b-2 border-teal-500 text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}>Active Projects</button>
+                        <button onClick={() => setActiveTab('approvals')} className={`pb-3 font-bold text-sm transition-all ${activeTab === 'approvals' ? 'border-b-2 border-amber-500 text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}>
+                            Approvals {approvalRequests.length > 0 && <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]">{approvalRequests.length}</span>}
+                        </button>
+                    </div>
                 )}
 
-                {/* 1. Project Status Tracker (The "Peace of Mind") */}
-                <section className="mb-16">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <ActivityIcon /> Project Status Tracker
-                    </h2>
-
-                    {projects.length === 0 ? (
-                        <div className="p-8 rounded-3xl border-2 border-dashed border-slate-200 text-center bg-white/50">
-                            <p className="text-slate-500 mb-4">You haven't submitted any projects yet.</p>
-                            <Link href="/upload" className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-teal-600 transition-colors">Submit Your First Project</Link>
+                {/* 1. Mentees Tab Content */}
+                {user?.role === 'teacher' && activeTab === 'mentees' && (
+                    <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {mentees.length > 0 ? mentees.map((mentee) => (
+                                <div key={mentee.id} className="bg-white p-6 rounded-2xl border border-slate-100 text-center shadow-sm">
+                                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl mb-3">
+                                        {(mentee.full_name || 'S')[0]}
+                                    </div>
+                                    <h3 className="font-bold text-slate-800">{mentee.full_name}</h3>
+                                    <p className="text-xs text-slate-400 mb-4">{mentee.college_id || 'No ID'}</p>
+                                    <div className="text-xs bg-slate-50 py-1 px-2 rounded-lg inline-block text-slate-500">
+                                        {mentee.section} - {mentee.academic_year}
+                                    </div>
+                                </div>
+                            )) : (
+                                <div className="col-span-4 p-8 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                                    No students assigned yet.
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {projects.map((project) => (
-                                <StatusCard key={project.id} project={project} onShare={() => copyLink(project.id)} />
-                            ))}
-                        </div>
-                    )}
-                </section>
+                    </section>
+                )}
 
-                {/* 1.5 Recommended For You */}
-                {recommendedProjects.length > 0 && (
+                {/* 2. Approvals Tab Content */}
+                {user?.role === 'teacher' && activeTab === 'approvals' && (
+                    <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="space-y-4">
+                            {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
+                                <div key={proj.id} className="bg-white p-6 rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between">
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 text-lg mb-1">{proj.title}</h3>
+                                        <p className="text-sm text-slate-500">{proj.abstract?.substring(0, 100)}...</p>
+                                    </div>
+                                    <Link href={`/upload?edit=${proj.id}`} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20">
+                                        Review
+                                    </Link>
+                                </div>
+                            )) : (
+                                <div className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                                    No pending approvals.
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {/* 3. Helper Logic: Show Active Projects if Tab is Active OR if User is Student */}
+                {(user?.role === 'student' || activeTab === 'active') && (
+                    <>
+                        {invitations.length > 0 && (
+                            <motion.section
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-12"
+                            >
+                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                    Pending Invitations
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {invitations.map((invite: any) => (
+                                        <div key={invite.id} className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-xl shadow-indigo-100/50 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                                            <div>
+                                                <span className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-1 block">Project Invitation</span>
+                                                <h3 className="font-bold text-slate-900 text-lg">{invite.projects?.title || 'Untitled Project'}</h3>
+                                                <p className="text-slate-500 text-sm">
+                                                    Invited as <span className="font-semibold text-slate-700 capitalize">{invite.role}</span>
+                                                    {invite.projects?.authors?.[0] && (
+                                                        <span className="text-slate-400 font-normal"> by {invite.projects.authors[0]}</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleInvitation(invite.project_id || invite.id, 'accepted')}
+                                                    className="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-teal-600 transition-colors"
+                                                >
+                                                    Accept
+                                                </button>
+                                                <button
+                                                    onClick={() => handleInvitation(invite.project_id || invite.id, 'rejected')}
+                                                    className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                >
+                                                    Decline
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.section>
+                        )}
+
+                        <section className="mb-16">
+                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                <ActivityIcon /> {user?.role === 'teacher' ? 'Active Projects' : 'Project Status Tracker'}
+                            </h2>
+
+                            {projects.length === 0 ? (
+                                <div className="p-8 rounded-3xl border-2 border-dashed border-slate-200 text-center bg-white/50">
+                                    <p className="text-slate-500 mb-4">You have no active projects.</p>
+                                    {user?.role === 'student' && (
+                                        <Link href="/upload" className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-teal-600 transition-colors">Submit Your First Project</Link>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {projects.map((project) => (
+                                        <StatusCard key={project.id} project={project} onShare={() => copyLink(project.id)} />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </>
+                )}
+
+
+                {/* Recommended For You - Only Student */}
+                {user?.role === 'student' && recommendedProjects.length > 0 && (
                     <section className="mb-16">
                         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                             <span className="text-2xl animate-pulse">✨</span> Recommended for You (Powered by Grok)
@@ -354,43 +435,23 @@ export default function StudentDashboard() {
                     </section>
                 )}
 
+                {/* Common Stats Area */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
-                    {/* Left Column: Analytics & Timeline */}
                     <div className="lg:col-span-2 space-y-12">
-
-                        {/* 2. Portfolio Analytics (The "Pride") */}
                         <section>
                             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <BarChart3 className="text-indigo-500" /> Portfolio Analytics
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <StatCard
-                                    label="Total Views"
-                                    value={totalViews.toLocaleString()}
-                                    icon={Eye}
-                                    color="bg-blue-50 text-blue-600 border-blue-100"
-                                />
-                                <StatCard
-                                    label="Downloads"
-                                    value={totalDownloads.toLocaleString()}
-                                    icon={Download}
-                                    color="bg-emerald-50 text-emerald-600 border-emerald-100"
-                                />
+                                <StatCard label="Total Views" value={totalViews.toLocaleString()} icon={Eye} color="bg-blue-50 text-blue-600 border-blue-100" />
+                                <StatCard label="Downloads" value={totalDownloads.toLocaleString()} icon={Download} color="bg-emerald-50 text-emerald-600 border-emerald-100" />
                             </div>
-
-                            {/* Tech Influence Graph */}
                             <div className="mt-6 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
                                 <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Tech Domain Influence</h3>
                                 {topTechs.length > 0 ? (
                                     <div className="space-y-4">
                                         {topTechs.map((tech, i) => (
-                                            <TechBar
-                                                key={tech.label}
-                                                label={tech.label}
-                                                percent={tech.percent}
-                                                color={i === 0 ? "bg-indigo-500" : i === 1 ? "bg-purple-500" : "bg-teal-500"}
-                                            />
+                                            <TechBar key={tech.label} label={tech.label} percent={tech.percent} color={i === 0 ? "bg-indigo-500" : i === 1 ? "bg-purple-500" : "bg-teal-500"} />
                                         ))}
                                     </div>
                                 ) : (
@@ -398,8 +459,7 @@ export default function StudentDashboard() {
                                 )}
                             </div>
                         </section>
-
-                        {/* 3. Submission Timeline */}
+                        {/* Submission Timeline */}
                         <section>
                             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <Clock className="text-amber-500" /> Submission Timeline
@@ -425,66 +485,69 @@ export default function StudentDashboard() {
                                 </div>
                             </div>
                         </section>
-
                     </div>
 
-                    {/* Right Column: Team & Quick Actions */}
                     <div className="space-y-8">
-
-                        {/* 4. "My Team & Guide" Card */}
+                        {/* My Team / Network - Different for Teacher vs Student */}
                         <section>
                             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <User className="text-rose-500" /> My Academic Network
+                                <User className="text-rose-500" /> {user?.role === 'teacher' ? 'My Profile' : 'My Academic Network'}
                             </h2>
-                            {projects[0] ? (
-                                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-[100px] -z-0 opacity-50 transition-transform group-hover:scale-110"></div>
-
-                                    <div className="relative z-10">
-                                        <div className="mb-6">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Project Guide</p>
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-lg">
-                                                    {(projects[0].guide_name || 'Prof')[0]}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-slate-900">{projects[0].guide_name || 'Prof. Not Assigned'}</h3>
-                                                    <p className="text-xs text-slate-500">Faculty Mentor</p>
+                            {user?.role === 'teacher' ? (
+                                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+                                    <p className="text-slate-500 text-center">You are logged in as Teacher.</p>
+                                </div>
+                            ) : (
+                                // Existing Team Card for Student
+                                projects[0] ? (
+                                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-[100px] -z-0 opacity-50 transition-transform group-hover:scale-110"></div>
+                                        <div className="relative z-10">
+                                            <div className="mb-6">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Project Guide</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-lg">
+                                                        {(projects[0].guide_name || 'Prof')[0]}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-slate-900">{projects[0].guide_name || 'Prof. Not Assigned'}</h3>
+                                                        <p className="text-xs text-slate-500">Faculty Mentor</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className="border-t border-slate-50 pt-6">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Team Members</p>
-                                            <div className="flex flex-col gap-3">
-                                                {(Array.isArray(projects[0].authors) ? projects[0].authors : [projects[0].authors]).map((author: string, i: number) => (
-                                                    <div key={i} className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs border border-white shadow-sm from-slate-50 to-slate-100 bg-gradient-to-br">
-                                                            {author[0]}
+                                            <div className="border-t border-slate-50 pt-6">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Team Members</p>
+                                                <div className="flex flex-col gap-3">
+                                                    {(Array.isArray(projects[0].authors) ? projects[0].authors : [projects[0].authors]).map((author: string, i: number) => (
+                                                        <div key={i} className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs border border-white shadow-sm from-slate-50 to-slate-100 bg-gradient-to-br">
+                                                                {author[0]}
+                                                            </div>
+                                                            <span className="text-sm font-semibold text-slate-700">{author}</span>
                                                         </div>
-                                                        <span className="text-sm font-semibold text-slate-700">{author}</span>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="p-6 bg-white rounded-2xl border border-slate-100 text-center text-slate-400">
-                                    No team data available.
-                                </div>
+                                ) : (
+                                    <div className="p-6 bg-white rounded-2xl border border-slate-100 text-center text-slate-400">
+                                        No team data available.
+                                    </div>
+                                )
                             )}
                         </section>
 
-                        <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-                            <h3 className="text-2xl font-black mb-2">Build Your Legacy</h3>
-                            <p className="text-teal-100 mb-6 font-medium">Upload another project to expand your portfolio.</p>
-                            <Link href="/upload" className="block w-full text-center py-3 bg-white text-teal-600 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all">
-                                Upload New Project
-                            </Link>
-                        </div>
-
+                        {user?.role === 'student' && (
+                            <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                                <h3 className="text-2xl font-black mb-2">Build Your Legacy</h3>
+                                <p className="text-teal-100 mb-6 font-medium">Upload another project to expand your portfolio.</p>
+                                <Link href="/upload" className="block w-full text-center py-3 bg-white text-teal-600 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all">
+                                    Upload New Project
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -555,12 +618,12 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
 
             <p className="text-slate-500 text-sm mb-4 line-clamp-2 min-h-[40px]">{project.abstract}</p>
 
-            {isRejected && project.admin_feedback && (
+            {(isRejected || project.remarks) && (project.remarks || project.admin_feedback) && (
                 <div className="bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2 mt-4 animate-in fade-in slide-in-from-top-2">
                     <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
                     <div>
-                        <p className="text-xs font-bold text-red-700 uppercase mb-1">Feedback from Guide</p>
-                        <p className="text-xs text-red-600 leading-snug">"{project.admin_feedback}"</p>
+                        <p className="text-xs font-bold text-red-700 uppercase mb-1">Feedback / Remarks</p>
+                        <p className="text-xs text-red-600 leading-snug">"{project.remarks || project.admin_feedback}"</p>
                     </div>
                 </div>
             )}

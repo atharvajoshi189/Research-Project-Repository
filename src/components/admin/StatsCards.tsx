@@ -1,38 +1,46 @@
-import { FileText, Clock, Users, HardDrive } from 'lucide-react';
+import { FileText, Clock, Users, GraduationCap, User } from 'lucide-react';
 
 interface StatsProps {
     totalProjects: number;
     pendingProjects: number;
-    totalUsers: number;
+    totalStudents: number;
+    totalTeachers: number;
 }
 
-export default function StatsCards({ totalProjects, pendingProjects, totalUsers }: StatsProps) {
+export default function StatsCards({ totalProjects, pendingProjects, totalStudents, totalTeachers }: StatsProps) {
     const cards = [
         {
             label: 'Total Projects',
             value: totalProjects,
             icon: FileText,
             iconBg: 'bg-blue-50 text-blue-600',
-            trend: '+12% this week'
+            trend: 'Global Count'
         },
         {
             label: 'Pending Approvals',
             value: pendingProjects,
             icon: Clock,
             iconBg: 'bg-amber-50 text-amber-600',
-            trend: 'Requires attention'
+            trend: 'Requires Action'
         },
         {
-            label: 'Total Users',
-            value: totalUsers,
-            icon: Users,
+            label: 'Total Students',
+            value: totalStudents,
+            icon: GraduationCap,
+            iconBg: 'bg-teal-50 text-teal-600',
+            trend: 'Registered'
+        },
+        {
+            label: 'Total Teachers',
+            value: totalTeachers,
+            icon: User,
             iconBg: 'bg-purple-50 text-purple-600',
-            trend: '+5 new today'
+            trend: 'Faculty'
         }
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {cards.map((card, idx) => (
                 <div key={idx} className="group relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="flex items-center justify-between mb-4">

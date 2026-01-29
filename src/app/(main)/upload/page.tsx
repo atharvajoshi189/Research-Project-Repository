@@ -22,7 +22,10 @@ export default function UploadProject() {
     const [reportLink, setReportLink] = useState('');
     const [githubLink, setGithubLink] = useState('');
     const [guideName, setGuideName] = useState('');
+    const [guideId, setGuideId] = useState(''); // New State for Guide ID
     const [academicYear, setAcademicYear] = useState('2024-2025');
+    const [teachers, setTeachers] = useState<any[]>([]);
+    const [loadingTeachers, setLoadingTeachers] = useState(false);
 
     // Collaborator State
     const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +49,20 @@ export default function UploadProject() {
             }
         };
         checkUser();
+    }, []);
+
+    // Fetch Teachers
+    useEffect(() => {
+        const fetchTeachers = async () => {
+            setLoadingTeachers(true);
+            const { data } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .eq('role', 'teacher');
+            setTeachers(data || []);
+            setLoadingTeachers(false);
+        };
+        fetchTeachers();
     }, []);
 
     // Search Users
@@ -131,6 +148,7 @@ export default function UploadProject() {
                     pdf_url: reportLink,
                     github_url: githubLink,
                     guide_name: guideName,
+                    guide_id: guideId, // Save the Guide ID
                     status: 'pending', // Pending approval
                     student_id: user.id, // Original owner ID
                     academic_year: academicYear
@@ -321,8 +339,36 @@ export default function UploadProject() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Guide Name</label>
-                                <input suppressHydrationWarning type="text" value={guideName} onChange={(e) => setGuideName(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all" placeholder="e.g. Prof. R. K. Patil" />
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Guide</label>
+                                {loadingTeachers ? (
+                                    <div className="w-full p-4 bg-slate-50 border-none rounded-2xl flex items-center gap-2 text-slate-400">
+                                        <span className="w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></span>
+                                        Loading Teachers...
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <select
+                                            value={guideId}
+                                            onChange={(e) => {
+                                                const selectedId = e.target.value;
+                                                setGuideId(selectedId);
+                                                const selectedTeacher = teachers.find(t => t.id === selectedId);
+                                                setGuideName(selectedTeacher?.full_name || '');
+                                            }}
+                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none"
+                                        >
+                                            <option value="">Select a Faculty Guide</option>
+                                            {teachers.map((teacher: any) => (
+                                                <option key={teacher.id} value={teacher.id}>
+                                                    {teacher.full_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <Users size={18} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div>

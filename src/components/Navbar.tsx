@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard, Settings, LogOut, ChevronDown, Sparkles } from 'lucide-react';
+import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard, Settings, LogOut, ChevronDown, Sparkles, Users, FileClock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
@@ -34,8 +34,19 @@ export default function Navbar() {
         };
         checkUser();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user || null);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            // Fetch role from profiles
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+
+                setUser({ ...session.user, role: profile?.role });
+            } else {
+                setUser(null);
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -64,9 +75,20 @@ export default function Navbar() {
     const navItems = [
         { label: 'Home', href: '/', icon: Home },
         { label: 'Browse', href: '/search', icon: Search },
-        { label: 'Upload', href: '/upload', icon: UploadCloud },
-        ...(user ? [{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }] : []),
-        { label: 'Admin', href: '/admin', icon: LayoutDashboard },
+        // Role Specific
+        ...(user?.role === 'student' ? [
+            { label: 'Upload', href: '/upload', icon: UploadCloud },
+            { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }
+        ] : []),
+        ...(user?.role === 'teacher' || user?.role === 'faculty' ? [
+            { label: 'Monitoring', href: '/teacher', icon: BarChart3 },
+            { label: 'Allotment', href: '/allotment', icon: Users },
+        ] : []),
+        ...(user?.role === 'hod' || user?.role === 'admin' ? [
+            { label: 'Admin', href: '/admin', icon: LayoutDashboard },
+            { label: 'Monitoring', href: '/teacher', icon: BarChart3 }, // HOD also gets monitoring view
+            { label: 'Allotment', href: '/allotment', icon: Users },
+        ] : []),
     ];
 
     // Auth-Aware Logic: Hide on /login and /signup
