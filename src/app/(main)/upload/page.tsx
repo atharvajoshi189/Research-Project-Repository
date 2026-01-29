@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, Users, CheckCircle, X, Search, UserPlus, Info } from 'lucide-react';
+import { UploadCloud, FileText, Users, CheckCircle, X, Search, UserPlus, Info, ChevronUp, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function UploadProject() {
@@ -26,11 +26,14 @@ export default function UploadProject() {
     const [academicYear, setAcademicYear] = useState('2024-2025');
     const [teachers, setTeachers] = useState<any[]>([]);
     const [loadingTeachers, setLoadingTeachers] = useState(false);
+    const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
 
     // Collaborator State
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
+
+    // Removed allStudents state to fix lag
 
     useEffect(() => {
         const checkUser = async () => {
@@ -58,30 +61,33 @@ export default function UploadProject() {
             const { data } = await supabase
                 .from('profiles')
                 .select('id, full_name')
-                .eq('role', 'teacher');
+                .eq('role', 'teacher'); // Reverted: DB uses 'teacher', not 'faculty'
             setTeachers(data || []);
             setLoadingTeachers(false);
         };
         fetchTeachers();
     }, []);
 
-    // Search Users
+    // Optimized Server-Side Search
     useEffect(() => {
         const searchUsers = async () => {
-            if (searchQuery.length < 2) {
+            if (!searchQuery.trim()) {
                 setSearchResults([]);
                 return;
             }
+
+            // Removed role filter to find ANY user (students, maybe mislabeled faculty, etc.)
             const { data } = await supabase
                 .from('profiles')
-                .select('*')
-                .ilike('full_name', `%${searchQuery}%`) // Search by name
+                .select('id, full_name, role') // Removed 'email' as it doesn't exist in profiles
+                .ilike('full_name', `%${searchQuery}%`)
                 .limit(5);
 
             // Filter out already selected members
             const filtered = data?.filter((p: any) => !selectedMembers.some(m => m.id === p.id)) || [];
             setSearchResults(filtered);
         };
+
         const debounce = setTimeout(searchUsers, 300);
         return () => clearTimeout(debounce);
     }, [searchQuery, selectedMembers]);
@@ -292,9 +298,8 @@ export default function UploadProject() {
                                         placeholder="Search by student name..."
                                     />
 
-                                    {/* Search Results Dropdown */}
-                                    {searchResults.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+                                    {searchResults.length > 0 ? (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto">
                                             {searchResults.map((member: any) => (
                                                 <button
                                                     key={member.id}
@@ -306,11 +311,15 @@ export default function UploadProject() {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-800">{member.full_name || 'Unknown'}</p>
-                                                        <p className="text-xs text-slate-400">{member.email}</p>
+                                                        <p className="text-xs text-slate-400">{member.role}</p>
                                                     </div>
                                                     <UserPlus size={16} className="ml-auto text-teal-500" />
                                                 </button>
                                             ))}
+                                        </div>
+                                    ) : searchQuery.trim().length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 p-4 text-center text-slate-400 text-sm">
+                                            No members found
                                         </div>
                                     )}
                                 </div>
@@ -347,26 +356,46 @@ export default function UploadProject() {
                                     </div>
                                 ) : (
                                     <div className="relative">
-                                        <select
-                                            value={guideId}
-                                            onChange={(e) => {
-                                                const selectedId = e.target.value;
-                                                setGuideId(selectedId);
-                                                const selectedTeacher = teachers.find(t => t.id === selectedId);
-                                                setGuideName(selectedTeacher?.full_name || '');
-                                            }}
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none"
+                                        <button
+                                            onClick={() => setIsTeacherDropdownOpen(!isTeacherDropdownOpen)}
+                                            className="w-full p-4 bg-slate-50 rounded-2xl flex items-center justify-between font-bold text-slate-800 hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-teal-500/20 outline-none"
                                         >
-                                            <option value="">Select a Faculty Guide</option>
-                                            {teachers.map((teacher: any) => (
-                                                <option key={teacher.id} value={teacher.id}>
-                                                    {teacher.full_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                            <Users size={18} />
-                                        </div>
+                                            <span className={guideId ? 'text-slate-800' : 'text-slate-400 font-medium'}>
+                                                {guideName || "Select a Faculty Guide"}
+                                            </span>
+                                            {isTeacherDropdownOpen ? <ChevronDown size={20} className="text-slate-400" /> : <ChevronUp size={20} className="text-slate-400" />}
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {isTeacherDropdownOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto"
+                                                >
+                                                    {teachers.map((teacher: any) => (
+                                                        <button
+                                                            key={teacher.id}
+                                                            onClick={() => {
+                                                                setGuideId(teacher.id);
+                                                                setGuideName(teacher.full_name);
+                                                                setIsTeacherDropdownOpen(false);
+                                                            }}
+                                                            className="w-full text-left px-5 py-3 hover:bg-teal-50 flex items-center gap-3 transition-colors border-b border-slate-50 last:border-0"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
+                                                                {teacher.full_name?.charAt(0) || "F"}
+                                                            </div>
+                                                            <span className="font-bold text-slate-700">{teacher.full_name}</span>
+                                                        </button>
+                                                    ))}
+                                                    {teachers.length === 0 && (
+                                                        <div className="p-4 text-center text-slate-400 text-sm">No teachers found</div>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 )}
                             </div>

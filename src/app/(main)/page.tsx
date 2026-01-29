@@ -114,7 +114,16 @@ export default function Home() {
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
 
-    if (data) {
+    const defaultIcons = [
+      { name: 'React', url: getTechIcon('React') },
+      { name: 'Node.js', url: getTechIcon('Node.js') },
+      { name: 'Python', url: getTechIcon('Python') },
+      { name: 'TensorFlow', url: getTechIcon('TensorFlow') },
+      { name: 'Docker', url: getTechIcon('Docker') },
+      { name: 'PostgreSQL', url: getTechIcon('PostgreSQL') },
+    ];
+
+    if (data && data.length > 0) {
       setProjects(data);
 
       const uniqueTech = new Set<string>();
@@ -130,17 +139,13 @@ export default function Home() {
       }));
 
       if (icons.length === 0) {
-        setTechIcons([
-          { name: 'React', url: getTechIcon('React') },
-          { name: 'Node.js', url: getTechIcon('Node.js') },
-          { name: 'Python', url: getTechIcon('Python') },
-          { name: 'TensorFlow', url: getTechIcon('TensorFlow') },
-          { name: 'Docker', url: getTechIcon('Docker') },
-          { name: 'PostgreSQL', url: getTechIcon('PostgreSQL') },
-        ]);
+        setTechIcons(defaultIcons);
       } else {
         setTechIcons(icons);
       }
+    } else {
+      // Fallback if no projects found or RLS blocks them
+      setTechIcons(defaultIcons);
     }
   };
 
