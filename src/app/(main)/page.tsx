@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Project3DCard from '@/components/Project3DCard';
 import { useAITheme } from '@/context/AIThemeContext';
+import CategoryCloud from '@/components/home/CategoryCloud';
 
 const TECH_ICON_MAP: Record<string, string> = {
   react: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
@@ -138,10 +139,15 @@ export default function Home() {
         url: getTechIcon(tech)
       }));
 
-      if (icons.length === 0) {
-        setTechIcons(defaultIcons);
-      } else {
+      // If we have icons from DB, use them. 
+      // Merging with defaults ONLY if we have very few to ensure the marquee looks full?
+      // User asked: "Render the ticker using only the technologies that actually exist in the database."
+      if (icons.length > 0) {
+        // If less than 6, maybe duplicate them for smooth marquee?
+        // But for "Dynamic" Strictness, let's just use what we have.
         setTechIcons(icons);
+      } else {
+        setTechIcons(defaultIcons);
       }
     } else {
       // Fallback if no projects found or RLS blocks them
@@ -234,7 +240,7 @@ export default function Home() {
           className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-[0.9] text-slate-900 mb-10"
         >
           Research <br />
-          <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500">Reimagined.</span>
+          <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500 animate-gradient-wipe">Reimagined.</span>
         </motion.h1>
 
         {/* Subtext */}
@@ -346,6 +352,16 @@ export default function Home() {
           </form>
         </motion.div>
 
+        {/* Floating Category Cloud */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="w-full relative z-40"
+        >
+          <CategoryCloud />
+        </motion.div>
+
         {/* Tech Stack Icons (Wavy Row) */}
         {/* Tech Stack Infinite Marquee */}
         <div className="mt-20 w-full overflow-hidden relative">
@@ -367,7 +383,7 @@ export default function Home() {
                 {techIcons.length > 0 ? techIcons.map((tech, index) => (
                   <motion.div
                     key={`${i}-${index}`}
-                    onClick={() => router.push(`/search?q=${encodeURIComponent(tech.name)}`)}
+                    onClick={() => router.push(`/search?tech=${encodeURIComponent(tech.name)}`)}
                     className="group relative flex flex-col items-center justify-center gap-4 cursor-pointer"
                     animate={{ y: [-8, 8, -8] }}
                     transition={{

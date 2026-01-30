@@ -11,11 +11,12 @@ function SearchContent() {
     const searchParams = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
     const initialCategory = searchParams.get('category') || '';
+    const initialTech = searchParams.get('tech') || '';
 
     const [allProjects, setAllProjects] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState(initialQuery);
     const [selectedYear, setSelectedYear] = useState<string[]>([]);
-    const [selectedTech, setSelectedTech] = useState<string[]>([]); // Tech stack filter
+    const [selectedTech, setSelectedTech] = useState<string[]>(initialTech ? [initialTech] : []); // Tech stack filter
     const [selectedCategory, setSelectedCategory] = useState<string[]>(initialCategory ? [initialCategory] : []);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -32,6 +33,25 @@ function SearchContent() {
                     const { data: searchData, error } = await supabase.rpc('search_projects', { keyword: searchTerm });
                     if (error) throw error;
                     data = searchData || [];
+                } else if (initialTech) {
+                    // Attempt Smart Fuzzy RPC first
+                    const { data: techData, error: rpcError } = await supabase
+                        .rpc('search_projects_by_tech', { tech_pattern: initialTech });
+
+                    if (rpcError) {
+                        console.warn("Fuzzy search RPC failed (function might be missing), falling back to strict match.", rpcError);
+                        // Fallback to strict 'contains'
+                        const { data: strictData, error: strictError } = await supabase
+                            .from('projects')
+                            .select('*')
+                            .eq('status', 'approved')
+                            .contains('tech_stack', [initialTech]);
+
+                        if (strictError) throw strictError;
+                        data = strictData || [];
+                    } else {
+                        data = techData || [];
+                    }
                 } else {
                     // Default fetch
                     const { data: allData, error } = await supabase.from('projects').select('*').eq('status', 'approved');
@@ -41,7 +61,8 @@ function SearchContent() {
 
                 setAllProjects(data);
             } catch (err) {
-                console.error("Search error:", err);
+                console.error("Search error details:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+                console.error("Search error raw:", err);
             } finally {
                 setLoading(false);
             }
@@ -53,13 +74,14 @@ function SearchContent() {
         }, 300);
 
         return () => clearTimeout(debounce);
-    }, [searchTerm]);
+    }, [searchTerm, initialTech]); // Added initialTech dependency
 
     // Sync state with URL params on mount/update
     useEffect(() => {
         if (initialQuery) setSearchTerm(initialQuery);
         if (initialCategory && !selectedCategory.includes(initialCategory)) setSelectedCategory([initialCategory]);
-    }, [initialQuery, initialCategory]);
+        if (initialTech && !selectedTech.includes(initialTech)) setSelectedTech([initialTech]);
+    }, [initialQuery, initialCategory, initialTech]);
 
     // SMART FILTERING LOGIC
     // Runs every time any filter state changes
@@ -89,8 +111,14 @@ function SearchContent() {
             // Category Logic (OR)
             const matchesCategory = selectedCategory.length === 0 || selectedCategory.includes(project.category);
 
-            // Tech Stack Logic (OR) - Checks if project has ANY of the selected techs
-            const matchesTech = selectedTech.length === 0 || (project.techStack && project.techStack.some((tech: string) => selectedTech.includes(tech)));
+            // Tech Stack Logic (OR) - Fuzzy Match (Targeting tech_stack column)
+            const matchesTech = selectedTech.length === 0 || (() => {
+                // Support both snake_case (DB default) and camelCase (potential RPC/transform)
+                const stack = project.tech_stack || project.techStack;
+                return stack && Array.isArray(stack) && stack.some((tech: string) =>
+                    selectedTech.some(filter => tech.toLowerCase().includes(filter.toLowerCase()))
+                );
+            })();
 
             // Combine with AND
             return matchesSearch && matchesYear && matchesCategory && matchesTech;
@@ -231,6 +259,11 @@ function SearchContent() {
                             </div>
                             <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
                                 <span className="font-bold text-slate-900">{filteredProjects.length}</span> Results Found
+                                {initialTech && (
+                                    <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                                        Filtering by: {initialTech}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -246,7 +279,7 @@ function SearchContent() {
                                     <div className="col-span-full flex justify-center py-20">
                                         <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
                                     </div>
-                                ) : filteredProjects.length === 0 ? (
+                                ) : filteredProjects.length === 0 && !loading ? (
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}

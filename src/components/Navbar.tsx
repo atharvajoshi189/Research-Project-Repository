@@ -162,7 +162,7 @@ export default function Navbar() {
                         <div
                             className={`absolute inset-0 rounded-full transition-all duration-500 ease-in-out border bg-[rgba(255,255,255,0.65)] border-white/40 shadow-xl shadow-indigo-500/10`}
                             style={{
-                                backdropFilter: 'blur(24px)',
+                                backdropFilter: 'blur(12px)',
                             }}
                         ></div>
 

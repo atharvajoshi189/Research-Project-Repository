@@ -60,6 +60,41 @@
     position: fixed;
     inset: 0;
     z-index: -2;
+
+  }
+
+  /* Animation Keyframes */
+  @keyframes shine {
+    from {
+      background-position: 0;
+    }
+
+    to {
+      background-position: -200%;
+    }
+  }
+
+  .animate-shine {
+    animation: shine 3s linear infinite;
+  }
+
+  @keyframes gradient-wipe {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient-wipe {
+    background-size: 200% auto;
+    animation: gradient-wipe 5s ease-in-out infinite;
   }
 
   /* Blob Movement Overlay */
