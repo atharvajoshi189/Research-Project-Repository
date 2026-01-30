@@ -219,7 +219,7 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative px-6 pt-32 pb-20 w-full max-w-7xl mx-auto flex flex-col items-center text-center">
+      <section className="relative px-6 pt-48 pb-20 w-full max-w-7xl mx-auto flex flex-col items-center text-center">
 
         {/* Animated Badge */}
         <motion.div
