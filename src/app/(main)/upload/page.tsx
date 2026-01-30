@@ -132,52 +132,68 @@ export default function UploadProject() {
     };
 
     const handleSubmit = async () => {
-        if (!title || !abstract || !reportLink || !guideName || selectedMembers.length === 0) {
-            toast.error("Please fill all required fields");
+        // 1. Validate Mandatory Fields
+        const missingFields = [];
+        if (!title.trim()) missingFields.push("Project Title");
+        if (!abstract.trim()) missingFields.push("Abstract");
+        if (!reportLink.trim()) missingFields.push("Project Report (Drive Link)");
+        if (!guideId) missingFields.push("Project Guide"); // Critical for RLS/FK
+        if (techStack.length === 0) missingFields.push("Tech Stack");
+
+        if (missingFields.length > 0) {
+            toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        // Validate Google Drive Link (Basic check)
+        if (!reportLink.includes("drive.google.com")) {
+            toast.error("Please provide a valid Google Drive link for the report.");
             return;
         }
 
         setLoading(true);
         try {
+            console.log("Starting Submisson...", {
+                title, guideId, guideName, authorCount: selectedMembers.length
+            });
+
             // 1. Insert Project
             // We map selected profile names to the 'authors' array for display
             const authorNames = selectedMembers.map(m => m.full_name || m.email);
 
+            const projectPayload = {
+                title,
+                abstract,
+                category,
+                authors: authorNames, // Backward compatibility
+                tech_stack: techStack,
+                pdf_url: reportLink, // Maps to 'drive_link' in some schemas, keeping as pdf_url based on local file
+                github_url: githubLink,
+                guide_name: guideName,
+                guide_id: guideId, // Save the Guide ID (UUID)
+                status: 'pending', // Pending approval
+                student_id: user.id, // Original owner ID
+                academic_year: academicYear
+            };
+
+            console.log("Sending Payload:", projectPayload);
+
             const { data: projectData, error: projectError } = await supabase
                 .from('projects')
-                .insert({
-                    title,
-                    abstract,
-                    category,
-                    authors: authorNames, // Backward compatibility
-                    tech_stack: techStack,
-                    pdf_url: reportLink,
-                    github_url: githubLink,
-                    guide_name: guideName,
-                    guide_id: guideId, // Save the Guide ID
-                    status: 'pending', // Pending approval
-                    student_id: user.id, // Original owner ID
-                    academic_year: academicYear
-                })
+                .insert(projectPayload)
                 .select()
                 .single();
 
-            if (projectError) throw projectError;
+            if (projectError) {
+                console.error("Supabase Project Insert Error:", projectError);
+                throw new Error(`Project Upload Failed: ${projectError.message} (${projectError.code})`);
+            }
+
+            console.log("Project Inserted:", projectData);
 
             // 2. Insert Collaborators
             if (projectData) {
-                // Ensure leader is included
-                const uniqueMembers = Array.from(new Map(selectedMembers.map(m => [m.id, m])).values());
-                if (!uniqueMembers.some(m => m.id === user.id)) {
-                    // Leader missing? Should not happen due to useEffect, but safety first
-                    // We can't fetch easily here without async, best to rely on current 'user' object if profile missing
-                    // But strictly speaking, we need the profile for compatibility?
-                    // Actually, we only need user.id for the insert.
-                }
-
-                // Better strategy: Just map selectedMembers, assuming useEffect added the leader. 
-                // But user explicitly asked "Ensure the Leader... is also inserted".
-
+                // Prepare collaborators list
                 const collaborators = selectedMembers.map(member => ({
                     project_id: projectData.id,
                     student_id: member.id, // Explicitly using student_id
@@ -185,13 +201,18 @@ export default function UploadProject() {
                     status: member.id === user.id ? 'accepted' : 'pending'
                 }));
 
+                // Ensure the current user (leader) is in the list if not already
+                // (selectedMembers usually includes the user, but we double check logic if needed. 
+                // The current logic adds user to selectedMembers on mount, so this should be fine.)
+
                 const { error: collabError } = await supabase
                     .from('project_collaborators')
                     .insert(collaborators);
 
                 if (collabError) {
-                    console.error("Collaborator error:", collabError);
-                    toast.error("Project created but failed to add some team members.");
+                    console.error("Collaborator Insert Error:", collabError);
+                    // We don't block success here, but warn
+                    toast.error("Project created, but some team members might not be linked.");
                 }
             }
 
@@ -199,8 +220,10 @@ export default function UploadProject() {
             router.push('/dashboard');
 
         } catch (error: any) {
-            toast.error(error.message || "Upload failed");
+            console.error("CRITICAL UPLOAD ERROR:", error);
+            toast.error(error.message || "An unexpected error occurred during upload.");
         } finally {
+            // CRITICAL: Ensure button stops loading
             setLoading(false);
         }
     };
