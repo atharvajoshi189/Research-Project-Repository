@@ -161,28 +161,40 @@ export default function UploadProject() {
             // We map selected profile names to the 'authors' array for display
             const authorNames = selectedMembers.map(m => m.full_name || m.email);
 
+            // CORRECTED PAYLOAD: Using 'abstract' and 'pdf_url' to match DB Schema
             const projectPayload = {
                 title,
-                abstract,
+                abstract: abstract,   // DB Column: abstract
                 category,
-                authors: authorNames, // Backward compatibility
+                authors: authorNames,
                 tech_stack: techStack,
-                pdf_url: reportLink, // Maps to 'drive_link' in some schemas, keeping as pdf_url based on local file
+                pdf_url: reportLink,  // DB Column: pdf_url
                 github_url: githubLink,
                 guide_name: guideName,
-                guide_id: guideId, // Save the Guide ID (UUID)
-                status: 'pending', // Pending approval
-                student_id: user.id, // Original owner ID
+                guide_id: guideId,
+                status: 'pending',
+                student_id: user.id,
                 academic_year: academicYear
             };
 
             console.log("Sending Payload:", projectPayload);
 
-            const { data: projectData, error: projectError } = await supabase
+            // Timeout race to prevent hanging (Increased to 25s)
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Upload timed out (25s). Possible network or server delay.')), 25000)
+            );
+
+            // Removed .single() to avoid strict one-row checks which might fail/hang on RLS
+            const insertPromise = supabase
                 .from('projects')
                 .insert(projectPayload)
-                .select()
-                .single();
+                .select();
+
+            const result = await Promise.race([insertPromise, timeoutPromise]) as any;
+            const { data: projectResponse, error: projectError } = result;
+
+            // Handle array response
+            const projectData = projectResponse?.[0] || null;
 
             if (projectError) {
                 console.error("Supabase Project Insert Error:", projectError);
@@ -220,10 +232,11 @@ export default function UploadProject() {
             router.push('/dashboard');
 
         } catch (error: any) {
+            setLoading(false); // Reset loading state immediately
             console.error("CRITICAL UPLOAD ERROR:", error);
+            window.alert('Upload Failed: ' + error.message); // Explicit Alert
             toast.error(error.message || "An unexpected error occurred during upload.");
         } finally {
-            // CRITICAL: Ensure button stops loading
             setLoading(false);
         }
     };

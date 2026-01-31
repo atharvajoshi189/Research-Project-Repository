@@ -100,20 +100,24 @@ function AuthContent() {
 
     // Lock Animation Sequence
     useEffect(() => {
+        // Prefetch potential routes for faster navigation
+        router.prefetch('/search');
+        router.prefetch('/admin');
+
         // Start sequence
         const timer1 = setTimeout(() => {
             setIsUnlocking(true); // Trigger unlock animation
-        }, 1500);
+        }, 300);
 
         const timer2 = setTimeout(() => {
             setShowIntro(false); // Remove overlay (doors open)
-        }, 2200);
+        }, 800);
 
         return () => {
             clearTimeout(timer1);
             clearTimeout(timer2);
         };
-    }, []);
+    }, [router]);
 
 
 
