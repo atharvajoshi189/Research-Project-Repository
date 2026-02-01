@@ -132,59 +132,73 @@ export default function UploadProject() {
     };
 
     const handleSubmit = async () => {
-        // 1. Validate Mandatory Fields
-        const missingFields = [];
-        if (!title.trim()) missingFields.push("Project Title");
-        if (!abstract.trim()) missingFields.push("Abstract");
-        if (!reportLink.trim()) missingFields.push("Project Report (Drive Link)");
-        if (!guideId) missingFields.push("Project Guide"); // Critical for RLS/FK
-        if (techStack.length === 0) missingFields.push("Tech Stack");
+        // 0. Immediate UI Feedback
+        setLoading(true); // <--- MOVED TO TOP
 
-        if (missingFields.length > 0) {
-            toast.error(`Missing required fields: ${missingFields.join(', ')}`);
-            return;
-        }
-
-        // Validate Google Drive Link (Basic check)
-        if (!reportLink.includes("drive.google.com")) {
-            toast.error("Please provide a valid Google Drive link for the report.");
-            return;
-        }
-
-        setLoading(true);
         try {
+            // 1. Session Validation
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !session) {
+                console.error("Session Error:", sessionError);
+                window.alert("Session Expired: Please login again.");
+                router.push('/login');
+                return; // Finally block will handle setLoading(false)
+            }
+
+            // 2. Validate Mandatory Fields
+            const missingFields = [];
+            if (!title.trim()) missingFields.push("Project Title");
+            if (!abstract.trim()) missingFields.push("Abstract");
+            if (!reportLink.trim()) missingFields.push("Project Report (Drive Link)");
+            if (!guideId) missingFields.push("Project Guide");
+            if (techStack.length === 0) missingFields.push("Tech Stack");
+
+            if (missingFields.length > 0) {
+                toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+                // Must manually turn off loading here since we return early inside the try
+                setLoading(false);
+                return;
+            }
+
+            // Validate Google Drive Link
+            if (!reportLink.includes("drive.google.com")) {
+                toast.error("Please provide a valid Google Drive link for the report.");
+                setLoading(false);
+                return;
+            }
+
             console.log("Starting Submisson...", {
                 title, guideId, guideName, authorCount: selectedMembers.length
             });
 
-            // 1. Insert Project
-            // We map selected profile names to the 'authors' array for display
+            // 3. Prepare Payload
             const authorNames = selectedMembers.map(m => m.full_name || m.email);
 
-            // CORRECTED PAYLOAD: Using 'abstract' and 'pdf_url' to match DB Schema
             const projectPayload = {
-                title,
-                abstract: abstract,   // DB Column: abstract
-                category,
-                authors: authorNames,
-                tech_stack: techStack,
-                pdf_url: reportLink,  // DB Column: pdf_url
-                github_url: githubLink,
-                guide_name: guideName,
-                guide_id: guideId,
-                status: 'pending',
-                student_id: user.id,
-                academic_year: academicYear
-            };
+  title,
+  abstract,
+  category,
+  authors: authorNames,
+  tech_stack: techStack.map(t => t.trim()),
+  pdf_url: reportLink,
+  github_url: githubLink,
+  guide_name: guideName,
+  guide_id: guideId,
+  status: "pending",
+  student_id: user.id,
+  academic_year: academicYear
+}
 
-            console.log("Sending Payload:", projectPayload);
 
-            // Timeout race to prevent hanging (Increased to 25s)
+            console.log('Sending Payload:', projectPayload);
+            console.log('Guide ID Type:', typeof guideId, 'Value:', guideId);
+
+            // 4. Insert Project with Timeout
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Upload timed out (25s). Possible network or server delay.')), 25000)
+                setTimeout(() => reject(new Error('Server is taking too long. Please check your internet or Supabase status.')), 25000)
             );
 
-            // Removed .single() to avoid strict one-row checks which might fail/hang on RLS
             const insertPromise = supabase
                 .from('projects')
                 .insert(projectPayload)
@@ -193,29 +207,22 @@ export default function UploadProject() {
             const result = await Promise.race([insertPromise, timeoutPromise]) as any;
             const { data: projectResponse, error: projectError } = result;
 
-            // Handle array response
-            const projectData = projectResponse?.[0] || null;
-
             if (projectError) {
                 console.error("Supabase Project Insert Error:", projectError);
-                throw new Error(`Project Upload Failed: ${projectError.message} (${projectError.code})`);
+                throw new Error(projectError.message);
             }
 
+            const projectData = projectResponse?.[0] || null;
             console.log("Project Inserted:", projectData);
 
-            // 2. Insert Collaborators
+            // 5. Insert Collaborators
             if (projectData) {
-                // Prepare collaborators list
                 const collaborators = selectedMembers.map(member => ({
                     project_id: projectData.id,
-                    student_id: member.id, // Explicitly using student_id
+                    student_id: member.id,
                     role: member.id === user.id ? 'leader' : 'contributor',
                     status: member.id === user.id ? 'accepted' : 'pending'
                 }));
-
-                // Ensure the current user (leader) is in the list if not already
-                // (selectedMembers usually includes the user, but we double check logic if needed. 
-                // The current logic adds user to selectedMembers on mount, so this should be fine.)
 
                 const { error: collabError } = await supabase
                     .from('project_collaborators')
@@ -223,7 +230,6 @@ export default function UploadProject() {
 
                 if (collabError) {
                     console.error("Collaborator Insert Error:", collabError);
-                    // We don't block success here, but warn
                     toast.error("Project created, but some team members might not be linked.");
                 }
             }
@@ -232,9 +238,8 @@ export default function UploadProject() {
             router.push('/dashboard');
 
         } catch (error: any) {
-            setLoading(false); // Reset loading state immediately
             console.error("CRITICAL UPLOAD ERROR:", error);
-            window.alert('Upload Failed: ' + error.message); // Explicit Alert
+            window.alert('Upload Failed: ' + error.message);
             toast.error(error.message || "An unexpected error occurred during upload.");
         } finally {
             setLoading(false);
