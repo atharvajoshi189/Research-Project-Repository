@@ -193,21 +193,24 @@ function TeacherDashboardContent() {
         setSelectedProject(project);
         setReviewAction(action);
         // Pre-fill feedback if rejected before? No, fresh start for now.
-        setFeedback(project.remarks || '');
+        setFeedback(project.admin_feedback || '');
         setReviewModalOpen(true);
     };
 
+    const [submitLoading, setSubmitLoading] = useState(false);
+
     const submitReview = async () => {
         if (!selectedProject || !reviewAction) return;
+
+        setSubmitLoading(true);
         try {
             const updates: any = {
-                status: reviewAction === 'approved' ? 'approved' : 'rejected', // 'approved' directly for HOD
+                status: reviewAction === 'approved' ? 'approved' : 'rejected',
             };
 
-            // If rejected, save remarks. If approved, maybe clear them?
+            // If rejected, save remarks
             if (reviewAction === 'rejected') {
-                updates.remarks = feedback;
-                updates.admin_feedback = feedback; // Keep legacy column in sync if needed
+                updates.admin_feedback = feedback;
             }
 
             const { error } = await supabase
@@ -216,11 +219,19 @@ function TeacherDashboardContent() {
                 .eq('id', selectedProject.id);
 
             if (error) throw error;
-            toast.success(`Project ${reviewAction === 'approved' ? 'approved' : 'rejected'} successfully!`);
+
+            if (reviewAction === 'rejected') {
+                toast.success("Feedback sent and project rejected");
+            } else {
+                toast.success("Project approved successfully!");
+            }
+
             setReviewModalOpen(false);
             refetch();
         } catch (err: any) {
             toast.error(err.message);
+        } finally {
+            setSubmitLoading(false);
         }
     };
 
@@ -724,12 +735,20 @@ function TeacherDashboardContent() {
                                 </button>
                                 <button
                                     onClick={submitReview}
-                                    className={`px-6 py-2.5 text-white font-bold rounded-xl transition-colors shadow-lg
+                                    disabled={submitLoading}
+                                    className={`px-6 py-2.5 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center gap-2
                                         ${reviewAction === 'approved' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-500 hover:bg-rose-600'}
+                                        ${submitLoading ? 'opacity-70 cursor-not-allowed' : ''}
                                     `}
                                 >
-                                    {reviewAction === 'approved' ? 'Unknown' : 'Send Remarks'}
-                                    {reviewAction === 'approved' ? 'Confirm Approval' : 'Send Remarks'}
+                                    {submitLoading ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                            {reviewAction === 'approved' ? 'Approving...' : 'Sending...'}
+                                        </>
+                                    ) : (
+                                        reviewAction === 'approved' ? 'Confirm Approval' : 'Send Remarks'
+                                    )}
                                 </button>
                             </div>
                         </motion.div>

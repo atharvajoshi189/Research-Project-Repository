@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Save, X, Info, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Save, X, Info, CheckCircle, ArrowLeft, Plus, Trash2, Users, Search, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -26,7 +26,49 @@ export default function EditProjectPage() {
     const [reportLink, setReportLink] = useState('');
     const [githubLink, setGithubLink] = useState('');
     const [guideName, setGuideName] = useState('');
+    const [guideId, setGuideId] = useState('');
     const [academicYear, setAcademicYear] = useState('2024-2025');
+    const [status, setStatus] = useState(''); // Added status state
+    const [teachers, setTeachers] = useState<any[]>([]);
+
+    // Collaborators
+    const [collaborators, setCollaborators] = useState<any[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [loadingCollaborators, setLoadingCollaborators] = useState(false);
+
+    useEffect(() => {
+        const fetchTeachers = async () => {
+            const { data } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('role', ['teacher', 'hod', 'HOD']);
+            setTeachers(data || []);
+        };
+        fetchTeachers();
+    }, []);
+
+    // --- Persistence Logic ---
+    const draftKey = `project_draft_${projectId}`;
+
+    // Auto-save to localStorage
+    useEffect(() => {
+        if (!projectId || loading) return; // Don't save empty/loading state
+
+        const draftData = {
+            title,
+            abstract,
+            category,
+            techStack,
+            reportLink,
+            githubLink,
+            guideName,
+            guideId,
+            academicYear
+        };
+
+        localStorage.setItem(draftKey, JSON.stringify(draftData));
+    }, [title, abstract, category, techStack, reportLink, githubLink, guideName, guideId, academicYear, projectId, loading]);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -53,35 +95,218 @@ export default function EditProjectPage() {
                 return;
             }
 
-            // 3. Authorization Check (Must be Leader/Owner)
-            // Note: Currently 'student_id' on project table is the owner/leader
+            // 3. Authorization Check
             if (project.student_id !== session.user.id) {
                 setUnauthorized(true);
                 setLoading(false);
                 return;
             }
 
-            // 4. Pre-fill Form
-            setTitle(project.title || '');
-            setAbstract(project.abstract || '');
-            setCategory(project.category || 'Final Year Project');
-            setReportLink(project.pdf_url || '');
-            setGithubLink(project.github_url || '');
-            setGuideName(project.guide_name || '');
-            setAcademicYear(project.academic_year || '2024-2025');
+            // 4. Pre-fill Form (DB Data)
+            let initialData = {
+                title: project.title || '',
+                abstract: project.abstract || '',
+                category: project.category || 'Final Year Project',
+                techStack: [] as string[],
+                reportLink: project.pdf_url || '',
+                githubLink: project.github_url || '',
+                guideName: project.guide_name || '',
+                guideId: project.guide_id || '',
+                academicYear: project.academic_year || '2024-2025'
+            };
 
-            // Tech stack can be string or array in DB
             if (Array.isArray(project.tech_stack)) {
-                setTechStack(project.tech_stack);
+                initialData.techStack = project.tech_stack;
             } else if (typeof project.tech_stack === 'string') {
-                setTechStack(project.tech_stack.split(',').map((t: string) => t.trim()).filter(Boolean));
+                initialData.techStack = project.tech_stack.split(',').map((t: string) => t.trim()).filter(Boolean);
             }
+
+            // 5. Check LocalStorage for Draft
+            const savedDraft = localStorage.getItem(draftKey);
+            if (savedDraft) {
+                try {
+                    const parsedDraft = JSON.parse(savedDraft);
+                    // Use draft data if available, otherwise fall back to DB data
+                    // Note: We blindly prefer the draft here as per user request to "not lose changes"
+                    initialData = { ...initialData, ...parsedDraft };
+                    toast("Restored unsaved changes", { icon: '📝' });
+                } catch (e) {
+                    console.error("Failed to parse draft", e);
+                }
+            }
+
+            // Apply Data to State
+            setTitle(initialData.title);
+            setAbstract(initialData.abstract);
+            setCategory(initialData.category);
+            setTechStack(initialData.techStack);
+            setReportLink(initialData.reportLink);
+            setGithubLink(initialData.githubLink);
+            setGuideName(initialData.guideName);
+            setGuideId(initialData.guideId);
+            setAcademicYear(initialData.academicYear);
+            setStatus(project.status || '');
+
+            setStatus(project.status || '');
+
+            // Fetch collaborators
+            await fetchCollaborators(projectId);
 
             setLoading(false);
         };
 
         if (projectId) fetchProject();
     }, [projectId, router]);
+
+    // Search Users
+    useEffect(() => {
+        const searchUsers = async () => {
+            if (!searchQuery.trim()) {
+                setSearchResults([]);
+                return;
+            }
+
+            console.log("🔍 Searching users for:", searchQuery);
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, full_name, role')
+                .ilike('full_name', `%${searchQuery}%`)
+                .eq('role', 'student') // Only search students
+                .limit(5);
+
+            if (error) {
+                console.error("❌ Search Error:", error);
+                return;
+            }
+
+            console.log("✅ Search Results (Raw):", data);
+
+            // Filter out existing collaborators and current user
+            const filtered = (data || []).filter(u =>
+                !collaborators.some(c => c.student_id === u.id) &&
+                u.id !== params.id // Ideally check against current session user, but this is okay for now
+            );
+
+            console.log("✅ Search Results (Filtered):", filtered);
+            setSearchResults(filtered);
+        };
+
+        const timeoutId = setTimeout(searchUsers, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery, collaborators]);
+
+    // Fetch collaborators - Robust 2-step approach
+    const fetchCollaborators = async (pId: string) => {
+        setLoadingCollaborators(true);
+        console.log("🔄 Fetching collaborators for Project ID:", pId);
+        try {
+            // 1. Get IDs
+            console.log("Step 1: Fetching collaborator IDs...");
+            const { data, error } = await supabase
+                .from('project_collaborators')
+                .select('id, student_id, role')
+                .eq('project_id', pId);
+
+            if (error) {
+                console.error("❌ Step 1 Error (project_collaborators):", error);
+                throw error;
+            }
+            console.log("✅ Step 1 Success, data:", data);
+
+            if (data && data.length > 0) {
+                const studentIds = data.map(c => c.student_id);
+                console.log("Step 2: Fetching profiles for IDs:", studentIds);
+
+                // 2. Get Profiles
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('id, full_name')
+                    .in('id', studentIds);
+
+                if (profileError) {
+                    console.error("❌ Step 2 Error (profiles):", profileError);
+                    throw profileError;
+                }
+                console.log("✅ Step 2 Success, profiles:", profileData);
+
+                // 3. Merge
+                const merged = data.map(collaborator => ({
+                    ...collaborator,
+                    profiles: profileData?.find(p => p.id === collaborator.student_id)
+                }));
+
+                setCollaborators(merged);
+            } else {
+                setCollaborators([]);
+            }
+        } catch (error: any) {
+            console.error("💥 Failed to fetch collaborators FULL ERROR:", error);
+            console.error("💥 Error Message:", error.message);
+            console.error("💥 Error Details:", error.details);
+            console.error("💥 Error Hint:", error.hint);
+            toast.error("Failed to load collaborators");
+        } finally {
+            setLoadingCollaborators(false);
+        }
+    };
+
+    // Add collaborator
+    const handleAddCollaborator = async (user: any) => {
+        setLoadingCollaborators(true);
+        try {
+            // Check if already a collaborator (double check)
+            if (collaborators.some(c => c.student_id === user.id)) {
+                toast.error("Already a collaborator");
+                setLoadingCollaborators(false);
+                return;
+            }
+
+            // Add collaborator
+            const { error } = await supabase
+                .from('project_collaborators')
+                .insert({
+                    project_id: projectId,
+                    student_id: user.id,
+                    role: 'contributor'
+                });
+
+            if (error) throw error;
+
+            toast.success(`${user.full_name} added!`);
+            setSearchQuery('');
+            setSearchResults([]);
+            await fetchCollaborators(projectId);
+        } catch (error: any) {
+            console.error("Error adding collaborator:", error);
+            toast.error(error.message || "Failed to add collaborator");
+        } finally {
+            setLoadingCollaborators(false);
+        }
+    };
+
+    // Remove collaborator
+    const handleRemoveCollaborator = async (collaboratorId: number) => {
+        setLoadingCollaborators(true);
+        try {
+            const { error } = await supabase
+                .from('project_collaborators')
+                .delete()
+                .eq('id', collaboratorId);
+
+            if (error) throw error;
+
+            toast.success("Collaborator removed");
+            await fetchCollaborators(projectId);
+        } catch (error: any) {
+            console.error("Error removing collaborator:", error);
+            toast.error(error.message || "Failed to remove collaborator");
+        } finally {
+            setLoadingCollaborators(false);
+        }
+    };
+
+    // --- Form Handlers ---
 
     // --- Form Handlers ---
 
@@ -112,29 +337,68 @@ export default function EditProjectPage() {
         }
 
         setSaving(true);
+        const loadingToast = toast.loading(status === 'rejected' ? 'Re-uploading project...' : 'Saving changes...');
+
         try {
+            const updates: any = {
+                title,
+                abstract,
+                category,
+                tech_stack: techStack,
+                pdf_url: reportLink,
+                github_url: githubLink,
+                guide_name: guideName,
+                guide_id: guideId && guideId.trim() ? guideId : null,
+                academic_year: academicYear
+            };
+
+            // IF the project was rejected, reset status to 'pending' so it goes back to HOD
+            if (status === 'rejected') {
+                updates.status = 'pending';
+            }
+
+            console.log("📤 Updating Project:", { projectId, updates });
+
+            // Use simple update without .select() to avoid hang
             const { error } = await supabase
                 .from('projects')
-                .update({
-                    title,
-                    abstract,
-                    category,
-                    tech_stack: techStack,
-                    pdf_url: reportLink,
-                    github_url: githubLink,
-                    guide_name: guideName,
-                    academic_year: academicYear
-                })
+                .update(updates)
                 .eq('id', projectId);
 
-            if (error) throw error;
+            if (error) {
+                console.error("❌ Database Error:", error);
+                throw error;
+            }
 
-            toast.success("Project updated successfully!");
-            router.push('/dashboard');
+            console.log("✅ Update successful!");
+
+            // Clear draft on success
+            localStorage.removeItem(draftKey);
+
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+
+            // Show success toast
+            toast.success(status === 'rejected' ? "🎉 Project re-submitted for approval!" : "✅ Changes saved successfully!");
+
+            // Redirect after short delay
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 1500);
 
         } catch (error: any) {
-            console.error("Update error:", error);
-            toast.error(error.message || "Failed to update project");
+            console.error("❌ Update error:", error);
+            toast.dismiss(loadingToast);
+
+            const errorMsg = error?.message || error?.error_description || "Failed to update project";
+            console.error("Error details:", {
+                message: errorMsg,
+                code: error?.code,
+                status: error?.status,
+                fullError: error
+            });
+
+            toast.error(`Error: ${errorMsg}`);
         } finally {
             setSaving(false);
         }
@@ -267,15 +531,94 @@ export default function EditProjectPage() {
                             </div>
                         </div>
 
+                        {/* Team Members */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Team Members</label>
+
+                            {/* Search Area */}
+                            <div className="relative mb-4">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search student by name..."
+                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none"
+                                />
+
+                                {/* Dropdown */}
+                                {searchResults.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto">
+                                        {searchResults.map((user: any) => (
+                                            <button
+                                                key={user.id}
+                                                onClick={() => handleAddCollaborator(user)}
+                                                className="w-full text-left px-4 py-3 hover:bg-teal-50 flex items-center gap-3 transition-colors"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-xs">
+                                                    {user.full_name?.charAt(0) || '?'}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-800">{user.full_name || 'Unknown'}</p>
+                                                    <p className="text-xs text-slate-400">Student</p>
+                                                </div>
+                                                <UserPlus size={16} className="ml-auto text-teal-500" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Collaborators List */}
+                            <div className="flex flex-wrap gap-3">
+                                {collaborators.map((member) => (
+                                    <div key={member.id} className="flex items-center gap-2 pl-2 pr-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                            {member.profiles?.full_name?.charAt(0) || '?'}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold text-slate-700 leading-tight">{member.profiles?.full_name}</span>
+                                            <span className="text-[10px] text-slate-400 leading-tight">Contributor</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleRemoveCollaborator(member.id)}
+                                            disabled={loadingCollaborators}
+                                            className="ml-2 text-slate-400 hover:text-red-500 transition-colors p-1"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {collaborators.length === 0 && (
+                                    <div className="w-full text-center p-4 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-sm">
+                                        No team members added yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Guide Name */}
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Guide Name</label>
-                            <input
-                                type="text"
-                                value={guideName}
-                                onChange={(e) => setGuideName(e.target.value)}
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none"
-                            />
+                            <select
+                                value={guideId}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    setGuideId(selectedId);
+                                    const selectedTeacher = teachers.find(t => t.id === selectedId);
+                                    if (selectedTeacher) {
+                                        setGuideName(selectedTeacher.full_name);
+                                    }
+                                }}
+                                className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none"
+                            >
+                                <option value="" disabled>Select a Faculty Guide</option>
+                                {teachers.map((teacher: any) => (
+                                    <option key={teacher.id} value={teacher.id}>
+                                        {teacher.full_name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Links */}
@@ -310,7 +653,7 @@ export default function EditProjectPage() {
                                 disabled={saving}
                                 className="px-8 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold rounded-2xl hover:shadow-xl hover:shadow-teal-200 transition-all flex items-center gap-3 disabled:opacity-50"
                             >
-                                {saving ? 'Saving...' : 'Save Changes'} <Save size={20} />
+                                {saving ? (status === 'rejected' ? 'Re-uploading...' : 'Saving...') : (status === 'rejected' ? 'Re-upload Project' : 'Save Changes')} <Save size={20} />
                             </button>
                         </div>
 

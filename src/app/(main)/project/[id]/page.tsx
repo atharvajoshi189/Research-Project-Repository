@@ -52,13 +52,29 @@ export default function ProjectDetails() {
                 setProject(data);
                 fetchSimilarProjects(data.category, data.id);
 
-                // Fetch Collaborators
-                const { data: collabData } = await supabase
+                // Fetch Collaborators (Robust 2-step)
+                const { data: collabData, error: collabError } = await supabase
                     .from('project_collaborators')
-                    .select('*, profiles(full_name, email, avatar_url)')
+                    .select('id, student_id, role')
                     .eq('project_id', id);
 
-                if (collabData) setCollaborators(collabData);
+                if (collabData && collabData.length > 0) {
+                    const studentIds = collabData.map(c => c.student_id);
+                    const { data: profiles, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('id, full_name')
+                        .in('id', studentIds);
+
+                    if (!profileError && profiles) {
+                        const merged = collabData.map(c => ({
+                            ...c,
+                            profile: profiles.find(p => p.id === c.student_id)
+                        }));
+                        setCollaborators(merged);
+                    }
+                } else {
+                    setCollaborators([]);
+                }
 
                 // Increment Views (RPC)
                 await supabase.rpc('increment_views', { row_id: id });
@@ -114,7 +130,28 @@ export default function ProjectDetails() {
         );
     }
 
-    const authors = Array.isArray(project.authors) ? project.authors : (project.authors ? [project.authors] : []);
+    // Combine Leader and Collaborators
+    const teamMembers = [];
+
+    // Add Leader (if student_name exists)
+    if (project?.student_name) {
+        teamMembers.push({
+            name: project.student_name,
+            role: 'Team Lead',
+            initial: project.student_name.charAt(0)
+        });
+    }
+
+    // Add Collaborators
+    collaborators.forEach(c => {
+        if (c.profile?.full_name) {
+            teamMembers.push({
+                name: c.profile.full_name,
+                role: 'Contributor',
+                initial: c.profile.full_name.charAt(0)
+            });
+        }
+    });
 
     return (
         <div className="min-h-screen w-full relative overflow-hidden bg-slate-50/50">
@@ -155,14 +192,14 @@ export default function ProjectDetails() {
                     <div className="flex flex-wrap items-center gap-8 text-slate-600">
                         <div className="flex items-center gap-3">
                             <div className="flex -space-x-3">
-                                {authors.map((author: string, i: number) => (
-                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-xs font-bold text-teal-700 shadow-sm relative z-10">
-                                        {author.charAt(0)}
+                                {teamMembers.map((member, i) => (
+                                    <div key={i} title={`${member.name} (${member.role})`} className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-xs font-bold text-teal-700 shadow-sm relative z-10 cursor-help">
+                                        {member.initial}
                                     </div>
                                 ))}
                             </div>
                             <span className="font-semibold text-sm">
-                                {authors.join(', ')}
+                                {teamMembers.map(t => t.name).join(', ')}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 font-medium bg-white px-4 py-2 rounded-full border border-slate-200">
