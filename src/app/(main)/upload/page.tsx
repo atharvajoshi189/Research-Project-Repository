@@ -12,6 +12,7 @@ export default function UploadProject() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Form Data
     const [title, setTitle] = useState('');
@@ -35,6 +36,50 @@ export default function UploadProject() {
 
     // Removed allStudents state to fix lag
 
+    // Load draft from localStorage on mount
+    useEffect(() => {
+        const savedDraft = localStorage.getItem('upload_project_draft');
+        if (savedDraft) {
+            try {
+                const parsed = JSON.parse(savedDraft);
+                if (parsed.step) setStep(parsed.step);
+                if (parsed.title) setTitle(parsed.title);
+                if (parsed.abstract) setAbstract(parsed.abstract);
+                if (parsed.category) setCategory(parsed.category);
+                if (parsed.techStack) setTechStack(parsed.techStack);
+                if (parsed.reportLink) setReportLink(parsed.reportLink);
+                if (parsed.githubLink) setGithubLink(parsed.githubLink);
+                if (parsed.guideName) setGuideName(parsed.guideName);
+                if (parsed.guideId) setGuideId(parsed.guideId);
+                if (parsed.academicYear) setAcademicYear(parsed.academicYear);
+                if (parsed.academicYear) setAcademicYear(parsed.academicYear);
+                if (parsed.selectedMembers) setSelectedMembers(parsed.selectedMembers);
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+        setIsLoaded(true);
+    }, []);
+
+    // Save draft to localStorage on change
+    useEffect(() => {
+        if (!isLoaded) return;
+        const draft = {
+            step,
+            title,
+            abstract,
+            category,
+            techStack,
+            reportLink,
+            githubLink,
+            guideName,
+            guideId,
+            academicYear,
+            selectedMembers
+        };
+        localStorage.setItem('upload_project_draft', JSON.stringify(draft));
+    }, [step, title, abstract, category, techStack, reportLink, githubLink, guideName, guideId, academicYear, selectedMembers, isLoaded]);
+
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -44,26 +89,46 @@ export default function UploadProject() {
                 return;
             }
             setUser(session.user);
-            // Add self as first member (Leader)
-            if (session.user) {
-                // Fetch own profile to get the name
-                const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-                if (data) setSelectedMembers([data]);
-            }
+
+            // Fetch profile for name
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+
+            // Always ensure the current user is in the list as Leader
+            // Use functional state update to respect existing 'selectedMembers' from draft load
+            setSelectedMembers(prevMembers => {
+                const isAlreadyAdded = prevMembers.some(m => m.id === session.user.id);
+                if (!isAlreadyAdded && profile) {
+                    // Add as first member
+                    return [profile, ...prevMembers];
+                }
+                return prevMembers;
+            });
         };
         checkUser();
-    }, []);
+    }, [isLoaded]); // Depend on isLoaded to run after draft load
 
     // Fetch Teachers
     useEffect(() => {
         const fetchTeachers = async () => {
-            setLoadingTeachers(true);
-            const { data } = await supabase
-                .from('profiles')
-                .select('id, full_name')
-                .in('role', ['teacher', 'hod', 'HOD']); // Added HOD support
-            setTeachers(data || []);
-            setLoadingTeachers(false);
+            try {
+                setLoadingTeachers(true);
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, role')
+                    .in('role', ['teacher', 'hod', 'HOD']);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    console.log("No teachers found in DB");
+                }
+                setTeachers(data || []);
+            } catch (err: any) {
+                console.error("Error fetching teachers:", err);
+                toast.error("Failed to load teachers. Please refresh.");
+            } finally {
+                setLoadingTeachers(false);
+            }
         };
         fetchTeachers();
     }, []);
@@ -76,16 +141,25 @@ export default function UploadProject() {
                 return;
             }
 
-            // Removed role filter to find ANY user (students, maybe mislabeled faculty, etc.)
-            const { data } = await supabase
-                .from('profiles')
-                .select('id, full_name, role') // Removed 'email' as it doesn't exist in profiles
-                .ilike('full_name', `%${searchQuery}%`)
-                .limit(5);
+            try {
+                // Removed role filter to find ANY user (students, maybe mislabeled faculty, etc.)
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, role') // Removed 'email' as it doesn't exist in profiles
+                    .ilike('full_name', `%${searchQuery}%`)
+                    .limit(5);
 
-            // Filter out already selected members
-            const filtered = data?.filter((p: any) => !selectedMembers.some(m => m.id === p.id)) || [];
-            setSearchResults(filtered);
+                if (error) {
+                    console.error("Search query error:", error);
+                    return;
+                }
+
+                // Filter out already selected members
+                const filtered = data?.filter((p: any) => !selectedMembers.some(m => m.id === p.id)) || [];
+                setSearchResults(filtered);
+            } catch (err) {
+                console.error("Search exception:", err);
+            }
         };
 
         const debounce = setTimeout(searchUsers, 300);
@@ -132,22 +206,18 @@ export default function UploadProject() {
     };
 
     const handleSubmit = async () => {
-        // 0. Immediate UI Feedback
-        setLoading(true); // <--- MOVED TO TOP
+        setLoading(true);
 
         try {
-            // 1. Session Validation
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
             if (sessionError || !session) {
-                console.error("Session Error:", sessionError);
                 window.alert("Session Expired: Please login again.");
                 router.push('/login');
-                return; // Finally block will handle setLoading(false)
+                return;
             }
 
-            // 2. Validate Mandatory Fields
-            const missingFields = [];
+            // --- Validations ---
+            const missingFields: string[] = [];
             if (!title.trim()) missingFields.push("Project Title");
             if (!abstract.trim()) missingFields.push("Abstract");
             if (!reportLink.trim()) missingFields.push("Project Report (Drive Link)");
@@ -156,72 +226,60 @@ export default function UploadProject() {
 
             if (missingFields.length > 0) {
                 toast.error(`Missing required fields: ${missingFields.join(', ')}`);
-                // Must manually turn off loading here since we return early inside the try
                 setLoading(false);
                 return;
             }
 
-            // Validate Google Drive Link
             if (!reportLink.includes("drive.google.com")) {
                 toast.error("Please provide a valid Google Drive link for the report.");
                 setLoading(false);
                 return;
             }
 
-            console.log("Starting Submisson...", {
-                title, guideId, guideName, authorCount: selectedMembers.length
-            });
-
-            // 3. Prepare Payload
-            const authorNames = selectedMembers.map(m => m.full_name || m.email);
-
             const projectPayload = {
-  title,
-  abstract,
-  category,
-  authors: authorNames,
-  tech_stack: techStack.map(t => t.trim()),
-  pdf_url: reportLink,
-  github_url: githubLink,
-  guide_name: guideName,
-  guide_id: guideId,
-  status: "pending",
-  student_id: user.id,
-  academic_year: academicYear
-}
+                title,
+                abstract,
+                category,
+                authors: selectedMembers.map(m => m.full_name || m.email),
+                tech_stack: techStack.map(t => t.trim()),
+                pdf_url: reportLink,
+                github_url: githubLink,
+                guide_name: guideName,
+                guide_id: guideId,
+                status: "pending",
+                student_id: session.user.id,
+                academic_year: academicYear,
+            };
 
-
-            console.log('Sending Payload:', projectPayload);
-            console.log('Guide ID Type:', typeof guideId, 'Value:', guideId);
-
-            // 4. Insert Project with Timeout
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Server is taking too long. Please check your internet or Supabase status.')), 25000)
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(
+                    () => reject(new Error('Server is taking too long. Please check your internet or Supabase status.')),
+                    25000
+                )
             );
 
-            const insertPromise = supabase
-                .from('projects')
-                .insert(projectPayload)
-                .select();
+            const insertPromise = supabase.from('projects').insert(projectPayload).select();
 
-            const result = await Promise.race([insertPromise, timeoutPromise]) as any;
-            const { data: projectResponse, error: projectError } = result;
+            const raceResult = await Promise.race([insertPromise, timeoutPromise]);
 
+            // Agar timeout hua, raceResult Error hoga
+            if (raceResult instanceof Error) {
+                throw raceResult;
+            }
+
+            const { data: projectResponse, error: projectError } = raceResult as any;
             if (projectError) {
-                console.error("Supabase Project Insert Error:", projectError);
                 throw new Error(projectError.message);
             }
 
-            const projectData = projectResponse?.[0] || null;
-            console.log("Project Inserted:", projectData);
+            const projectData = projectResponse?.[0];
 
-            // 5. Insert Collaborators
             if (projectData) {
                 const collaborators = selectedMembers.map(member => ({
                     project_id: projectData.id,
-                    student_id: member.id,
-                    role: member.id === user.id ? 'leader' : 'contributor',
-                    status: member.id === user.id ? 'accepted' : 'pending'
+                    student_id: member.id, // Reverted: schema has 'student_id'
+                    role: member.id === session.user.id ? 'leader' : 'contributor',
+                    status: member.id === session.user.id ? 'accepted' : 'pending',
                 }));
 
                 const { error: collabError } = await supabase
@@ -234,12 +292,12 @@ export default function UploadProject() {
                 }
             }
 
+            localStorage.removeItem('upload_project_draft'); // Clear draft on success
             toast.success("Project submitted successfully!");
             router.push('/dashboard');
-
         } catch (error: any) {
             console.error("CRITICAL UPLOAD ERROR:", error);
-            window.alert('Upload Failed: ' + error.message);
+            window.alert('Upload Failed: ' + (error.message || 'Unknown error'));
             toast.error(error.message || "An unexpected error occurred during upload.");
         } finally {
             setLoading(false);

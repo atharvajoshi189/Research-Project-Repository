@@ -196,7 +196,7 @@ export default function StudentDashboard() {
                 .from('project_collaborators')
                 .update({ status })
                 .eq('project_id', projectId)
-                .eq('student_id', user.id); // Fixed: Use student_id to identify collaborator
+                .eq('student_id', user.id); // Reverted to student_id
 
             if (error) throw error;
 
