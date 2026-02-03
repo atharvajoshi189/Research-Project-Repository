@@ -1,0 +1,312 @@
+[
+  {
+    "id": 31,
+    "title": "FRAMEWORK FOR SECURE & SCALABLE INTELLIGENT SYSTEMS WITH FEDERATED LEARNING & ZERO KNOWLEDGE PROOFS",
+    "status": "rejected",
+    "created_at": "2026-02-02T09:49:34.610311+00:00",
+    "collaborators": []
+  },
+  {
+    "id": 30,
+    "title": "sjdsjd",
+    "status": "approved",
+    "created_at": "2026-02-02T09:38:56.053384+00:00",
+    "collaborators": []
+  },
+  {
+    "id": 29,
+    "title": "Clause-Aware Intelligent Retrieval Engine",
+    "status": "approved",
+    "created_at": "2026-02-01T07:27:00.277498+00:00",
+    "collaborators": [
+      {
+        "id": 64,
+        "project_id": 29,
+        "student_id": "326675c8-dd1e-4fab-a01a-1cce68bdbb1c",
+        "role": "leader",
+        "created_at": "2026-02-01T07:27:00.687728+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 65,
+        "project_id": 29,
+        "student_id": "d91f25ca-ce5f-4bb4-84cf-aae164b79513",
+        "role": "contributor",
+        "created_at": "2026-02-01T09:21:17.72905+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 66,
+        "project_id": 29,
+        "student_id": "20b8d6b3-2537-422f-b11f-eddfc49e07f1",
+        "role": "contributor",
+        "created_at": "2026-02-01T09:22:21.709819+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 67,
+        "project_id": 29,
+        "student_id": "6d043b62-1444-4adf-b44f-f4ec02050b0f",
+        "role": "contributor",
+        "created_at": "2026-02-01T09:23:01.212985+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "title": "PsyBridge: AI Augmented Mental Health Assessments For Personalized Therapy",
+    "status": "approved",
+    "created_at": "2026-01-17T16:36:17.291955+00:00",
+    "collaborators": [
+      {
+        "id": 60,
+        "project_id": 24,
+        "student_id": "6ad6730c-7c7c-4f07-9a92-45a9f4c93fa5",
+        "role": "leader",
+        "created_at": "2026-01-17T16:36:17.551918+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 62,
+        "project_id": 24,
+        "student_id": "86d83b1c-4fd6-443e-a6f0-c71a39c6c560",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:36:17.551918+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 61,
+        "project_id": 24,
+        "student_id": "2f7da56c-5bba-40a7-871b-6c50d2dd22d1",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:36:17.551918+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 63,
+        "project_id": 24,
+        "student_id": "21f2cea7-e37d-433d-8667-1c300f74d5ef",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:36:17.551918+00:00",
+        "status": "accepted"
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "title": "ModelMate: An AI-Powered System for UML Generation and Student-Centric Project  Assistance",
+    "status": "approved",
+    "created_at": "2026-01-17T16:19:27.937172+00:00",
+    "collaborators": [
+      {
+        "id": 56,
+        "project_id": 23,
+        "student_id": "a502a583-7214-47bb-adcf-1b53a439a9c0",
+        "role": "leader",
+        "created_at": "2026-01-17T16:19:28.149756+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 57,
+        "project_id": 23,
+        "student_id": "a47563b6-2f6a-4f1a-bd48-094f1d8dae61",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:19:28.149756+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 58,
+        "project_id": 23,
+        "student_id": "a789d138-71a0-4641-a18d-4b7ba190a78e",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:19:28.149756+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 59,
+        "project_id": 23,
+        "student_id": "d7707d99-6e32-43b1-b7f9-dc3cb2395533",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:19:28.149756+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "title": "Multimodal AI-Based Hands-Free Android Navigation Using Eye, Head, and Voice Control",
+    "status": "approved",
+    "created_at": "2026-01-17T16:11:11.40178+00:00",
+    "collaborators": [
+      {
+        "id": 52,
+        "project_id": 22,
+        "student_id": "1654f22f-90d5-473f-aca2-88e2cfb6e97a",
+        "role": "leader",
+        "created_at": "2026-01-17T16:11:11.748679+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 53,
+        "project_id": 22,
+        "student_id": "d7657420-2078-47d8-b2a7-4bc76a186abd",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:11:11.748679+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 54,
+        "project_id": 22,
+        "student_id": "63d2667b-bd94-4e38-8497-db1520755acc",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:11:11.748679+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 55,
+        "project_id": 22,
+        "student_id": "1ad5ed80-33ef-41e8-bbaa-6f9fa43e4950",
+        "role": "contributor",
+        "created_at": "2026-01-17T16:11:11.748679+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "title": "REAL - TIME FALL DETECTION  SYSTEM USING AI",
+    "status": "approved",
+    "created_at": "2026-01-17T10:12:49.799289+00:00",
+    "collaborators": [
+      {
+        "id": 48,
+        "project_id": 21,
+        "student_id": "72579923-3695-453d-a4b6-a31b4b995c94",
+        "role": "leader",
+        "created_at": "2026-01-17T10:12:50.423869+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 49,
+        "project_id": 21,
+        "student_id": "483587a1-9e5b-4e38-aa68-d9269c9be71a",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:12:50.423869+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 50,
+        "project_id": 21,
+        "student_id": "595bc61e-cf55-4ac9-9703-87670f6871e9",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:12:50.423869+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 51,
+        "project_id": 21,
+        "student_id": "390deb8b-a2cc-4420-a3ad-f8f04b133b0e",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:12:50.423869+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "title": "LLM + RAG Chatbot for College Website",
+    "status": "approved",
+    "created_at": "2026-01-17T10:08:03.718343+00:00",
+    "collaborators": [
+      {
+        "id": 44,
+        "project_id": 20,
+        "student_id": "199961d9-eb32-4b32-bac9-4e6ed01a0af9",
+        "role": "leader",
+        "created_at": "2026-01-17T10:08:04.343935+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 46,
+        "project_id": 20,
+        "student_id": "71522b61-04db-418e-bed5-c797259adc87",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:08:04.343935+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 47,
+        "project_id": 20,
+        "student_id": "e4ab9ebd-ed7a-468c-ac82-2076d37812ba",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:08:04.343935+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 45,
+        "project_id": 20,
+        "student_id": "77ef9b23-92c5-4b1f-9eaa-9c0a67ccaa46",
+        "role": "contributor",
+        "created_at": "2026-01-17T10:08:04.343935+00:00",
+        "status": "accepted"
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "title": "AI-Driven Real-Time Sign Language Recognition  System",
+    "status": "approved",
+    "created_at": "2026-01-17T09:56:27.508793+00:00",
+    "collaborators": [
+      {
+        "id": 40,
+        "project_id": 19,
+        "student_id": "a68c58e6-0771-4be2-af89-c426f3b64878",
+        "role": "leader",
+        "created_at": "2026-01-17T09:56:27.794525+00:00",
+        "status": "accepted"
+      },
+      {
+        "id": 41,
+        "project_id": 19,
+        "student_id": "edb5cd06-70a3-4cb4-b6e0-48187b9a595a",
+        "role": "contributor",
+        "created_at": "2026-01-17T09:56:27.794525+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 42,
+        "project_id": 19,
+        "student_id": "ca1350b9-7d59-421a-a2e5-1f3fb1135869",
+        "role": "contributor",
+        "created_at": "2026-01-17T09:56:27.794525+00:00",
+        "status": "pending"
+      },
+      {
+        "id": 43,
+        "project_id": 19,
+        "student_id": "8c4adb50-4dbb-40b6-bbbd-32f0a2283bd9",
+        "role": "contributor",
+        "created_at": "2026-01-17T09:56:27.794525+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "title": "CROWDSOURCED DISASTER RELIEF  PLATFORM",
+    "status": "approved",
+    "created_at": "2026-01-17T09:47:27.092726+00:00",
+    "collaborators": [
+      {
+        "id": 39,
+        "project_id": 18,
+        "student_id": "f2d0c279-ac57-44de-a2fd-756f6a150c5a",
+        "role": "leader",
+        "created_at": "2026-01-17T09:47:27.431172+00:00",
+        "status": "accepted"
+      }
+    ]
+  }
+]
