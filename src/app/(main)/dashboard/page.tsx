@@ -105,20 +105,28 @@ export default function StudentDashboard() {
                 }
 
             } else {
-                // STUDENT VIEW
+                // STUDENT VIEW - MODIFIED: Fetch ALL projects directly from 'projects' table
+                // This ensures orphaned projects (where collaborator is missing) are still visible.
+                // Also satisfies the request to "view all projects".
                 const { data, error } = await supabase
-                    .from('project_collaborators')
-                    .select('*, projects(*)')
-                    .eq('student_id', userId);
+                    .from('projects')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
                 if (error) {
                     console.warn("Fetch error:", error);
                 } else if (data && data.length > 0) {
-                    data.forEach((collab: any) => {
-                        if (!collab.projects) return;
-                        const projectWithRole = { ...collab.projects, userRole: collab.role, collabStatus: collab.status };
-                        if (collab.status === 'pending') pendingInvites.push(projectWithRole);
-                        else if (collab.status === 'accepted' || collab.role === 'leader') activeProjs.push(projectWithRole);
+                    data.forEach((project: any) => {
+                        // Determine role based on student_id (owner is leader)
+                        const isLeader = project.student_id === userId;
+                        const projectWithRole = {
+                            ...project,
+                            userRole: isLeader ? 'leader' : 'viewer',
+                            collabStatus: 'accepted'
+                        };
+
+                        // Treat all as active for now since we are showing all projects
+                        activeProjs.push(projectWithRole);
                     });
                 }
             }
