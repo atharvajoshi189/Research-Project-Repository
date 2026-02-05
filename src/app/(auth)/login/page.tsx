@@ -46,12 +46,9 @@ function AuthContent() {
             if (!user) throw new Error('Login failed. Please try again.');
 
             toast.success('Login successful!');
+            const userRole = await getUserRole(user.id);
+            router.push(userRole === 'admin' || userRole === 'faculty' ? '/admin' : '/');
 
-            // OPTIMIZATION: Check metadata first to save a DB roundtrip
-            // If role is missing in metadata, fallback to fetching from profiles table
-            const userRole = user.user_metadata?.role || await getUserRole(user.id);
-
-            router.push(userRole === 'admin' || userRole === 'faculty' ? '/admin' : '/search');
         } catch (error: any) {
             console.error('Login Error:', error);
             toast.error(error.message || 'Something went wrong');
@@ -81,7 +78,7 @@ function AuthContent() {
             if (!user) throw new Error('Signup failed. Please try again.');
 
             toast.success('Account created successfully!');
-            router.push(role === 'faculty' ? '/admin' : '/search');
+            router.push(role === 'faculty' ? '/admin' : '/');
         } catch (error: any) {
             console.error('Signup Error:', error);
             toast.error(error.message || 'Something went wrong');

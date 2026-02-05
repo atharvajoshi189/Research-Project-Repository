@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { AIThemeProvider } from "@/context/AIThemeContext";
 import ClientLayout from "@/components/ClientLayout";
@@ -31,9 +32,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jakarta.variable} ${playfair.variable} font-sans antialiased`}>
         <AIThemeProvider>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
+          <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+          </Suspense>
         </AIThemeProvider>
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       </body>

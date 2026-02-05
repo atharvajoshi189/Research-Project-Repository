@@ -1,0 +1,26 @@
+
+> departmental-repo@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.5s
+  Running TypeScript ...
+  Collecting page data using 17 workers ...
+  Generating static pages using 17 workers (0/14) ...
+Supabase URL: https://yyokxbpmkvtgwpzhmtxc.supabase.co
+Supabase Anon Key: Found
+⨯ useSearchParams() should be wrapped in a suspense boundary at page "/404". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at Q (C:\Users\Drishti Bawankar\Research-Project-Repository\.next\server\chunks\ssr\node_modules_45598cbe._.js:2:2111)
+    at o (C:\Users\Drishti Bawankar\Research-Project-Repository\.next\server\chunks\ssr\node_modules_45598cbe._.js:4:5284)
+    at H (C:\Users\Drishti Bawankar\Research-Project-Repository\.next\server\chunks\ssr\src_components_ClientLayout_tsx_1f4adce9._.js:19:165)
+    at an (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:84360)
+    at ai (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:86179)
+    at ai (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:104708)
+    at al (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:107953)
+    at as (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:105368)
+    at ai (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:104322)
+    at al (C:\Users\Drishti Bawankar\Research-Project-Repository\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:107953)
+⨯ Next.js build worker exited with code: 1 and signal: null

@@ -155,7 +155,6 @@ export default function Navbar() {
                     `}
                         style={{
                             zIndex: 9999, // EXTREME Z-INDEX
-                            border: '2px solid red' // DEBUG MODE
                         }}
                     >
                         {/* Unified Glass Background */}
@@ -171,26 +170,8 @@ export default function Navbar() {
                         ${isScrolled ? 'h-14' : 'h-14'}
                     `}>
 
-                            {/* Left: Mini-Logo */}
+                            {/* Left: Spacer (Logo removed as per request) */}
                             <div className="flex items-center gap-4 w-24 pointer-events-auto">
-                                <AnimatePresence>
-                                    {isScrolled && (
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10, scale: 0.8 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            exit={{ opacity: 0, x: -10, scale: 0.8 }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            <Link href="/" className="block cursor-pointer">
-                                                <img
-                                                    src="/logos/logo.png"
-                                                    className={`h-8 w-auto object-contain`}
-                                                    alt="Logo"
-                                                />
-                                            </Link>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
 
 

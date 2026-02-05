@@ -45,6 +45,7 @@ const LightTechBackground = () => {
             delay: Math.random() * 5,
             duration: Math.random() * 10 + 10,
         }));
+        // eslint-disable-next-line
         setParticles(newParticles);
     }, []);
 

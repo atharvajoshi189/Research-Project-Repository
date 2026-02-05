@@ -40,6 +40,15 @@ function AIModeContent() {
     const [results, setResults] = useState<any>(null);
     const [isThinking, setIsThinking] = useState(false);
 
+    const handleSearch = async (q: string) => {
+        if (!q.trim()) return;
+        setLoading(true);
+        // Simulate "Thinking" delay for effect if strictly needed, otherwise straight call
+        const data = await searchProjectsWithAI(q);
+        setResults(data);
+        setLoading(false);
+    };
+
     // Sync with URL query
     useEffect(() => {
         const urlQuery = searchParams.get('query');
@@ -52,15 +61,6 @@ function AIModeContent() {
             setResults(null);
         }
     }, [searchParams]);
-
-    const handleSearch = async (q: string) => {
-        if (!q.trim()) return;
-        setLoading(true);
-        // Simulate "Thinking" delay for effect if strictly needed, otherwise straight call
-        const data = await searchProjectsWithAI(q);
-        setResults(data);
-        setLoading(false);
-    };
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();

@@ -9,9 +9,10 @@ interface Project3DCardProps {
     project: any;
     spanClass?: string;
     index: number;
+    noAnimation?: boolean;
 }
 
-const Project3DCard = ({ project, spanClass = "", index }: Project3DCardProps) => {
+const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: Project3DCardProps) => {
     const ref = useRef<HTMLDivElement>(null);
 
     const x = useMotionValue(0);
@@ -47,15 +48,19 @@ const Project3DCard = ({ project, spanClass = "", index }: Project3DCardProps) =
 
     const isLarge = spanClass.includes('col-span-2');
 
+    const motionProps = noAnimation ? {} : {
+        initial: { opacity: 0, scale: 0.8, rotateX: 20 },
+        whileInView: { opacity: 1, scale: 1, rotateX: 0 },
+        viewport: { once: true },
+        transition: { delay: index * 0.1, stiffness: 50, damping: 20 }
+    };
+
     return (
         <motion.div
             style={{
                 perspective: 1000,
             }}
-            initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
-            whileInView={{ opacity: 1, scale: 1, rotateX: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1, type: "spring", stiffness: 50, damping: 20 }}
+            {...motionProps}
             className={`relative ${spanClass}`}
         >
             <motion.div
@@ -98,7 +103,7 @@ const Project3DCard = ({ project, spanClass = "", index }: Project3DCardProps) =
 
                     {/* Floating Body */}
                     <div className="mt-auto transform-gpu" style={{ transform: "translateZ(50px)" }}>
-                        <h3 className={`font-bold text-slate-900 leading-[0.9] group-hover:text-teal-600 transition-colors mb-4 drop-shadow-sm ${isLarge ? 'text-4xl pr-10' : 'text-2xl'}`}>
+                        <h3 className={`font-bold text-slate-900 leading-[0.9] group-hover:text-teal-600 transition-colors mb-4 drop-shadow-sm ${isLarge ? 'text-4xl pr-10' : 'text-xl'}`}>
                             {project.title}
                         </h3>
 
@@ -131,9 +136,53 @@ const Project3DCard = ({ project, spanClass = "", index }: Project3DCardProps) =
                     <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:16px_16px] group-hover:opacity-[0.07] transition-opacity" />
                 </div>
 
+                {/* 4. Project Image Background */}
+                <ProjectImage title={project.title} category={project.category} />
+
+
             </motion.div>
         </motion.div>
     );
 };
 
 export default Project3DCard;
+
+const ProjectImage = ({ title, category }: { title: string, category: string }) => {
+    // Map of keywords or strict titles to image paths
+    // In a real app, this should come from the database
+    const imageMap: Record<string, string> = {
+        "psybridge": "/project-images/psybridge.png",
+        "clause-aware": "/project-images/clause-retrieval.svg",
+        "modelmate": "/project-images/modelmate.jpg",
+        "multimodal": "/project-images/multimodal-nav.png",
+        "fall detection": "/project-images/fall-detection.svg",
+        "sign language": "/project-images/sign-language.svg",
+        "disaster": "/project-images/disaster-relief.svg",
+    };
+
+    const normalize = (str: string) => str.toLowerCase();
+
+    // Find matching image
+    const matchingKey = Object.keys(imageMap).find(key => normalize(title).includes(normalize(key)));
+    const imageSrc = matchingKey ? imageMap[matchingKey] : null;
+
+    if (imageSrc) {
+        return (
+            <div className="absolute inset-0 z-0">
+                <img
+                    src={imageSrc}
+                    alt={title}
+                    className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent mix-blend-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-white/90" />
+            </div>
+        );
+    }
+
+    // Fallback Gradient if no image found
+    return (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-100 to-slate-200 opacity-50" />
+    );
+};
+

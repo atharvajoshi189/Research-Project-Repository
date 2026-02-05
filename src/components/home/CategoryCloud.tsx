@@ -35,7 +35,7 @@ export default function CategoryCloud() {
                     transition={{
                         // Float/Bob animation
                         y: {
-                            duration: 3 + Math.random() * 2, // Random duration 3-5s
+                            duration: 3 + ((index * 3) % 4) * 0.5, // Deterministic duration 3-5s
                             repeat: Infinity,
                             ease: "easeInOut",
                             delay: index * 0.2
@@ -44,7 +44,7 @@ export default function CategoryCloud() {
                         opacity: { delay: 0.5 + index * 0.1 },
                         scale: { delay: 0.5 + index * 0.1 }
                     }}
-                    whileHover={{ scale: 1.1, rotate: Math.random() * 4 - 2 }}
+                    whileHover={{ scale: 1.1, rotate: ((index % 2 === 0 ? 1 : -1) * (2 + (index % 3))) }}
                     whileTap={{ scale: 0.95 }}
                 >
                     {cat.name}

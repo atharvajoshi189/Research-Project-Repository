@@ -44,31 +44,31 @@ export default function StatsDashboard() {
     }, []);
 
     return (
-        <div className="w-full max-w-5xl mx-auto perspective-1000">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+        <div className="w-full max-w-4xl mx-auto perspective-1000">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
                 <Stat3DCard
                     icon={FileText}
-                    label="Total Papers"
+                    label="Papers"
                     value={stats.papers}
-                    color="from-blue-400 to-indigo-600"
+                    color="from-blue-500 via-indigo-500 to-violet-500"
                     glow="bg-blue-500"
                     delay={0}
                 />
                 <Stat3DCard
                     icon={Activity}
-                    label="Ongoing Projects"
+                    label="Ongoing"
                     value={stats.ongoing}
-                    color="from-amber-400 to-orange-600"
-                    glow="bg-amber-500"
-                    delay={0.2}
+                    color="from-fuchsia-500 via-pink-500 to-rose-500"
+                    glow="bg-fuchsia-500"
+                    delay={0.1}
                 />
                 <Stat3DCard
                     icon={Users}
-                    label="Faculty Contributors"
+                    label="Faculty"
                     value={stats.faculty}
-                    color="from-emerald-400 to-teal-600"
+                    color="from-emerald-500 via-teal-500 to-cyan-500"
                     glow="bg-emerald-500"
-                    delay={0.4}
+                    delay={0.2}
                 />
             </div>
         </div>
@@ -76,27 +76,15 @@ export default function StatsDashboard() {
 }
 
 const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
-    const ref = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-
-    const mouseX = useSpring(x, { stiffness: 500, damping: 100 });
-    const mouseY = useSpring(y, { stiffness: 500, damping: 100 });
-
-    const rotateX = useTransform(mouseY, [-0.5, 0.5], ["15deg", "-15deg"]);
-    const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-15deg", "15deg"]);
+    const rotateX = useTransform(y, [-0.5, 0.5], ["10deg", "-10deg"]);
+    const rotateY = useTransform(x, [-0.5, 0.5], ["-10deg", "10deg"]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!ref.current) return;
-        const rect = ref.current.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
-        const mX = e.clientX - rect.left;
-        const mY = e.clientY - rect.top;
-        const xPct = mX / width - 0.5;
-        const yPct = mY / height - 0.5;
-        x.set(xPct);
-        y.set(yPct);
+        const rect = e.currentTarget.getBoundingClientRect();
+        x.set((e.clientX - rect.left) / rect.width - 0.5);
+        y.set((e.clientY - rect.top) / rect.height - 0.5);
     };
 
     const handleMouseLeave = () => {
@@ -106,73 +94,56 @@ const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ delay, duration: 0.8, type: "spring" }}
-            className="relative"
-            style={{ perspective: 1000 }}
+            transition={{ delay, duration: 0.5, type: "spring" }}
+            className="perspective-1000 group relative"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
         >
-            {/* Floating Animation Wrapper */}
             <motion.div
-                animate={{ y: [0, -15, 0] }}
-                transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: delay * 2 // Stagger the bobbing
-                }}
+                style={{ rotateX, rotateY }}
+                className="relative h-32 rounded-2xl bg-slate-900/5 backdrop-blur-md border border-white/20 shadow-lg overflow-hidden flex items-center p-4 transition-transform duration-200"
             >
+                {/* Fantastic Flux Background */}
                 <motion.div
-                    ref={ref}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                    style={{
-                        rotateX,
-                        rotateY,
-                        transformStyle: "preserve-3d",
+                    className={`absolute inset-0 opacity-10 bg-gradient-to-r ${color}`}
+                    animate={{
+                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                     }}
-                    className="relative w-full aspect-[4/3] rounded-3xl bg-white/40 backdrop-blur-2xl border border-white/60 shadow-xl overflow-hidden group cursor-pointer"
-                >
-                    {/* Interior Glow / Spotlight */}
-                    <div
-                        className={`absolute inset-0 opacity-20 bg-gradient-to-br ${color} mix-blend-overlay`}
-                    />
-                    <motion.div
-                        className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                        style={{
-                            background: useTransform(
-                                [mouseX, mouseY],
-                                ([x, y]) => `radial-gradient(circle at ${(x as number + 0.5) * 100}% ${(y as number + 0.5) * 100}%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%)`
-                            )
-                        }}
-                    />
+                    transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: "linear",
+                        repeatType: "reverse"
+                    }}
+                    style={{ backgroundSize: "200% 200%" }}
+                />
 
-                    {/* Content Layer (Parallax) */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 z-20" style={{ transform: "translateZ(30px)" }}>
+                {/* Holographic Border Shine */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-color-dodge`} style={{ maskImage: "linear-gradient(black, black), linear-gradient(black, black)", maskClip: "content-box, border-box", maskComposite: "exclude", padding: "1px" }} />
 
-                        {/* Icon Container */}
-                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg mb-4 transform group-hover:scale-110 transition-transform duration-300`}>
-                            <Icon size={28} strokeWidth={2.5} />
-                        </div>
-
-                        {/* Animated Counter */}
-                        <h4 className="text-5xl font-black text-slate-800 tracking-tight mb-2 drop-shadow-sm">
-                            <Counter end={value} />
-                        </h4>
-
-                        <p className="text-sm font-bold uppercase tracking-widest text-slate-500 group-hover:text-slate-700 transition-colors">
-                            {label}
-                        </p>
+                {/* Content Container (Horizontal Compact) */}
+                <div className="relative z-10 flex items-center gap-4 w-full" style={{ transform: "translateZ(20px)" }}>
+                    {/* Glowing Icon Box */}
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon size={24} strokeWidth={2.5} />
                     </div>
 
-                    {/* Background Detail */}
-                    <div className={`absolute -bottom-10 -right-10 w-40 h-40 ${glow} rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
+                    {/* Stats Text */}
+                    <div className="flex flex-col">
+                        <h4 className="text-4xl font-black text-slate-800 tracking-tighter leading-none">
+                            <Counter end={value} />
+                        </h4>
+                        <span className={`text-xs font-bold uppercase tracking-wider bg-gradient-to-r ${color} bg-clip-text text-transparent opacity-80 group-hover:opacity-100 transition-opacity`}>
+                            {label}
+                        </span>
+                    </div>
+                </div>
 
-                </motion.div>
-
-                {/* Reflection Shadow below */}
-                <div className="mx-auto w-[80%] h-4 bg-black/20 blur-xl rounded-[100%] mt-8 opacity-40 animate-pulse"></div>
+                {/* Particle Glow */}
+                <div className={`absolute -right-6 -bottom-6 w-24 h-24 ${glow} blur-[50px] opacity-20 group-hover:opacity-40 transition-opacity duration-300`} />
             </motion.div>
         </motion.div>
     );
