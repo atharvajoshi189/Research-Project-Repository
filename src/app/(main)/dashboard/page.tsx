@@ -105,28 +105,38 @@ export default function StudentDashboard() {
                 }
 
             } else {
-                // STUDENT VIEW - MODIFIED: Fetch ALL projects directly from 'projects' table
-                // This ensures orphaned projects (where collaborator is missing) are still visible.
-                // Also satisfies the request to "view all projects".
-                const { data, error } = await supabase
+                // STUDENT VIEW
+                // 1. Fetch ALL projects (RLS is open)
+                const { data: allProjects, error: projectsError } = await supabase
                     .from('projects')
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                if (error) {
-                    console.warn("Fetch error:", error);
-                } else if (data && data.length > 0) {
-                    data.forEach((project: any) => {
-                        // Determine role based on student_id (owner is leader)
-                        const isLeader = project.student_id === userId;
-                        const projectWithRole = {
-                            ...project,
-                            userRole: isLeader ? 'leader' : 'viewer',
-                            collabStatus: 'accepted'
-                        };
+                // 2. Fetch MY collaborations (to know which projects I'm part of)
+                const { data: myCollabs, error: collabError } = await supabase
+                    .from('project_collaborators')
+                    .select('project_id')
+                    .eq('student_id', userId)
+                    .eq('status', 'accepted');
 
-                        // Treat all as active for now since we are showing all projects
-                        activeProjs.push(projectWithRole);
+                if (projectsError) console.warn("Fetch error:", projectsError);
+
+                const myCollabProjectIds = (myCollabs || []).map((c: any) => c.project_id);
+
+                if (allProjects && allProjects.length > 0) {
+                    allProjects.forEach((project: any) => {
+                        const isLeader = project.student_id === userId;
+                        const isCollaborator = myCollabProjectIds.includes(project.id);
+
+                        // FILTER: Only show if I am Leader OR Collaborator
+                        if (isLeader || isCollaborator) {
+                            const projectWithRole = {
+                                ...project,
+                                userRole: isLeader ? 'leader' : 'contributor',
+                                collabStatus: 'accepted'
+                            };
+                            activeProjs.push(projectWithRole);
+                        }
                     });
                 }
             }
