@@ -110,17 +110,16 @@ export default function Navbar() {
             */}
             {/* HIDE Navbar completely in AI Mode for Zero Distraction */}
             {!isAIActive && (
-                <div className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center">
-
-                    {/* --- TIER 1: IDENTITY (Centered Top Logo) --- */}
-                    {/* Container: Blue Debug Border */}
+                <>
+                    {/* ROYAL STACK ARCHITECTURE - REDESIGNED FOR PERFORMANCE */}
+                    {/* TIER 1: IDENTITY (Centered Top Logo) - Fixed independently */}
                     <AnimatePresence>
                         {!isScrolled && (
                             <motion.div
                                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -20, scale: 0.9, transition: { duration: 0.3 } }}
-                                className="absolute top-6 w-full flex justify-center items-center pointer-events-none"
+                                className="fixed top-6 left-0 right-0 z-[90] flex justify-center items-center pointer-events-none"
                             >
                                 <Link href="/" className="pointer-events-auto relative group cursor-pointer">
                                     {/* Standard Logo */}
@@ -320,23 +319,26 @@ export default function Navbar() {
                             )}
                         </AnimatePresence>
                     </motion.header>
-                </div>
+                </>
             )}
 
+
             {/* AI MODE EXIT BUTTON (Optional, if we want one) */}
-            {isAIActive && (
-                <div className="fixed top-6 right-6 z-[100]">
-                    <button
-                        onClick={() => router.push('/')} // Or toggleAIMode
-                    // Just a small Exit X or "Exit AI"
-                    // But the user prompt says "maybe just with a tiny 'Exit' button in the corner."
-                    // and relies on Search Bar toggle. 
-                    // Let's rely on Search Bar Toggle primarily as per prompt "Hide Navigation Entirely"
-                    // But I will leave a tiny invisible layer or just rely on the search bar.
-                    // Actually, sticking to the prompt: "The top of the screen should be clean."
-                    ></button>
-                </div>
-            )}
+            {
+                isAIActive && (
+                    <div className="fixed top-6 right-6 z-[100]">
+                        <button
+                            onClick={() => router.push('/')} // Or toggleAIMode
+                        // Just a small Exit X or "Exit AI"
+                        // But the user prompt says "maybe just with a tiny 'Exit' button in the corner."
+                        // and relies on Search Bar toggle. 
+                        // Let's rely on Search Bar Toggle primarily as per prompt "Hide Navigation Entirely"
+                        // But I will leave a tiny invisible layer or just rely on the search bar.
+                        // Actually, sticking to the prompt: "The top of the screen should be clean."
+                        ></button>
+                    </div>
+                )
+            }
 
 
             {/* Neon Breathing Global Styles */}
