@@ -65,15 +65,35 @@ CREATE POLICY "Authenticated users can create projects"
 ON projects FOR INSERT 
 WITH CHECK (auth.uid() = student_id);
 
--- Update: Only Owner
+-- Update: Only Owner OR Teachers/Admins
 CREATE POLICY "Owners can update projects" 
 ON projects FOR UPDATE 
 USING (auth.uid() = student_id);
 
--- Delete: Only Owner
+CREATE POLICY "Teachers and Admins can update projects" 
+ON projects FOR UPDATE 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid()
+    AND role IN ('teacher', 'faculty', 'hod', 'admin')
+  )
+);
+
+-- Delete: Only Owner OR Teachers/Admins
 CREATE POLICY "Owners can delete projects" 
 ON projects FOR DELETE 
 USING (auth.uid() = student_id);
+
+CREATE POLICY "Teachers and Admins can delete projects" 
+ON projects FOR DELETE 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid()
+    AND role IN ('teacher', 'faculty', 'hod', 'admin')
+  )
+);
 
 
 -- 3. PROJECT_COLLABORATORS Policies

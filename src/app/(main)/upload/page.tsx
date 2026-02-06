@@ -207,6 +207,7 @@ export default function UploadProject() {
 
     const handleSubmit = async () => {
         setLoading(true);
+        console.log("Starting upload process...");
 
         try {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -245,45 +246,47 @@ export default function UploadProject() {
                 pdf_url: reportLink,
                 github_url: githubLink,
                 guide_name: guideName,
-                guide_id: guideId,
+                guide_id: guideId || null,
                 status: "pending",
                 student_id: session.user.id,
                 academic_year: academicYear,
             };
 
+            console.log("Submitting payload:", projectPayload);
+
             const timeoutPromise = new Promise<never>((_, reject) =>
                 setTimeout(
-                    () => reject(new Error('Server is taking too long. Please check your internet or Supabase status.')),
+                    () => reject(new Error('Server is taking too long (25s timeout). Please check your internet or Supabase status.')),
                     25000
                 )
             );
 
             const insertPromise = supabase.from('projects').insert(projectPayload).select();
 
+            // Use race to detect hangs
             const raceResult = await Promise.race([insertPromise, timeoutPromise]);
 
-            // Handle timeout or other race errors
-            if (raceResult instanceof Error) {
-                throw raceResult;
-            }
-
+            // If we get here, it didn't timeout
             const { data: projectResponse, error: projectError } = raceResult as any;
 
             if (projectError) {
                 console.error("Supabase Project Insert Error:", projectError);
-                throw new Error(projectError.message || "Failed to create project record.");
+                throw new Error(projectError.message || "Database rejected the project insert.");
             }
 
             const projectData = projectResponse?.[0];
 
             if (!projectData) {
+                console.error("No data returned from insert");
                 throw new Error("Project created but no data returned. Please check dashboard.");
             }
+
+            console.log("Project created:", projectData);
 
             if (projectData) {
                 const collaborators = selectedMembers.map(member => ({
                     project_id: projectData.id,
-                    student_id: member.id, // Reverted: schema has 'student_id'
+                    student_id: member.id,
                     role: member.id === session.user.id ? 'leader' : 'contributor',
                     status: member.id === session.user.id ? 'accepted' : 'pending',
                 }));
@@ -298,13 +301,12 @@ export default function UploadProject() {
                 }
             }
 
-            localStorage.removeItem('upload_project_draft'); // Clear draft on success
-            toast.success("Project submitted successfully!");
+            localStorage.removeItem('upload_project_draft');
+            window.alert("Project submitted successfully! Redirecting to dashboard...");
             router.push('/dashboard');
         } catch (error: any) {
             console.error("CRITICAL UPLOAD ERROR:", error);
-            window.alert('Upload Failed: ' + (error.message || 'Unknown error'));
-            toast.error(error.message || "An unexpected error occurred during upload.");
+            window.alert('Upload Failed: ' + (error.message || 'Unknown error. Check console for details.'));
         } finally {
             setLoading(false);
         }
