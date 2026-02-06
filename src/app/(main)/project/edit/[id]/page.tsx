@@ -210,6 +210,10 @@ export default function EditProjectPage() {
 
             if (error) {
                 console.error("❌ Step 1 Error (project_collaborators):", error);
+                // If it's the recursion error, provide a specific helpful message
+                if (error.message?.includes('Infinite recursion')) {
+                    toast.error("Database policy error: Infinite recursion detected. Please run the fix script.");
+                }
                 throw error;
             }
             console.log("✅ Step 1 Success, data:", data);
@@ -279,7 +283,11 @@ export default function EditProjectPage() {
             await fetchCollaborators(projectId);
         } catch (error: any) {
             console.error("Error adding collaborator:", error);
-            toast.error(error.message || "Failed to add collaborator");
+            if (error.message?.includes('Infinite recursion')) {
+                toast.error("Fixed needed: Infinite recursion in database policy.");
+            } else {
+                toast.error(error.message || "Failed to add collaborator");
+            }
         } finally {
             setLoadingCollaborators(false);
         }

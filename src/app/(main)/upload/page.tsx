@@ -262,17 +262,23 @@ export default function UploadProject() {
 
             const raceResult = await Promise.race([insertPromise, timeoutPromise]);
 
-            // Agar timeout hua, raceResult Error hoga
+            // Handle timeout or other race errors
             if (raceResult instanceof Error) {
                 throw raceResult;
             }
 
             const { data: projectResponse, error: projectError } = raceResult as any;
+
             if (projectError) {
-                throw new Error(projectError.message);
+                console.error("Supabase Project Insert Error:", projectError);
+                throw new Error(projectError.message || "Failed to create project record.");
             }
 
             const projectData = projectResponse?.[0];
+
+            if (!projectData) {
+                throw new Error("Project created but no data returned. Please check dashboard.");
+            }
 
             if (projectData) {
                 const collaborators = selectedMembers.map(member => ({
