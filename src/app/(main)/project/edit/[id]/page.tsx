@@ -345,6 +345,7 @@ export default function EditProjectPage() {
         }
 
         setSaving(true);
+        console.log("Starting save process...");
         const loadingToast = toast.loading(status === 'rejected' ? 'Re-uploading project...' : 'Saving changes...');
 
         try {
@@ -367,18 +368,34 @@ export default function EditProjectPage() {
 
             console.log("📤 Updating Project:", { projectId, updates });
 
-            // Use simple update without .select() to avoid hang
-            const { error } = await supabase
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(
+                    () => reject(new Error('Server is taking too long (25s timeout). Please check your internet or Supabase status.')),
+                    25000
+                )
+            );
+
+            // Use race to detect hangs
+            const updatePromise = supabase
                 .from('projects')
                 .update(updates)
-                .eq('id', projectId);
+                .eq('id', projectId)
+                .select(); // Add select to get response confirmation
+
+            const raceResult = await Promise.race([updatePromise, timeoutPromise]);
+
+            if (raceResult instanceof Error) {
+                throw raceResult;
+            }
+
+            const { data: updateData, error } = raceResult as any;
 
             if (error) {
                 console.error("❌ Database Error:", error);
-                throw error;
+                throw new Error(error.message || "Database rejected the update.");
             }
 
-            console.log("✅ Update successful!");
+            console.log("✅ Update successful!", updateData);
 
             // Clear draft on success
             localStorage.removeItem(draftKey);
@@ -386,26 +403,18 @@ export default function EditProjectPage() {
             // Dismiss loading toast
             toast.dismiss(loadingToast);
 
-            // Show success toast
-            toast.success(status === 'rejected' ? "🎉 Project re-submitted for approval!" : "✅ Changes saved successfully!");
+            // Show prompt
+            window.alert(status === 'rejected' ? "Project re-submitted for approval!" : "Changes saved successfully!");
 
             // Redirect after short delay
-            setTimeout(() => {
-                router.push('/dashboard');
-            }, 1500);
+            router.push('/dashboard');
 
         } catch (error: any) {
-            console.error("❌ Update error:", error);
+            console.error("❌ CRITICAL SAVE ERROR:", error);
             toast.dismiss(loadingToast);
 
-            const errorMsg = error?.message || error?.error_description || "Failed to update project";
-            console.error("Error details:", {
-                message: errorMsg,
-                code: error?.code,
-                status: error?.status,
-                fullError: error
-            });
-
+            const errorMsg = error?.message || "Failed to update project";
+            window.alert("Save Failed: " + errorMsg);
             toast.error(`Error: ${errorMsg}`);
         } finally {
             setSaving(false);
