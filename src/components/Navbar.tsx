@@ -244,9 +244,12 @@ export default function Navbar() {
                                 </button>
 
                                 {user ? (
-                                    <div className="relative hidden md:block">
+                                    <div
+                                        className="relative hidden md:block"
+                                        onMouseEnter={() => setIsProfileOpen(true)}
+                                        onMouseLeave={() => setIsProfileOpen(false)}
+                                    >
                                         <button
-                                            onClick={() => setIsProfileOpen(!isProfileOpen)}
                                             className={`flex items-center gap-2 p-1 rounded-full transition-all border bg-white border-slate-200 hover:shadow-md text-slate-700`}
                                         >
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm bg-gradient-to-br from-indigo-500 to-purple-600 text-white`}>

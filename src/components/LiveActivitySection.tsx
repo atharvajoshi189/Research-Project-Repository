@@ -2,27 +2,68 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, GitCommit, GitPullRequest, Zap, Users, Code, Clock } from 'lucide-react';
+import { Activity, GitCommit, GitPullRequest, Zap, Users, Code, Clock, Laptop } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
 
 const LiveActivitySection = () => {
-    // Simulated live data stats
+    // Real-time Supabase stats
     const [stats, setStats] = useState({
-        commits: 142,
-        activeDevs: 18,
-        prs: 7,
-        hours: 320
+        projectsRecent: 0, // Used to be commits
+        activeDevs: 1, // Start with 1 (current user)
+        approvedProjects: 0, // Used to be PRs
+        totalProjects: 0 // Used to be hours
     });
 
-    // Simulate "live" updates
     useEffect(() => {
-        const interval = setInterval(() => {
+        const fetchInitialStats = async () => {
+            // 1. Projects Updated in last 24h (Recent Activity)
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const { count: recentCount } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true })
+                .gt('updated_at', oneDayAgo);
+
+            // 2. Approved Projects (Similar to Merged PRs)
+            const { count: approvedCount } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'approved');
+
+            // 3. Total Projects (Volume)
+            const { count: totalCount } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true });
+
             setStats(prev => ({
                 ...prev,
-                commits: prev.commits + (Math.random() > 0.7 ? 1 : 0),
-                hours: prev.hours + (Math.random() > 0.9 ? 1 : 0)
+                projectsRecent: recentCount || 0,
+                approvedProjects: approvedCount || 0,
+                totalProjects: totalCount || 0
             }));
-        }, 3000);
-        return () => clearInterval(interval);
+        }
+
+        fetchInitialStats();
+
+        // 4. Real-time Presence for "Active Devs"
+        const channel = supabase.channel('online-users');
+        channel
+            .on('presence', { event: 'sync' }, () => {
+                const presenceState = channel.presenceState();
+                const userCount = Object.keys(presenceState).length;
+                // Ensure at least 1 (the current user) is shown if presence is slow to sync, 
+                // but presenceState usually reflects accurate count.
+                // Depending on tracking, we might just count random IDs if not auth'd.
+                setStats(prev => ({ ...prev, activeDevs: userCount > 0 ? userCount : 1 }));
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.track({ online_at: new Date().toISOString() });
+                }
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     return (
@@ -49,32 +90,32 @@ const LiveActivitySection = () => {
                     {/* Left Column: Activity Dashboard Cards */}
                     <div className="lg:col-span-1 grid grid-cols-2 gap-4">
                         <StatCard
-                            icon={<GitCommit size={20} />}
-                            label="Commits (24h)"
-                            value={stats.commits}
+                            icon={<Zap size={20} />}
+                            label="Activity (24h)"
+                            value={stats.projectsRecent}
                             color="blue"
-                            trend="+12%"
+                            trend="Live"
                         />
                         <StatCard
                             icon={<Users size={20} />}
-                            label="Active Devs"
+                            label="Online Users"
                             value={stats.activeDevs}
                             color="purple"
                             trend="Now"
                         />
                         <StatCard
                             icon={<GitPullRequest size={20} />}
-                            label="PRs Merged"
-                            value={stats.prs}
+                            label="Projects Approved"
+                            value={stats.approvedProjects}
                             color="teal"
-                            trend="+2"
+                            trend="Total"
                         />
                         <StatCard
-                            icon={<Clock size={20} />}
-                            label="Dev Hours"
-                            value={stats.hours}
+                            icon={<Code size={20} />}
+                            label="Total Projects"
+                            value={stats.totalProjects}
                             color="amber"
-                            trend="Total"
+                            trend="All Time"
                         />
                     </div>
 

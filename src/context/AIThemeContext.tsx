@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 type AIThemeContextType = {
     isAIActive: boolean;
@@ -12,6 +13,12 @@ const AIThemeContext = createContext<AIThemeContextType | undefined>(undefined);
 
 export function AIThemeProvider({ children }: { children: ReactNode }) {
     const [isAIActive, setIsAIActive] = useState(false);
+    const pathname = usePathname();
+
+    // Automatically exit AI mode when navigating (e.g., clicking Back or a Link)
+    useEffect(() => {
+        setIsAIActive(false);
+    }, [pathname]);
 
     const toggleAIMode = () => {
         setIsAIActive(prev => !prev);

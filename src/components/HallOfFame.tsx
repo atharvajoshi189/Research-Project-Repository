@@ -3,8 +3,44 @@
 import React, { useRef } from 'react';
 import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
 import { Trophy, Star, Crown, Sparkles, Award } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import Link from 'next/link';
 
 const HallOfFame = () => {
+    const [projects, setProjects] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        const fetchDeepTech = async () => {
+            // Fetch 3 random or latest approved projects. 
+            // For "Hall of Fame", maybe we want the *first* 3 created? Or random?
+            // Let's go with "Latest" for now as it makes sense for "Real Time".
+            const { data } = await supabase
+                .from('projects')
+                .select('*')
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            if (data) {
+                setProjects(data);
+            }
+        };
+        fetchDeepTech();
+    }, []);
+
+    if (projects.length === 0) return null; // Or return skeleton
+
+    // Map ranks to specific array indices for the podium layout
+    // Layout expects: 
+    // Card 2 (Left) -> index 1
+    // Card 1 (Center) -> index 0
+    // Card 3 (Right) -> index 2
+
+    // We need at least 1 project.
+    const topProject = projects[0];
+    const secondProject = projects[1];
+    const thirdProject = projects[2];
+
     return (
         <section className="relative w-full py-20 overflow-hidden bg-slate-50">
             {/* Ambient Background Glow */}
@@ -47,56 +83,121 @@ const HallOfFame = () => {
                 {/* Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
                     {/* Card 2: Top Innovation (Left) */}
-                    <FameCard
-                        rank={2}
-                        title="Top Innovation"
-                        name="Project Aether"
-                        project="Sustainable IoT"
-                        description="A self-sustaining IoT ecosystem powered by ambient kinetic energy."
-                        icon={<Sparkles size={24} className="text-white" />}
-                        gradient="from-blue-400 to-cyan-600"
-                        accentColor="blue"
-                        delay={0.2}
-                        className="md:mt-12 z-20" // Mid height
-                        floatDuration={4}
-                    />
+                    {secondProject && (
+                        <FameCard
+                            rank={2}
+                            title="Recent Innovation"
+                            name={Array.isArray(secondProject.authors) ? secondProject.authors[0] : (secondProject.authors || 'Unknown')}
+                            project={secondProject.title}
+                            description={secondProject.abstract}
+                            icon={<Sparkles size={24} className="text-white" />}
+                            gradient="from-blue-400 to-cyan-600"
+                            accentColor="blue"
+                            delay={0.2}
+                            className="md:mt-12 z-20" // Mid height
+                            floatDuration={4}
+                            id={secondProject.id}
+                        />
+                    )}
 
                     {/* Card 1: Researcher of the Year (Center - Highest) */}
-                    <FameCard
-                        rank={1}
-                        title="Researcher of the Year"
-                        name="Dr. Sarah Chen"
-                        project="Neural Architectures"
-                        description="Pioneering work in adaptive neural networks for real-time processing."
-                        icon={<Trophy size={24} className="text-white" />}
-                        gradient="from-amber-400 to-orange-600"
-                        accentColor="amber"
-                        delay={0}
-                        className="z-30 order-first md:order-none scale-110" // Highest & slightly larger
-                        floatDuration={5}
-                    />
+                    {topProject && (
+                        <FameCard
+                            rank={1}
+                            title="Featured Project"
+                            name={Array.isArray(topProject.authors) ? topProject.authors[0] : (topProject.authors || 'Unknown')}
+                            project={topProject.title}
+                            description={topProject.abstract}
+                            icon={<Trophy size={24} className="text-white" />}
+                            gradient="from-amber-400 to-orange-600"
+                            accentColor="amber"
+                            delay={0}
+                            className="z-30 order-first md:order-none scale-110" // Highest & slightly larger
+                            floatDuration={5}
+                            id={topProject.id}
+                        />
+                    )}
 
                     {/* Card 3: Best Thesis (Right) */}
-                    <FameCard
-                        rank={3}
-                        title="Best Thesis"
-                        name="James Wilson"
-                        project="Quantum Cryptography"
-                        description="Breaking new ground in post-quantum securities for distributed ledgers."
-                        icon={<Award size={24} className="text-white" />}
-                        gradient="from-purple-400 to-pink-600"
-                        accentColor="purple"
-                        delay={0.4}
-                        className="md:mt-24 z-10" // Lowest height
-                        floatDuration={4.5}
-                    />
+                    {thirdProject && (
+                        <FameCard
+                            rank={3}
+                            title="Honorable Mention"
+                            name={Array.isArray(thirdProject.authors) ? thirdProject.authors[0] : (thirdProject.authors || 'Unknown')}
+                            project={thirdProject.title}
+                            description={thirdProject.abstract}
+                            icon={<Award size={24} className="text-white" />}
+                            gradient="from-purple-400 to-pink-600"
+                            accentColor="purple"
+                            delay={0.4}
+                            className="md:mt-24 z-10" // Lowest height
+                            floatDuration={4.5}
+                            id={thirdProject.id}
+                        />
+                    )}
                 </div>
             </div>
         </section>
     );
 };
 
-const FameCard = ({ rank, title, name, project, description, icon, gradient, accentColor, delay, floatDuration = 4, className = "" }: any) => {
+const getAvatarUrl = (name: string) => {
+    const n = name.trim();
+    const lower = n.toLowerCase();
+
+    // Heuristic for Indian context
+    let isFemale = lower.endsWith('a') || lower.endsWith('i') || lower.endsWith('e') || lower.includes('shr') || lower.includes('war');
+
+    if (lower.includes('parth') || lower.includes('aditya') || lower.includes('krishna') || lower.includes('pranav') || lower.includes('rohit')) {
+        isFemale = false;
+    }
+    if (lower.includes('sharwari') || lower.includes('uttara') || lower.includes('divya') || lower.includes('drishti')) {
+        isFemale = true;
+    }
+
+    // Deterministic selection helper
+    const pick = (arr: string[]) => {
+        let hash = 0;
+        for (let i = 0; i < n.length; i++) {
+            hash = n.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return arr[Math.abs(hash) % arr.length];
+    };
+
+    // Safe V7 Options
+    const femaleTops = ['longHair', 'longHairBob', 'longHairCurly', 'longHairStraight', 'longHairBun'];
+    const maleTops = ['shortHair', 'shortHairDreads', 'shortHairFrizzle', 'shortHairShaggy'];
+
+    const femaleClothes = ['blazer', 'hoodie', 'overall'];
+    const maleClothes = ['blazerAndShirt', 'hoodie', 'shirtCrewNeck'];
+
+    const params = new URLSearchParams();
+    params.set('seed', n);
+    // Explicitly using 7.x which is very widely cached and stable
+    const baseUrl = 'https://api.dicebear.com/7.x/avataaars/svg';
+
+    if (isFemale) {
+        params.set('top', pick(femaleTops));
+        params.set('clothing', pick(femaleClothes));
+        params.set('accessories', pick(['prescription02', 'round', 'none', 'none']));
+        params.set('facialHair', 'none');
+        params.set('backgroundColor', 'ffdfbf');
+    } else {
+        params.set('top', pick(maleTops));
+        params.set('facialHair', pick(['beardLight', 'beardMedium', 'moustacheFancy', 'none']));
+        params.set('clothing', pick(maleClothes));
+        params.set('accessories', pick(['prescription02', 'round', 'none', 'none', 'sunglasses']));
+        params.set('backgroundColor', 'b6e3f4');
+    }
+
+    return `${baseUrl}?${params.toString()}`;
+};
+
+
+
+
+
+const FameCard = ({ rank, title, name, project, description, icon, gradient, accentColor, delay, floatDuration = 4, className = "", id }: any) => {
     const ref = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
     const y = useMotionValue(0);
@@ -125,13 +226,15 @@ const FameCard = ({ rank, title, name, project, description, icon, gradient, acc
         y.set(0);
     };
 
-    return (
+    const avatarUrl = getAvatarUrl(name || 'User');
+
+    const CardContent = (
         <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay, duration: 0.8, type: "spring" }}
-            className={`group relative w-full aspect-square ${className}`}
+            className={`group relative w-full h-[450px] ${className}`}
         >
             <motion.div
                 animate={{ y: [0, -12, 0] }}
@@ -155,41 +258,45 @@ const FameCard = ({ rank, title, name, project, description, icon, gradient, acc
                     className="relative h-full w-full bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col"
                 >
                     {/* Gradient Header */}
-                    <div className={`absolute top-0 inset-x-0 h-20 bg-gradient-to-br ${gradient} p-4 flex items-start justify-between z-0`}>
-                        <div className="relative z-10 bg-white/20 backdrop-blur-md border border-white/30 p-2 rounded-xl shadow-lg">
+                    <div className={`absolute top-0 inset-x-0 h-24 bg-gradient-to-br ${gradient} p-5 flex items-start justify-between z-0`}>
+                        <div className="relative z-10 bg-white/20 backdrop-blur-md border border-white/30 p-2.5 rounded-xl shadow-lg">
                             {icon}
                         </div>
-                        <div className="text-white font-black text-5xl opacity-20 -mt-2 -mr-1 select-none">
+                        <div className="text-white font-black text-6xl opacity-20 -mt-3 -mr-2 select-none">
                             #{rank}
                         </div>
                     </div>
 
                     {/* Content */}
-                    <div className="relative pt-20 px-4 pb-4 flex flex-col items-center justify-between text-center z-10 h-full">
-                        {/* Floating Avatar Placeholder */}
-                        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full border-4 border-white bg-slate-200 shadow-md overflow-hidden z-20">
-                            {/* Placeholder Avatar */}
-                            <div className={`w-full h-full bg-gradient-to-br ${gradient} opacity-50`} />
+                    <div className="relative pt-24 px-6 pb-6 flex flex-col items-center justify-between text-center z-10 h-full">
+                        {/* Floating Avatar - Animated Look */}
+                        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full border-[3px] border-white bg-white shadow-lg overflow-hidden z-20 group-hover:scale-110 transition-transform duration-300">
+                            <img
+                                src={avatarUrl}
+                                alt={name}
+                                className="w-full h-full object-cover bg-slate-50"
+                                loading="lazy"
+                            />
                         </div>
 
-                        <div className="mt-6 mb-1">
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{title}</h4>
-                            <h3 className="text-base font-bold text-slate-900 leading-tight">{name}</h3>
+                        <div className="mt-12 mb-2">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{title}</h4>
+                            <h3 className="text-lg font-bold text-slate-900 leading-tight px-2">{name}</h3>
                         </div>
 
-                        <div className="w-8 h-0.5 bg-slate-100 rounded-full my-2 group-hover:bg-slate-200 transition-colors" />
+                        <div className="w-10 h-1 bg-slate-100 rounded-full my-3 group-hover:bg-slate-200 transition-colors" />
 
-                        <div className="flex-1 flex flex-col justify-center">
-                            <p className={`font-semibold text-xs text-${accentColor}-600 mb-1`}>{project}</p>
-                            <p className="text-slate-500 text-[10px] leading-relaxed line-clamp-2">{description}</p>
+                        <div className="flex-1 flex flex-col justify-center w-full">
+                            <p className={`font-bold text-sm text-${accentColor}-600 mb-2`}>{project}</p>
+                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-4 px-2">{description}</p>
                         </div>
 
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className={`mt-2 px-4 py-1.5 rounded-lg bg-slate-50 text-slate-900 border border-slate-200 font-bold text-[10px] hover:bg-slate-100 transition-all flex items-center gap-1.5`}
+                            className={`mt-4 px-6 py-2 rounded-xl bg-slate-50 text-slate-900 border border-slate-200 font-bold text-xs hover:bg-slate-100 transition-all flex items-center gap-2 shadow-sm`}
                         >
-                            View Profile <Star size={10} className="fill-slate-900" />
+                            View Profile <Star size={12} className="fill-slate-900" />
                         </motion.button>
                     </div>
 
@@ -202,6 +309,11 @@ const FameCard = ({ rank, title, name, project, description, icon, gradient, acc
             <div className={`absolute -inset-4 bg-gradient-to-br ${gradient} rounded-[2.5rem] -z-10 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500`} />
         </motion.div>
     );
+
+    if (id) {
+        return <Link href={`/project/${id}`}>{CardContent}</Link>;
+    }
+    return CardContent;
 };
 
 export default HallOfFame;

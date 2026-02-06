@@ -152,11 +152,12 @@ const ProjectImage = ({ title, category }: { title: string, category: string }) 
     // In a real app, this should come from the database
     const imageMap: Record<string, string> = {
         "psybridge": "/project-images/psybridge.png",
-        "clause-aware": "/project-images/clause-retrieval.svg",
+        "clause-aware": "/project-images/clause-retrieval.png",
         "modelmate": "/project-images/modelmate.jpg",
         "multimodal": "/project-images/multimodal-nav.png",
-        "fall detection": "/project-images/fall-detection.svg",
-        "sign language": "/project-images/sign-language.svg",
+        "fall detection": "/project-images/fall-detection.jpg",
+        "llm": "/project-images/llm-chatbot.png",
+        "sign language": "/project-images/sign-language.png",
         "disaster": "/project-images/disaster-relief.svg",
     };
 

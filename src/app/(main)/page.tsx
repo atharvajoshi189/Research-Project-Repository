@@ -11,7 +11,6 @@ import { supabase } from '@/lib/supabaseClient';
 import Project3DCard from '@/components/Project3DCard';
 import { useAITheme } from '@/context/AIThemeContext';
 import CategoryCloud from '@/components/home/CategoryCloud';
-import { HeroParallax, ParallaxLayer } from '@/components/HeroParallax';
 import HallOfFame from '@/components/HallOfFame';
 import LiveActivitySection from '@/components/LiveActivitySection';
 
@@ -224,11 +223,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
 
-        <HeroParallax className="w-full max-w-7xl mx-auto px-6 py-20">
+        <div className="w-full max-w-7xl mx-auto px-6 py-20">
           <div className="flex flex-col items-center text-center">
 
             {/* Animated Badge - Floats gently */}
-            <ParallaxLayer depth={10} className="mb-8 relative z-20">
+            <div className="mb-8 relative z-20">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -237,10 +236,10 @@ export default function Home() {
                   <Sparkles size={12} className="text-teal-400" /> Department of Computer Science and Engineering
                 </span>
               </motion.div>
-            </ParallaxLayer>
+            </div>
 
             {/* Headline - Deep 3D Effect */}
-            <ParallaxLayer depth={20} className="relative z-20">
+            <div className="relative z-20">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -250,10 +249,10 @@ export default function Home() {
                 Research <br />
                 <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500">Reimagined.</span>
               </motion.h1>
-            </ParallaxLayer>
+            </div>
 
             {/* Subtext - Different depth for separation */}
-            <ParallaxLayer depth={15} className="relative z-20">
+            <div className="relative z-20">
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -262,10 +261,10 @@ export default function Home() {
               >
                 Explore a curated archive of groundbreaking student projects, research papers, and technological innovations.
               </motion.p>
-            </ParallaxLayer>
+            </div>
 
-            {/* Search Bar - Highest interactivity */}
-            <ParallaxLayer depth={30} className="w-full max-w-2xl relative z-50">
+            {/* Search Bar - No Parallax - Highest interactivity */}
+            <div className="w-full max-w-2xl relative z-50">
               <motion.div
                 ref={containerRef}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -364,9 +363,9 @@ export default function Home() {
                   </div>
                 </form>
               </motion.div>
-            </ParallaxLayer>
+            </div>
           </div>
-        </HeroParallax>
+        </div>
 
         {/* Floating Category Cloud */}
         <motion.div
@@ -398,14 +397,14 @@ export default function Home() {
                   <motion.div
                     key={`${i}-${index}`}
                     onClick={() => router.push(`/search?tech=${encodeURIComponent(tech.name)}`)}
-                    className="group relative flex flex-col items-center justify-center gap-4 cursor-pointer"
-                    animate={{ y: [-8, 8, -8] }}
+                    animate={{ y: [0, -15, 0] }}
                     transition={{
-                      duration: 1.5,
+                      duration: 3,
                       repeat: Infinity,
                       ease: "easeInOut",
                       delay: index * 0.2
                     }}
+                    className="group relative flex flex-col items-center justify-center gap-4 cursor-pointer"
                   >
                     <div className="w-16 h-16 rounded-full bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-center p-3 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                       <img
@@ -510,11 +509,8 @@ export default function Home() {
       </section>
 
       {/* Floating Glass Stats */}
-      <section className="py-20 bg-[#F1F5F9] relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:2rem_2rem]" />
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col items-center">
+      <section className="py-20 relative overflow-visible z-30">
+        <div className="max-w-7xl mx-auto px-6 relative flex flex-col items-center">
           <StatsDashboard />
         </div>
       </section>
