@@ -28,7 +28,7 @@ const HallOfFame = () => {
         fetchDeepTech();
     }, []);
 
-    if (projects.length === 0) return null; // Or return skeleton
+    // if (projects.length === 0) return null; // Or return skeleton
 
     // Map ranks to specific array indices for the podium layout
     // Layout expects: 
@@ -42,7 +42,7 @@ const HallOfFame = () => {
     const thirdProject = projects[2];
 
     return (
-        <section className="relative w-full py-20 overflow-hidden bg-slate-50">
+        <section className="relative w-full py-20 overflow-hidden">
             {/* Ambient Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-100/40 via-transparent to-transparent blur-3xl" />
 
@@ -64,9 +64,9 @@ const HallOfFame = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6"
+                        className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6 relative z-20"
                     >
-                        Hall of <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600">Fame</span>
+                        Hall of <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700">Fame</span>
                     </motion.h2>
 
                     <motion.p
