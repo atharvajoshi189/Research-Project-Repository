@@ -13,6 +13,8 @@ import { useAITheme } from '@/context/AIThemeContext';
 import CategoryCloud from '@/components/home/CategoryCloud';
 import HallOfFame from '@/components/HallOfFame';
 import LiveActivitySection from '@/components/LiveActivitySection';
+import ScrollBackground from '@/components/home/ScrollBackground';
+import { useInView } from 'framer-motion';
 
 const TECH_ICON_MAP: Record<string, string> = {
   react: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
@@ -105,6 +107,35 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [techIcons, setTechIcons] = useState<{ name: string, url: string }[]>([]);
+
+  // Scroll Spy Logic
+  const [activeSection, setActiveSection] = useState("hero");
+
+  const heroRef = useRef(null);
+  const featuresRef = useRef(null);
+  const hallOfFameRef = useRef(null);
+  const activityRef = useRef(null);
+
+  const isHeroInView = useInView(heroRef, { amount: 0.5 });
+  const isFeaturesInView = useInView(featuresRef, { amount: 0.3 });
+  const isHallOfFameInView = useInView(hallOfFameRef, { amount: 0.3 });
+  const isActivityInView = useInView(activityRef, { amount: 0.3 });
+
+  useEffect(() => {
+    if (isHeroInView) setActiveSection("hero");
+  }, [isHeroInView]);
+
+  useEffect(() => {
+    if (isFeaturesInView) setActiveSection("features");
+  }, [isFeaturesInView]);
+
+  useEffect(() => {
+    if (isHallOfFameInView) setActiveSection("hall-of-fame");
+  }, [isHallOfFameInView]);
+
+  useEffect(() => {
+    if (isActivityInView) setActiveSection("repo-pulse");
+  }, [isActivityInView]);
 
   const fetchProjects = async () => {
     const { data } = await supabase
@@ -209,318 +240,329 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FAFAFA] text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
+    <div className="relative w-full min-h-screen text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
 
-      {/* 1. Aurora Background */}
-      <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none">
-        <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none opacity-40">
-          <ResearchNetwork />
-        </div>
-        {/* Noise Texture Overaly */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-soft-light"></div>
-      </div>
+      {/* 1. Dynamic Scroll Background */}
+      <ScrollBackground activeSection={activeSection} />
 
-      {/* Hero Section */}
-      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
+      {/* Aurora Background - Lower Opacity or Removed if ScrollBackground takes over */}
+      {/* Kept as subtle overlay if needed, or we can comment it out to let new background shine. 
+          User asked to "replace" white background. Let's keep existing noise overlay but hide the old ResearchNetwork if it clashes.
+          Actually, let's keep ResearchNetwork but make it very subtle or conditional. 
+          For now, I'll allow ScrollBackground to sit BEHIND everything.
+      */}
 
-        <div className="w-full max-w-7xl mx-auto px-6 py-20">
-          <div className="flex flex-col items-center text-center">
 
-            {/* Animated Badge - Floats gently */}
-            <div className="mb-8 relative z-20">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm text-xs font-bold tracking-widest uppercase text-slate-500 hover:border-teal-300 transition-colors cursor-default">
-                  <Sparkles size={12} className="text-teal-400" /> Department of Computer Science and Engineering
-                </span>
-              </motion.div>
-            </div>
 
-            {/* Headline - Deep 3D Effect */}
-            <div className="relative z-20">
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-[0.9] text-slate-900 mb-10"
-              >
-                Research <br />
-                <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500">Reimagined.</span>
-              </motion.h1>
-            </div>
+      {/* Content Wrapper to sit above the background */}
+      <div className="relative z-10">
 
-            {/* Subtext - Different depth for separation */}
-            <div className="relative z-20">
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="max-w-2xl mx-auto text-xl text-slate-500 font-medium leading-relaxed mb-12"
-              >
-                Explore a curated archive of groundbreaking student projects, research papers, and technological innovations.
-              </motion.p>
-            </div>
+        {/* Hero Section */}
+        <section ref={heroRef} className="relative w-full min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
 
-            {/* Search Bar - No Parallax - Highest interactivity */}
-            <div className="w-full max-w-2xl relative z-50">
-              <motion.div
-                ref={containerRef}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <form onSubmit={handleSearch} className="relative group">
-                  {/* Glow Effect */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full opacity-20 group-focus-within:opacity-50 blur-xl transition-opacity duration-500" />
+          <div className="w-full max-w-7xl mx-auto px-6 py-20">
+            <div className="flex flex-col items-center text-center">
 
-                  <div className={`relative bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ${showDropdown ? 'rounded-3xl' : 'rounded-full'}`}>
-                    <div className="flex items-center pl-6 pr-2 py-2">
-                      <Search className="text-slate-400 w-5 h-5 flex-shrink-0 mr-4" />
-                      <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()} /* Prevent dragging */
-                        onKeyDown={handleKeyDown}
-                        onFocus={() => { if (query) setShowDropdown(true) }}
-                        placeholder="Find projects, topics, or authors..."
-                        className="bg-transparent w-full text-lg font-medium text-slate-800 placeholder-slate-400 focus:outline-none py-3"
-                      />
-                      <button type="submit" className="p-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-transform active:scale-95">
-                        <ArrowRight size={20} />
-                      </button>
-
-                      {/* AI Toggle Switch */}
-                      <div className="pl-3 border-l border-slate-200 ml-3">
-                        <button
-                          type="button"
-                          onClick={handleAIToggle}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          className={`relative flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-500 overflow-hidden group/ai
-                            ${isAIActive
-                              ? 'bg-slate-900 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-500/50'
-                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                            }
-                          `}
-                        >
-                          {/* Animated Gradient Background for AI Mode */}
-                          {isAIActive && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse-slow"></div>
-                          )}
-
-                          <div className={`relative z-10 p-1 rounded-full transition-transform duration-500 ${isAIActive ? 'rotate-[360deg] scale-110' : ''}`}>
-                            <Sparkles size={16} className={isAIActive ? "text-purple-300 fill-purple-300" : "text-slate-400"} />
-                          </div>
-                          <span className="relative z-10 transition-colors duration-300">
-                            {isAIActive ? 'AI Mode ON' : 'AI Mode'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Dropdown */}
-                    <AnimatePresence>
-                      {showDropdown && query.trim() && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="border-t border-slate-100 px-2 pb-2"
-                        >
-                          <ul className="py-2">
-                            {suggestions.length > 0 ? (
-                              suggestions.map((project, index) => (
-                                <li key={project.id}>
-                                  <button
-                                    onClick={() => router.push(`/project/${project.id}`)}
-                                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${index === selectedIndex ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
-                                  >
-                                    <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 flex-shrink-0">
-                                      <FileText size={14} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-slate-700 truncate text-sm">{project.title}</p>
-                                      <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                        <span className="capitalize">{project.category}</span>
-                                        <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                        <span>{project.academic_year}</span>
-                                      </p>
-                                    </div>
-                                  </button>
-                                </li>
-                              ))
-                            ) : (
-                              <li className="px-4 py-8 text-center text-slate-400 text-sm">
-                                No matches found for "{query}"
-                              </li>
-                            )}
-                          </ul>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </form>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Category Cloud */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="w-full relative z-40"
-        >
-          <CategoryCloud />
-        </motion.div>
-
-        {/* Tech Stack Icons (Wavy Row) */}
-        {/* Tech Stack Infinite Marquee */}
-        <div className="mt-10 w-full overflow-hidden relative py-20">
-
-          <motion.div
-            className="flex w-max"
-            animate={{ x: "-50%" }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-              repeatType: "loop"
-            }}
-          >
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex gap-16 items-center pr-16">
-                {techIcons.length > 0 ? techIcons.map((tech, index) => (
-                  <motion.div
-                    key={`${i}-${index}`}
-                    onClick={() => router.push(`/search?tech=${encodeURIComponent(tech.name)}`)}
-                    animate={{ y: [0, -15, 0] }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: index * 0.2
-                    }}
-                    className="group relative flex flex-col items-center justify-center gap-4 cursor-pointer"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-center p-3 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                      <img
-                        src={tech.url}
-                        alt={tech.name}
-                        className="w-full h-full object-contain filter grayscale brightness-0 opacity-80 group-hover:grayscale-0 group-hover:brightness-100 group-hover:opacity-100 transition-all duration-300"
-                      />
-                    </div>
-                  </motion.div>
-                )) : null}
+              {/* Animated Badge - Floats gently */}
+              <div className="mb-8 relative z-20">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm text-xs font-bold tracking-widest uppercase text-slate-500 hover:border-teal-300 transition-colors cursor-default">
+                    <Sparkles size={12} className="text-teal-400" /> Department of Computer Science and Engineering
+                  </span>
+                </motion.div>
               </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
+              {/* Headline - Deep 3D Effect */}
+              <div className="relative z-20">
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-[0.9] text-slate-900 mb-10"
+                >
+                  Research <br />
+                  <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500">Reimagined.</span>
+                </motion.h1>
+              </div>
 
-      {/* Bento Grid Featured */}
-      <section className="px-4 pb-32 max-w-[90rem] mx-auto">
-        <div className="flex items-end justify-between mb-12 px-2">
-          <div>
-            <h2 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Featured Work</h2>
-            <p className="text-slate-500">Hand-picked excellence from this semester.</p>
-          </div>
-          <Link href="/search" className="hidden md:flex items-center gap-2 text-slate-900 font-bold border-b-2 border-slate-900 pb-0.5 hover:text-teal-600 hover:border-teal-600 transition-colors">
-            View All Archives <ArrowRight size={18} />
-          </Link>
-        </div>
+              {/* Subtext - Different depth for separation */}
+              <div className="relative z-20">
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="max-w-2xl mx-auto text-xl text-slate-500 font-medium leading-relaxed mb-12"
+                >
+                  Explore a curated archive of groundbreaking student projects, research papers, and technological innovations.
+                </motion.p>
+              </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: false, margin: "-100px" }}
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.15
-              }
-            }
-          }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
-        >
-          {projects.slice(0, 8).map((project, i) => {
-            return (
-              <motion.div
-                key={project.id}
-                className="col-span-1 h-full"
-                variants={{
-                  hidden: {
-                    opacity: 0,
-                    y: -200, // From top
-                    x: -800 + (i * 50), // From far left, staggered
-                    scale: 0.8,
-                    rotate: -30 + (i * 5) // Fanned rotation
-                  },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    x: 0,
-                    rotate: 0,
-                    transition: {
-                      type: "spring",
-                      stiffness: 80,
-                      damping: 15,
-                      mass: 1
-                    }
-                  }
-                }}
-              >
-                <Project3DCard
-                  project={project}
-                  spanClass="h-full" // Ensure card takes full height of wrapper
-                  index={i}
-                  // Disable internal animation of Project3DCard since we handle it here
-                  noAnimation={true}
-                />
-              </motion.div>
-            );
-          })}
+              {/* Search Bar - No Parallax - Highest interactivity */}
+              <div className="w-full max-w-2xl relative z-50">
+                <motion.div
+                  ref={containerRef}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <form onSubmit={handleSearch} className="relative group">
+                    {/* Glow Effect */}
+                    <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full opacity-20 group-focus-within:opacity-50 blur-xl transition-opacity duration-500" />
 
-          {/* View More Card */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, scale: 0.8 },
-              visible: { opacity: 1, scale: 1 }
-            }}
-            className="rounded-3xl bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center text-center p-6 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group relative overflow-hidden"
-            onClick={() => router.push('/search')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className={`relative bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ${showDropdown ? 'rounded-3xl' : 'rounded-full'}`}>
+                      <div className="flex items-center pl-6 pr-2 py-2">
+                        <Search className="text-slate-400 w-5 h-5 flex-shrink-0 mr-4" />
+                        <input
+                          type="text"
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()} /* Prevent dragging */
+                          onKeyDown={handleKeyDown}
+                          onFocus={() => { if (query) setShowDropdown(true) }}
+                          placeholder="Find projects, topics, or authors..."
+                          className="bg-transparent w-full text-lg font-medium text-slate-800 placeholder-slate-400 focus:outline-none py-3"
+                        />
+                        <button type="submit" className="p-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-transform active:scale-95">
+                          <ArrowRight size={20} />
+                        </button>
 
-            <div className="w-16 h-16 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300 z-10">
-              <ArrowRight size={28} className="group-hover:translate-x-1 transition-transform" />
+                        {/* AI Toggle Switch */}
+                        <div className="pl-3 border-l border-slate-200 ml-3">
+                          <button
+                            type="button"
+                            onClick={handleAIToggle}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className={`relative flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-500 overflow-hidden group/ai
+                            ${isAIActive
+                                ? 'bg-slate-900 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-500/50'
+                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                              }
+                          `}
+                          >
+                            {/* Animated Gradient Background for AI Mode */}
+                            {isAIActive && (
+                              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse-slow"></div>
+                            )}
+
+                            <div className={`relative z-10 p-1 rounded-full transition-transform duration-500 ${isAIActive ? 'rotate-[360deg] scale-110' : ''}`}>
+                              <Sparkles size={16} className={isAIActive ? "text-purple-300 fill-purple-300" : "text-slate-400"} />
+                            </div>
+                            <span className="relative z-10 transition-colors duration-300">
+                              {isAIActive ? 'AI Mode ON' : 'AI Mode'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Dropdown */}
+                      <AnimatePresence>
+                        {showDropdown && query.trim() && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="border-t border-slate-100 px-2 pb-2"
+                          >
+                            <ul className="py-2">
+                              {suggestions.length > 0 ? (
+                                suggestions.map((project, index) => (
+                                  <li key={project.id}>
+                                    <button
+                                      onClick={() => router.push(`/project/${project.id}`)}
+                                      className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${index === selectedIndex ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                                    >
+                                      <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 flex-shrink-0">
+                                        <FileText size={14} />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-slate-700 truncate text-sm">{project.title}</p>
+                                        <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                          <span className="capitalize">{project.category}</span>
+                                          <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                          <span>{project.academic_year}</span>
+                                        </p>
+                                      </div>
+                                    </button>
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="px-4 py-8 text-center text-slate-400 text-sm">
+                                  No matches found for "{query}"
+                                </li>
+                              )}
+                            </ul>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
             </div>
-            <span className="font-bold text-lg text-slate-800 group-hover:text-teal-700 transition-colors z-10">View All Projects</span>
-            <span className="text-sm text-slate-400 mt-2 z-10">Discover the complete archive</span>
+          </div>
+
+          {/* Floating Category Cloud */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="w-full relative z-40"
+          >
+            <CategoryCloud />
           </motion.div>
-        </motion.div>
-      </section>
 
-      {/* Floating Glass Stats */}
-      <section className="py-20 relative overflow-visible z-30">
-        <div className="max-w-7xl mx-auto px-6 relative flex flex-col items-center">
-          <StatsDashboard />
+          {/* Tech Stack Icons (Wavy Row) */}
+          {/* Tech Stack Infinite Marquee */}
+          <div className="mt-10 w-full overflow-hidden relative py-20">
+
+            <motion.div
+              className="flex w-max"
+              animate={{ x: "-50%" }}
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear",
+                repeatType: "loop"
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-16 items-center pr-16">
+                  {techIcons.length > 0 ? techIcons.map((tech, index) => (
+                    <motion.div
+                      key={`${i}-${index}`}
+                      onClick={() => router.push(`/search?tech=${encodeURIComponent(tech.name)}`)}
+                      animate={{ y: [0, -15, 0] }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: index * 0.2
+                      }}
+                      className="group relative flex flex-col items-center justify-center gap-4 cursor-pointer"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-center p-3 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                        <img
+                          src={tech.url}
+                          alt={tech.name}
+                          className="w-full h-full object-contain filter grayscale brightness-0 opacity-80 group-hover:grayscale-0 group-hover:brightness-100 group-hover:opacity-100 transition-all duration-300"
+                        />
+                      </div>
+                    </motion.div>
+                  )) : null}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+
+        {/* Bento Grid Featured */}
+        <section ref={featuresRef} className="px-4 pb-32 max-w-[90rem] mx-auto">
+          <div className="flex items-end justify-between mb-12 px-2">
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Featured Work</h2>
+              <p className="text-slate-500">Hand-picked excellence from this semester.</p>
+            </div>
+            <Link href="/search" className="hidden md:flex items-center gap-2 text-slate-900 font-bold border-b-2 border-slate-900 pb-0.5 hover:text-teal-600 hover:border-teal-600 transition-colors">
+              View All Archives <ArrowRight size={18} />
+            </Link>
+          </div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, margin: "-100px" }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.15
+                }
+              }
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+          >
+            {projects.slice(0, 8).map((project, i) => {
+              return (
+                <motion.div
+                  key={project.id}
+                  className="col-span-1 h-full"
+                  variants={{
+                    hidden: {
+                      opacity: 0,
+                      y: -200, // From top
+                      x: -800 + (i * 50), // From far left, staggered
+                      scale: 0.8,
+                      rotate: -30 + (i * 5) // Fanned rotation
+                    },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      x: 0,
+                      rotate: 0,
+                      transition: {
+                        type: "spring",
+                        stiffness: 80,
+                        damping: 15,
+                        mass: 1
+                      }
+                    }
+                  }}
+                >
+                  <Project3DCard
+                    project={project}
+                    spanClass="h-full" // Ensure card takes full height of wrapper
+                    index={i}
+                    // Disable internal animation of Project3DCard since we handle it here
+                    noAnimation={true}
+                  />
+                </motion.div>
+              );
+            })}
+
+            {/* View More Card */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1 }
+              }}
+              className="rounded-3xl bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center text-center p-6 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              onClick={() => router.push('/search')}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              <div className="w-16 h-16 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300 z-10">
+                <ArrowRight size={28} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+              <span className="font-bold text-lg text-slate-800 group-hover:text-teal-700 transition-colors z-10">View All Projects</span>
+              <span className="text-sm text-slate-400 mt-2 z-10">Discover the complete archive</span>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Floating Glass Stats */}
+        <section className="py-20 relative overflow-visible z-30">
+          <div className="max-w-7xl mx-auto px-6 relative flex flex-col items-center">
+            <StatsDashboard />
+          </div>
+        </section>
+
+        {/* Hall of Fame - Repositioned to Bottom */}
+        <div ref={hallOfFameRef}>
+          <HallOfFame />
         </div>
-      </section>
 
-      {/* Hall of Fame - Repositioned to Bottom */}
-      <HallOfFame />
+        {/* Live Activity Section - Below Hall of Fame */}
+        <div ref={activityRef}>
+          <LiveActivitySection />
+        </div>
 
-      {/* Live Activity Section - Below Hall of Fame */}
-      <LiveActivitySection />
-
+      </div>
     </div>
   );
 }
