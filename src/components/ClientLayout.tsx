@@ -17,7 +17,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const isAuthPage = pathname === '/login' || pathname === '/signup';
 
     return (
-        <div className={`flex flex-col min-h-screen transition-all duration-800 ease-in-out ${(isAIActive || isAIModePage) ? 'ai-mode-active' : 'bg-white text-slate-900'}`}>
+        <div className={`flex flex-col min-h-screen transition-all duration-800 ease-in-out ${(isAIActive || isAIModePage) ? 'ai-mode-active' : 'text-slate-900'}`}>
             <LoadingScreen isLoading={isLoading} />
 
             {/* Background Effects */}
