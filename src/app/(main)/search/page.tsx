@@ -6,6 +6,7 @@ import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, Fol
 import NextLink from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import Project3DCard from '@/components/Project3DCard'; // Added import
 
 function SearchContent() {
     const searchParams = useSearchParams();
@@ -138,7 +139,7 @@ function SearchContent() {
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.05
+                staggerChildren: 0.15 // Increased stagger for better flow
             }
         }
     };
@@ -267,12 +268,12 @@ function SearchContent() {
                             </div>
                         </div>
 
-                        {/* Glass Project Cards Grid */}
+                        {/* Bento Grid with Project3DCard */}
                         <motion.div
                             variants={containerVariants}
                             initial="hidden"
                             animate="show"
-                            className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20"
+                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[350px] pb-20"
                         >
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {loading ? (
@@ -299,77 +300,42 @@ function SearchContent() {
                                         </button>
                                     </motion.div>
                                 ) : (
-                                    filteredProjects.map((project) => (
+                                    filteredProjects.map((project, i) => (
                                         <motion.div
                                             key={project.id}
-                                            variants={itemVariants}
+                                            className="col-span-1 h-full"
+                                            variants={{
+                                                hidden: {
+                                                    opacity: 0,
+                                                    y: 50,
+                                                    scale: 0.9,
+                                                    rotate: -2 // Subtle rotation for fun
+                                                },
+                                                show: {
+                                                    opacity: 1,
+                                                    y: 0,
+                                                    scale: 1,
+                                                    rotate: 0,
+                                                    transition: {
+                                                        type: "spring",
+                                                        stiffness: 100,
+                                                        damping: 15
+                                                    }
+                                                },
+                                                exit: {
+                                                    opacity: 0,
+                                                    scale: 0.9,
+                                                    transition: { duration: 0.2 }
+                                                }
+                                            }}
                                             layout
-                                            initial="hidden"
-                                            animate="show"
-                                            exit="exit"
                                         >
-                                            <NextLink href={`/project/${project.id}`} className="block h-full">
-                                                <motion.div
-                                                    className="group h-full bg-white/60 backdrop-blur-md rounded-[2.5rem] border border-white/50 p-8 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] transition-all relative overflow-hidden flex flex-col"
-                                                    whileHover={{ y: -6 }}
-                                                >
-                                                    {/* Subtle hover gradient overlay */}
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-indigo-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                                    <div className="relative z-10 flex flex-col h-full">
-                                                        <div className="flex justify-between items-start mb-5">
-                                                            <div className="flex flex-wrap gap-2">
-                                                                <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-sm
-                                                                    ${project.status === 'IEEE Published' ? 'bg-indigo-100/80 text-indigo-700 border border-indigo-200' :
-                                                                        project.status === 'Completed' ? 'bg-emerald-100/80 text-emerald-700 border border-emerald-200' : 'bg-blue-100/80 text-blue-700 border border-blue-200'}`}>
-                                                                    {project.status}
-                                                                </span>
-                                                                <span className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 text-[11px] font-bold border border-slate-200 shadow-sm">
-                                                                    {project.category}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex gap-2">
-                                                                {project.github_url && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.preventDefault();
-                                                                            window.open(project.github_url, '_blank');
-                                                                        }}
-                                                                        className="p-3 bg-white rounded-full text-slate-300 hover:text-slate-900 transition-all duration-300 z-10 relative shadow-sm"
-                                                                        title="View Source Code"
-                                                                    >
-                                                                        <Github size={20} />
-                                                                    </button>
-                                                                )}
-                                                                <div className="p-3 bg-white rounded-full text-slate-300 group-hover:text-teal-500 group-hover:shadow-md transition-all duration-300">
-                                                                    <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-teal-700 transition-colors leading-tight">
-                                                            {project.title}
-                                                        </h3>
-
-                                                        <p className="text-slate-500 mb-6 line-clamp-3 leading-relaxed text-sm font-medium">
-                                                            {project.abstract}
-                                                        </p>
-
-                                                        <div className="mt-auto pt-6 border-t border-slate-100/50 flex flex-wrap items-center justify-between gap-4">
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {project.techStack && project.techStack.slice(0, 4).map((tech: string) => (
-                                                                    <span key={tech} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-teal-100 text-slate-600 group-hover:border-teal-200 group-hover:text-teal-600 transition-colors">
-                                                                        #{tech}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                            <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full">
-                                                                {project.academic_year || project.year}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            </NextLink>
+                                            <Project3DCard
+                                                project={project}
+                                                spanClass="h-full"
+                                                index={i}
+                                                noAnimation={true} // We handle animation in the wrapper
+                                            />
                                         </motion.div>
                                     ))
                                 )}

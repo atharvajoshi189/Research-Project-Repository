@@ -42,9 +42,8 @@ const HallOfFame = () => {
     const thirdProject = projects[2];
 
     return (
-        <section className="relative w-full py-20 overflow-hidden bg-slate-50">
-            {/* Ambient Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-100/40 via-transparent to-transparent blur-3xl" />
+        <section className="relative w-full py-24 overflow-hidden">
+
 
             <div className="relative z-10 max-w-4xl mx-auto px-6">
                 {/* Header */}
@@ -305,7 +304,9 @@ const FameCard = ({ rank, title, name, project, description, icon, gradient, acc
                 </motion.div>
             </motion.div>
 
-            {/* Back Glow */}
+
+
+            {/* Back Glow for individual cards handled in FameCard */}
             <div className={`absolute -inset-4 bg-gradient-to-br ${gradient} rounded-[2.5rem] -z-10 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500`} />
         </motion.div>
     );

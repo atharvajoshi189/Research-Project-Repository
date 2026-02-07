@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, Users, CheckCircle, X, Search, UserPlus, Info, ChevronUp, ChevronDown } from 'lucide-react';
+import { UploadCloud, FileText, Users, CheckCircle, X, Search, UserPlus, Info, ChevronUp, ChevronDown, Rocket, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function UploadProject() {
@@ -34,8 +34,6 @@ export default function UploadProject() {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
 
-    // Removed allStudents state to fix lag
-
     // Load draft from localStorage on mount
     useEffect(() => {
         const savedDraft = localStorage.getItem('upload_project_draft');
@@ -51,7 +49,6 @@ export default function UploadProject() {
                 if (parsed.githubLink) setGithubLink(parsed.githubLink);
                 if (parsed.guideName) setGuideName(parsed.guideName);
                 if (parsed.guideId) setGuideId(parsed.guideId);
-                if (parsed.academicYear) setAcademicYear(parsed.academicYear);
                 if (parsed.academicYear) setAcademicYear(parsed.academicYear);
                 if (parsed.selectedMembers) setSelectedMembers(parsed.selectedMembers);
             } catch (e) {
@@ -94,18 +91,16 @@ export default function UploadProject() {
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
 
             // Always ensure the current user is in the list as Leader
-            // Use functional state update to respect existing 'selectedMembers' from draft load
             setSelectedMembers(prevMembers => {
                 const isAlreadyAdded = prevMembers.some(m => m.id === session.user.id);
                 if (!isAlreadyAdded && profile) {
-                    // Add as first member
                     return [profile, ...prevMembers];
                 }
                 return prevMembers;
             });
         };
         checkUser();
-    }, [isLoaded]); // Depend on isLoaded to run after draft load
+    }, [isLoaded]);
 
     // Fetch Teachers
     useEffect(() => {
@@ -118,14 +113,10 @@ export default function UploadProject() {
                     .in('role', ['teacher', 'hod', 'HOD']);
 
                 if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    console.log("No teachers found in DB");
-                }
                 setTeachers(data || []);
             } catch (err: any) {
                 console.error("Error fetching teachers:", err);
-                toast.error("Failed to load teachers. Please refresh.");
+                toast.error("Failed to load teachers.");
             } finally {
                 setLoadingTeachers(false);
             }
@@ -142,10 +133,9 @@ export default function UploadProject() {
             }
 
             try {
-                // Removed role filter to find ANY user (students, maybe mislabeled faculty, etc.)
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('id, full_name, role') // Removed 'email' as it doesn't exist in profiles
+                    .select('id, full_name, role')
                     .ilike('full_name', `%${searchQuery}%`)
                     .limit(5);
 
@@ -154,7 +144,6 @@ export default function UploadProject() {
                     return;
                 }
 
-                // Filter out already selected members
                 const filtered = data?.filter((p: any) => !selectedMembers.some(m => m.id === p.id)) || [];
                 setSearchResults(filtered);
             } catch (err) {
@@ -207,8 +196,6 @@ export default function UploadProject() {
 
     const handleSubmit = async () => {
         setLoading(true);
-        console.log("Starting upload process...");
-
         try {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError || !session) {
@@ -217,7 +204,6 @@ export default function UploadProject() {
                 return;
             }
 
-            // --- Validations ---
             const missingFields: string[] = [];
             if (!title.trim()) missingFields.push("Project Title");
             if (!abstract.trim()) missingFields.push("Abstract");
@@ -252,36 +238,13 @@ export default function UploadProject() {
                 academic_year: academicYear,
             };
 
-            console.log("Submitting payload:", projectPayload);
-
-            const timeoutPromise = new Promise<never>((_, reject) =>
-                setTimeout(
-                    () => reject(new Error('Server is taking too long (25s timeout). Please check your internet or Supabase status.')),
-                    25000
-                )
-            );
-
             const insertPromise = supabase.from('projects').insert(projectPayload).select();
+            const { data: projectResponse, error: projectError } = await insertPromise;
 
-            // Use race to detect hangs
-            const raceResult = await Promise.race([insertPromise, timeoutPromise]);
-
-            // If we get here, it didn't timeout
-            const { data: projectResponse, error: projectError } = raceResult as any;
-
-            if (projectError) {
-                console.error("Supabase Project Insert Error:", projectError);
-                throw new Error(projectError.message || "Database rejected the project insert.");
-            }
+            if (projectError) throw new Error(projectError.message || "Database rejected the project insert.");
 
             const projectData = projectResponse?.[0];
-
-            if (!projectData) {
-                console.error("No data returned from insert");
-                throw new Error("Project created but no data returned. Please check dashboard.");
-            }
-
-            console.log("Project created:", projectData);
+            if (!projectData) throw new Error("Project created but no data returned.");
 
             if (projectData) {
                 const collaborators = selectedMembers.map(member => ({
@@ -302,8 +265,9 @@ export default function UploadProject() {
             }
 
             localStorage.removeItem('upload_project_draft');
-            window.alert("Project submitted successfully! Redirecting to dashboard...");
-            router.push('/dashboard');
+            toast.success("Project submitted successfully!");
+            setTimeout(() => router.push('/dashboard'), 1500);
+
         } catch (error: any) {
             console.error("CRITICAL UPLOAD ERROR:", error);
             window.alert('Upload Failed: ' + (error.message || 'Unknown error. Check console for details.'));
@@ -312,166 +276,308 @@ export default function UploadProject() {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 font-sans text-slate-900">
+    // Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0, scale: 0.95, y: 20 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 20,
+                duration: 0.6
+            }
+        }
+    } as any;
 
-            {/* Background Gradients */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] bg-teal-50 rounded-full blur-[100px] opacity-60"></div>
-                <div className="absolute -bottom-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-50 rounded-full blur-[100px] opacity-60"></div>
+    const stepVariants = {
+        hidden: { opacity: 0, x: 20, filter: 'blur(10px)' },
+        visible: {
+            opacity: 1,
+            x: 0,
+            filter: 'blur(0px)',
+            transition: { duration: 0.4, ease: "easeOut" }
+        },
+        exit: {
+            opacity: 0,
+            x: -20,
+            filter: 'blur(10px)',
+            transition: { duration: 0.3, ease: "easeIn" }
+        }
+    } as any;
+
+    const listVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    } as any;
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20, scale: 0.8 },
+        visible: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, scale: 0.5, transition: { duration: 0.2 } }
+    } as any;
+
+    return (
+        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 font-sans text-slate-900 overflow-hidden relative">
+
+            {/* Background Gradients & Floating Blobs */}
+            <div className="fixed inset-0 pointer-events-none">
+                <motion.div
+                    animate={{
+                        x: [0, 50, 0],
+                        y: [0, 30, 0],
+                        scale: [1, 1.1, 1],
+                    }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] bg-teal-50 rounded-full blur-[100px] opacity-60"
+                />
+                <motion.div
+                    animate={{
+                        x: [0, -50, 0],
+                        y: [0, -30, 0],
+                        scale: [1, 1.2, 1],
+                    }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                    className="absolute -bottom-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-50 rounded-full blur-[100px] opacity-60"
+                />
             </div>
 
-            <div className="w-full max-w-4xl relative z-10">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="w-full max-w-4xl relative z-10"
+            >
                 {/* Header */}
                 <div className="mb-10 text-center">
-                    <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Upload Project</h1>
-                    <p className="text-slate-500 font-medium">Share your innovation with the world.</p>
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <h1 className="text-5xl font-black text-slate-900 mb-3 tracking-tight drop-shadow-sm">
+                            Upload Project
+                        </h1>
+                        <p className="text-slate-500 font-medium text-lg flex items-center justify-center gap-2">
+                            Share your innovation with the world <Sparkles size={20} className="text-yellow-500 fill-yellow-500 animate-pulse" />
+                        </p>
+                    </motion.div>
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-white p-8 md:p-12">
+                <div className="bg-white/60 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-teal-900/5 border border-white/50 p-8 md:p-12 relative overflow-hidden">
+
+                    {/* Bento Grid Pattern */}
+                    <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+                    {/* Ambient Glow Elements */}
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-teal-100/40 to-blue-100/40 rounded-full blur-[80px] pointer-events-none" />
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-[80px] pointer-events-none" />
+
+                    {/* Decorative Top Line */}
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
 
                     {/* Stepper */}
-                    <div className="flex justify-between items-center mb-12 relative px-4">
+                    <div className="flex justify-between items-center mb-12 relative px-4 select-none">
                         <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-slate-100 -z-10"></div>
-                        <div className={`relative flex flex-col items-center gap-2 ${step >= 1 ? 'text-teal-600' : 'text-slate-300'}`}>
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= 1 ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100'}`}>1</div>
-                            <span className="text-xs font-bold uppercase tracking-wider bg-white px-2">Details</span>
-                        </div>
-                        <div className={`relative flex flex-col items-center gap-2 ${step >= 2 ? 'text-teal-600' : 'text-slate-300'}`}>
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= 2 ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100'}`}>2</div>
-                            <span className="text-xs font-bold uppercase tracking-wider bg-white px-2">Team</span>
-                        </div>
-                        <div className={`relative flex flex-col items-center gap-2 ${step >= 3 ? 'text-teal-600' : 'text-slate-300'}`}>
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= 3 ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100'}`}>3</div>
-                            <span className="text-xs font-bold uppercase tracking-wider bg-white px-2">Submit</span>
-                        </div>
+
+                        {[1, 2, 3].map((s) => (
+                            <div key={s} className={`relative flex flex-col items-center gap-2 ${step >= s ? 'text-teal-600' : 'text-slate-300'}`}>
+                                <motion.div
+                                    layout
+                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= s ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100 text-slate-300'}`}
+                                >
+                                    {step > s ? <CheckCircle size={24} /> : s}
+                                </motion.div>
+                                <span className="text-xs font-bold uppercase tracking-wider bg-white px-2">
+                                    {s === 1 ? 'Details' : s === 2 ? 'Team' : 'Submit'}
+                                </span>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Step 1: Project Details */}
-                    {step === 1 && (
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Title</label>
-                                <input suppressHydrationWarning type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all" placeholder="e.g. AI Based Traffic Control" />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <AnimatePresence mode="wait">
+                        {/* Step 1: Project Details */}
+                        {step === 1 && (
+                            <motion.div
+                                key="step1"
+                                variants={stepVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="space-y-6"
+                            >
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
-                                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer">
-                                        <option>Final Year Project</option>
-                                        <option>Mini Project</option>
-                                        <option>Research Paper</option>
-                                        <option>Hackathon Submission</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Academic Year</label>
-                                    <select value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer">
-                                        <option>2025-2026</option>
-                                        <option>2024-2025</option>
-                                        <option>2023-2024</option>
-                                        <option>2022-2023</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Abstract</label>
-                                <textarea value={abstract} onChange={(e) => setAbstract(e.target.value)} rows={5} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-medium text-slate-700 placeholder:text-slate-300 outline-none transition-all resize-none" placeholder="Brief description of your project..."></textarea>
-                            </div>
-                            <div className="flex justify-end pt-4">
-                                <button onClick={() => setStep(2)} className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:scale-[1.02] transition-all flex items-center gap-2">
-                                    Next Step <Users size={18} />
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Step 2: Team & Tech */}
-                    {step === 2 && (
-                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-
-                            {/* Team Members Search */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Add Team Members</label>
-                                <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input
-                                        suppressHydrationWarning
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Project Title</label>
+                                    <motion.input
+                                        whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
                                         type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-medium text-slate-800 placeholder:text-slate-300 outline-none"
-                                        placeholder="Search by student name..."
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all"
+                                        placeholder="e.g. AI Based Traffic Control"
                                     />
-
-                                    {searchResults.length > 0 ? (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto">
-                                            {searchResults.map((member: any) => (
-                                                <button
-                                                    key={member.id}
-                                                    onClick={() => addMember(member)}
-                                                    className="w-full text-left px-4 py-3 hover:bg-teal-50 flex items-center gap-3 transition-colors"
-                                                >
-                                                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-xs">
-                                                        {member.full_name?.charAt(0) || member.email.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-slate-800">{member.full_name || 'Unknown'}</p>
-                                                        <p className="text-xs text-slate-400">{member.role}</p>
-                                                    </div>
-                                                    <UserPlus size={16} className="ml-auto text-teal-500" />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ) : searchQuery.trim().length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 p-4 text-center text-slate-400 text-sm">
-                                            No members found
-                                        </div>
-                                    )}
                                 </div>
-
-                                {/* Selected Members Pills */}
-                                <div className="flex flex-wrap gap-3 mt-4">
-                                    {selectedMembers.map((member) => (
-                                        <div key={member.id} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm">
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${member.id === user?.id ? 'bg-slate-900' : 'bg-teal-500'}`}>
-                                                {member.full_name?.charAt(0) || '?'}
-                                            </div>
-                                            <span className="text-sm font-bold text-slate-700">
-                                                {member.full_name} {member.id === user?.id && '(Leader)'}
-                                            </span>
-                                            {member.id !== user?.id && (
-                                                <button onClick={() => removeMember(member.id)} className="text-slate-400 hover:text-red-500 transition-colors">
-                                                    <X size={14} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                    {selectedMembers.length === 0 && (
-                                        <span className="text-sm text-slate-400 italic">No members selected (You will be the leader)</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Guide</label>
-                                {loadingTeachers ? (
-                                    <div className="w-full p-4 bg-slate-50 border-none rounded-2xl flex items-center gap-2 text-slate-400">
-                                        <span className="w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></span>
-                                        Loading Teachers...
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Category</label>
+                                        <motion.div whileHover={{ scale: 1.02 }} className="relative">
+                                            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none">
+                                                <option>Final Year Project</option>
+                                                <option>Mini Project</option>
+                                                <option>Research Paper</option>
+                                                <option>Hackathon Submission</option>
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                                        </motion.div>
                                     </div>
-                                ) : (
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Academic Year</label>
+                                        <motion.div whileHover={{ scale: 1.02 }} className="relative">
+                                            <select value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none">
+                                                <option>2025-2026</option>
+                                                <option>2024-2025</option>
+                                                <option>2023-2024</option>
+                                                <option>2022-2023</option>
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                                        </motion.div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Abstract</label>
+                                    <motion.textarea
+                                        whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                        value={abstract}
+                                        onChange={(e) => setAbstract(e.target.value)}
+                                        rows={5}
+                                        className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-medium text-slate-700 placeholder:text-slate-300 outline-none transition-all resize-none"
+                                        placeholder="Brief description of your project..."
+                                    ></motion.textarea>
+                                </div>
+                                <div className="flex justify-end pt-4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setStep(2)}
+                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center gap-2 group"
+                                    >
+                                        Next Step <Users size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Step 2: Team & Tech */}
+                        {step === 2 && (
+                            <motion.div
+                                key="step2"
+                                variants={stepVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="space-y-8"
+                            >
+
+                                {/* Team Members Search */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Add Team Members</label>
                                     <div className="relative">
-                                        <button
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <motion.input
+                                            whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-medium text-slate-800 placeholder:text-slate-300 outline-none transition-all"
+                                            placeholder="Search by student name..."
+                                        />
+
+                                        <AnimatePresence>
+                                            {searchResults.length > 0 && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto custom-scrollbar"
+                                                >
+                                                    {searchResults.map((member: any) => (
+                                                        <motion.button
+                                                            whileHover={{ backgroundColor: "#f0f9ff" }}
+                                                            key={member.id}
+                                                            onClick={() => addMember(member)}
+                                                            className="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors border-b border-slate-50 last:border-0"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-xs">
+                                                                {member.full_name?.charAt(0) || member.email.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-slate-800">{member.full_name || 'Unknown'}</p>
+                                                                <p className="text-xs text-slate-400">{member.role}</p>
+                                                            </div>
+                                                            <UserPlus size={16} className="ml-auto text-teal-500" />
+                                                        </motion.button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    {/* Selected Members Pills */}
+                                    <motion.div
+                                        layout
+                                        className="flex flex-wrap gap-3 mt-4"
+                                    >
+                                        <AnimatePresence>
+                                            {selectedMembers.map((member) => (
+                                                <motion.div
+                                                    key={member.id}
+                                                    variants={itemVariants}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="exit"
+                                                    layout
+                                                    className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md transition-shadow"
+                                                >
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${member.id === user?.id ? 'bg-slate-900' : 'bg-teal-500'}`}>
+                                                        {member.full_name?.charAt(0) || '?'}
+                                                    </div>
+                                                    <span className="text-sm font-bold text-slate-700">
+                                                        {member.full_name} {member.id === user?.id && '(Leader)'}
+                                                    </span>
+                                                    {member.id !== user?.id && (
+                                                        <button onClick={() => removeMember(member.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                                            <X size={14} />
+                                                        </button>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Project Guide</label>
+                                    <div className="relative">
+                                        <motion.button
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.99 }}
                                             onClick={() => setIsTeacherDropdownOpen(!isTeacherDropdownOpen)}
-                                            className="w-full p-4 bg-slate-50 rounded-2xl flex items-center justify-between font-bold text-slate-800 hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className="w-full p-4 bg-slate-200/60 rounded-2xl flex items-center justify-between font-bold text-slate-800 hover:bg-slate-200 transition-colors focus:ring-2 focus:ring-teal-500/20 outline-none border-2 border-slate-300"
                                         >
                                             <span className={guideId ? 'text-slate-800' : 'text-slate-400 font-medium'}>
                                                 {guideName || "Select a Faculty Guide"}
                                             </span>
-                                            {isTeacherDropdownOpen ? <ChevronDown size={20} className="text-slate-400" /> : <ChevronUp size={20} className="text-slate-400" />}
-                                        </button>
+                                            <ChevronDown
+                                                size={20}
+                                                className={`text-slate-400 transition-transform duration-300 ${isTeacherDropdownOpen ? 'rotate-180' : ''}`}
+                                            />
+                                        </motion.button>
 
                                         <AnimatePresence>
                                             {isTeacherDropdownOpen && (
@@ -479,7 +585,8 @@ export default function UploadProject() {
                                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto"
+                                                    transition={{ duration: 0.2 }}
+                                                    className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto custom-scrollbar"
                                                 >
                                                     {teachers.map((teacher: any) => (
                                                         <button
@@ -497,94 +604,183 @@ export default function UploadProject() {
                                                             <span className="font-bold text-slate-700">{teacher.full_name}</span>
                                                         </button>
                                                     ))}
-                                                    {teachers.length === 0 && (
-                                                        <div className="p-4 text-center text-slate-400 text-sm">No teachers found</div>
-                                                    )}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
                                     </div>
-                                )}
-                            </div>
+                                </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tech Stack</label>
-                                <div className="flex flex-col gap-3">
-                                    <div className="relative flex items-center gap-2">
-                                        <input
-                                            suppressHydrationWarning
-                                            type="text"
-                                            value={currentTech}
-                                            onChange={(e) => setCurrentTech(e.target.value)}
-                                            onKeyDown={handleTechKeyDown}
-                                            className="w-full p-4 pr-14 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none"
-                                            placeholder="Type and press Enter (e.g. React, Python)"
-                                        />
-                                        <button
-                                            onClick={addPendingTech}
-                                            className="absolute right-2 p-2 bg-white text-teal-600 rounded-xl shadow-sm hover:bg-teal-50 transition-colors"
-                                            title="Add Tech"
-                                        >
-                                            <CheckCircle size={20} />
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {techStack.map(tech => (
-                                            <span key={tech} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm font-bold flex items-center gap-2">
-                                                {tech} <button onClick={() => removeTech(tech)}><X size={14} /></button>
-                                            </span>
-                                        ))}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Tech Stack</label>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="relative flex items-center gap-2">
+                                            <motion.input
+                                                whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                                type="text"
+                                                value={currentTech}
+                                                onChange={(e) => setCurrentTech(e.target.value)}
+                                                onKeyDown={handleTechKeyDown}
+                                                className="w-full p-4 pr-14 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all"
+                                                placeholder="Type and press Enter (e.g. React, Python)"
+                                            />
+                                            <motion.button
+                                                whileHover={{ scale: 1.1, rotate: 90 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={addPendingTech}
+                                                className="absolute right-2 p-2 bg-white text-teal-600 rounded-xl shadow-sm hover:bg-teal-50 transition-colors"
+                                                title="Add Tech"
+                                            >
+                                                <CheckCircle size={20} />
+                                            </motion.button>
+                                        </div>
+                                        <motion.div layout className="flex flex-wrap gap-2">
+                                            <AnimatePresence>
+                                                {techStack.map(tech => (
+                                                    <motion.span
+                                                        key={tech}
+                                                        variants={itemVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        exit="exit"
+                                                        layout
+                                                        className="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm font-bold flex items-center gap-2 border border-teal-100"
+                                                    >
+                                                        {tech}
+                                                        <button onClick={() => removeTech(tech)} className="hover:text-red-500 transition-colors">
+                                                            <X size={14} />
+                                                        </button>
+                                                    </motion.span>
+                                                ))}
+                                            </AnimatePresence>
+                                        </motion.div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex justify-between pt-4">
-                                <button onClick={() => setStep(1)} className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Back</button>
-                                <button
-                                    onClick={() => {
-                                        addPendingTech();
-                                        setStep(3);
-                                    }}
-                                    className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:scale-[1.02] transition-all flex items-center gap-2"
+                                <div className="flex justify-between pt-4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setStep(1)}
+                                        className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all"
+                                    >
+                                        Back
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => {
+                                            addPendingTech();
+                                            setStep(3);
+                                        }}
+                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center gap-2 group"
+                                    >
+                                        Final Details <UploadCloud size={18} className="group-hover:-translate-y-1 transition-transform" />
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Step 3: Links & Submit */}
+                        {step === 3 && (
+                            <motion.div
+                                key="step3"
+                                variants={stepVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="space-y-6"
+                            >
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3"
                                 >
-                                    Final Details <UploadCloud size={18} />
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
+                                    <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
+                                    <p className="text-sm text-blue-700 font-medium">Please host your report on Google Drive (Public Link) and source code on GitHub. We only store links to save storage.</p>
+                                </motion.div>
 
-                    {/* Step 3: Links & Submit */}
-                    {step === 3 && (
-                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
-                                <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
-                                <p className="text-sm text-blue-700 font-medium">Please host your report on Google Drive (Public Link) and source code on GitHub. We only store links to save storage.</p>
-                            </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Project Report (Drive Link)</label>
+                                    <motion.input
+                                        whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                        type="url"
+                                        value={reportLink}
+                                        onChange={(e) => setReportLink(e.target.value)}
+                                        className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all"
+                                        placeholder="https://drive.google.com/..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">GitHub Repository</label>
+                                    <motion.input
+                                        whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                        type="url"
+                                        value={githubLink}
+                                        onChange={(e) => setGithubLink(e.target.value)}
+                                        className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-800 placeholder:text-slate-300 outline-none transition-all"
+                                        placeholder="https://github.com/..."
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Report (Drive Link)</label>
-                                <input suppressHydrationWarning type="url" value={reportLink} onChange={(e) => setReportLink(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none" placeholder="https://drive.google.com/..." />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">GitHub Repository</label>
-                                <input suppressHydrationWarning type="url" value={githubLink} onChange={(e) => setGithubLink(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 placeholder:text-slate-300 outline-none" placeholder="https://github.com/..." />
-                            </div>
+                                <div className="flex justify-between pt-8">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setStep(2)}
+                                        className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all"
+                                    >
+                                        Back
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={!loading ? { scale: 1.05, boxShadow: "0 10px 30px -10px rgba(20, 184, 166, 0.4)" } : {}}
+                                        whileTap={!loading ? { scale: 0.95 } : {}}
+                                        onClick={handleSubmit}
+                                        disabled={loading}
+                                        className="flex-1 ml-4 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed transition-all relative overflow-hidden"
+                                    >
+                                        <AnimatePresence mode="wait">
+                                            {loading ? (
+                                                <motion.div
+                                                    key="loading"
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -20 }}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <span className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                                    Publishing...
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div
+                                                    key="idle"
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -20 }}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    Publish Project <Rocket size={20} className="animate-bounce" />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
 
-                            <div className="flex justify-between pt-8">
-                                <button onClick={() => setStep(2)} className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Back</button>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    className="flex-1 ml-4 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold rounded-2xl hover:shadow-xl hover:shadow-teal-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                                >
-                                    {loading ? 'Publishing...' : 'Publish Project'} <CheckCircle size={20} />
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
+                                        {/* Shiny effect */}
+                                        {!loading && (
+                                            <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 animate-shimmer pointer-events-none"></div>
+                                        )}
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
+
+// Add custom scrollbar styles to global css if needed, or inline here
+// .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+// .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+// .custom-scrollbar::-webkit-scrollbar-track { background-color: transparent; }

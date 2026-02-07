@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Search, ArrowRight, FileText, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import StatsDashboard from '@/components/StatsDashboard';
@@ -106,6 +106,21 @@ export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
   const [techIcons, setTechIcons] = useState<{ name: string, url: string }[]>([]);
 
+  // Scroll Background Effect
+  // Scroll Background Effect
+  const { scrollYProgress } = useScroll();
+  const backgroundColor = useTransform(
+    scrollYProgress,
+    [0, 0.25, 0.5, 0.75, 1], // Map to percentage of page height
+    [
+      "#FAFAFA",  // Top: Clean White
+      "#E0F2FE",  // Sky Blue
+      "#EBE4FF",  // Lavender
+      "#F0FDFA",  // Teal Tint
+      "#FFF1F2"   // Warm Rose
+    ]
+  );
+
   const fetchProjects = async () => {
     const { data } = await supabase
       .from('projects')
@@ -209,7 +224,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FAFAFA] text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
+    <div className="relative w-full min-h-screen text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
+
+      {/* Dynamic Scroll Background - Fixed to viewport */}
+      <motion.div
+        style={{ backgroundColor }}
+        className="fixed inset-0 w-full h-full -z-[60]"
+      />
 
       {/* 1. Aurora Background */}
       <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none">
@@ -509,7 +530,7 @@ export default function Home() {
       </section>
 
       {/* Floating Glass Stats */}
-      <section className="py-20 relative overflow-visible z-30">
+      <section className="py-24 relative overflow-visible z-30">
         <div className="max-w-7xl mx-auto px-6 relative flex flex-col items-center">
           <StatsDashboard />
         </div>
