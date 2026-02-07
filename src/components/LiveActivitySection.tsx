@@ -67,7 +67,7 @@ const LiveActivitySection = () => {
     }, []);
 
     return (
-        <section className="relative w-full py-24 bg-slate-50 overflow-hidden">
+        <section className="relative w-full py-24 overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 relative z-10">
 
                 {/* Section Header */}
