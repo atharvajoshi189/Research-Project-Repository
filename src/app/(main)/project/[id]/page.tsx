@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Github, Copy, FileText, Share2, Users, Calendar, Award, Code2, QrCode, BookOpen, ExternalLink, ChevronRight, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Download, Github, Copy, FileText, Share2, Users, Calendar, Award, Code2, Sparkles, BrainCircuit, Lightbulb, ChevronRight, ArrowRight, Zap, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import { getSmartDownloadUrl } from '@/lib/utils';
@@ -18,9 +18,18 @@ export default function ProjectDetails() {
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [similarProjects, setSimilarProjects] = useState<any[]>([]);
-    const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
 
+    // AI States
+    const [aiInsights, setAiInsights] = useState<any>(null);
+    const [aiAbstract, setAiAbstract] = useState<string | null>(null);
+    const [isAiAbstract, setIsAiAbstract] = useState(false);
+    const [loadingAiAbstract, setLoadingAiAbstract] = useState(false);
+    const [techTooltips, setTechTooltips] = useState<Record<string, string>>({});
+    const [activeTechTooltip, setActiveTechTooltip] = useState<string | null>(null);
+
+    const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
     const [collaborators, setCollaborators] = useState<any[]>([]);
+    const [projectLeader, setProjectLeader] = useState<any>(null);
 
     const fetchSimilarProjects = useCallback(async (category: string, currentId: string) => {
         if (!category) return;
@@ -34,6 +43,84 @@ export default function ProjectDetails() {
 
         if (data) setSimilarProjects(data);
     }, []);
+
+    // AI Fetchers (No changes here)
+    const fetchAiInsights = useCallback(async (proj: any) => {
+        try {
+            const res = await fetch('/api/grok', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'insights',
+                    context: {
+                        title: proj.title,
+                        abstract: proj.abstract,
+                        tech_stack: proj.tech_stack
+                    }
+                })
+            });
+            const { data } = await res.json();
+            if (data) setAiInsights(data);
+        } catch (e) {
+            console.error("AI Insights Error", e);
+        }
+    }, []);
+
+    const toggleSmartSummary = async () => {
+        if (isAiAbstract) {
+            setIsAiAbstract(false);
+            return;
+        }
+
+        if (aiAbstract) {
+            setIsAiAbstract(true);
+            return;
+        }
+
+        setLoadingAiAbstract(true);
+        try {
+            const res = await fetch('/api/grok', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'simplify_abstract',
+                    context: { abstract: project.abstract }
+                })
+            });
+            const { data } = await res.json();
+            setAiAbstract(data);
+            setIsAiAbstract(true);
+        } catch (e) {
+            toast.error("Could not optimize abstract");
+        } finally {
+            setLoadingAiAbstract(false);
+        }
+    };
+
+    const fetchTechSnippet = async (tech: string) => {
+        if (techTooltips[tech]) {
+            setActiveTechTooltip(activeTechTooltip === tech ? null : tech);
+            return;
+        }
+
+        setActiveTechTooltip(tech);
+        try {
+            const res = await fetch('/api/grok', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'tech_snippet',
+                    context: {
+                        tech,
+                        title: project.title,
+                        abstract: project.abstract
+                    }
+                })
+            });
+            const { data } = await res.json();
+            setTechTooltips(prev => ({ ...prev, [tech]: data }));
+        } catch (e) {
+            // Silent fail
+        }
+    };
+
 
     useEffect(() => {
         const fetchProjectAndIncrementViews = async () => {
@@ -51,11 +138,22 @@ export default function ProjectDetails() {
             } else {
                 setProject(data);
                 fetchSimilarProjects(data.category, data.id);
+                fetchAiInsights(data); // Trigger AI
+
+                // Fetch Project Leader Profile
+                if (data.student_id) {
+                    const { data: leaderData } = await supabase
+                        .from('profiles')
+                        .select('id, full_name')
+                        .eq('id', data.student_id)
+                        .single();
+                    if (leaderData) setProjectLeader(leaderData);
+                }
 
                 // Fetch Collaborators (Robust 2-step)
                 const { data: collabData, error: collabError } = await supabase
                     .from('project_collaborators')
-                    .select('id, student_id, role')
+                    .select('id, student_id, role, status')
                     .eq('project_id', id);
 
                 if (collabData && collabData.length > 0) {
@@ -85,17 +183,14 @@ export default function ProjectDetails() {
         if (id) {
             fetchProjectAndIncrementViews();
         }
-    }, [id, fetchSimilarProjects]);
+    }, [id, fetchSimilarProjects, fetchAiInsights]);
 
     const handleDownload = async () => {
         if (!project?.pdf_url) {
             toast.error("No document available");
             return;
         }
-
-        // Increment Downloads (RPC)
         await supabase.rpc('increment_downloads', { row_id: id });
-
         const url = getSmartDownloadUrl(project.pdf_url);
         window.open(url, '_blank');
     };
@@ -111,17 +206,19 @@ export default function ProjectDetails() {
     if (loading) {
         return (
             <div className="min-h-screen grid place-items-center bg-white">
-                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-400 text-sm font-medium animate-pulse">Initializing Neural Hub...</p>
+                </div>
             </div>
         );
     }
 
-    if (notFound || !project) { // Updated condition to use notFound state
+    if (notFound || !project) {
         return (
             <div className="min-h-screen grid place-items-center bg-white">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-slate-900 mb-4">Project Not Found</h1>
-                    <p className="text-slate-500 mb-8">The project you are looking for does not exist in our archives.</p>
                     <button onClick={() => router.back()} className="px-6 py-3 bg-teal-500 text-white rounded-full font-bold hover:bg-teal-600 transition-colors">
                         Go Back
                     </button>
@@ -130,26 +227,41 @@ export default function ProjectDetails() {
         );
     }
 
-    // Combine Leader and Collaborators
-    const teamMembers = [];
+    // Combine Leader and Collaborators for Uniform Display
+    const allTeamMembers: any[] = [];
 
-    // Add Leader (if student_name exists)
-    if (project?.student_name) {
-        teamMembers.push({
+    // Add Leader (priority from profiles, fallback to project.student_name)
+    if (projectLeader) {
+        allTeamMembers.push({
+            id: projectLeader.id, // Ensure unique key
+            name: projectLeader.full_name,
+            role: 'Team Lead',
+            initial: projectLeader.full_name.charAt(0),
+            isLeader: true
+        });
+    } else if (project?.student_name) {
+        allTeamMembers.push({
+            id: 'legacy-leader',
             name: project.student_name,
             role: 'Team Lead',
-            initial: project.student_name.charAt(0)
+            initial: project.student_name.charAt(0),
+            isLeader: true
         });
     }
 
     // Add Collaborators
-    collaborators.forEach(c => {
-        if (c.profile?.full_name) {
-            teamMembers.push({
-                name: c.profile.full_name,
-                role: 'Contributor',
-                initial: c.profile.full_name.charAt(0)
-            });
+    collaborators.filter(c => c.status === 'accepted' || c.role === 'leader').forEach(c => {
+        // Avoid duplicating the leader if they are listed as a collaborator (rare)
+        if (!allTeamMembers.some(m => m.id === c.student_id)) {
+            if (c.profile?.full_name) {
+                allTeamMembers.push({
+                    id: c.id,
+                    name: c.profile.full_name,
+                    role: 'Contributor', // Or c.role from DB if dynamic
+                    initial: c.profile.full_name.charAt(0),
+                    isLeader: false
+                });
+            }
         }
     });
 
@@ -192,14 +304,14 @@ export default function ProjectDetails() {
                     <div className="flex flex-wrap items-center gap-8 text-slate-600">
                         <div className="flex items-center gap-3">
                             <div className="flex -space-x-3">
-                                {teamMembers.map((member, i) => (
+                                {allTeamMembers.map((member, i) => (
                                     <div key={i} title={`${member.name} (${member.role})`} className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-xs font-bold text-teal-700 shadow-sm relative z-10 cursor-help">
                                         {member.initial}
                                     </div>
                                 ))}
                             </div>
                             <span className="font-semibold text-sm">
-                                {teamMembers.map(t => t.name).join(', ')}
+                                {allTeamMembers.map(t => t.name).join(', ')}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 font-medium bg-white px-4 py-2 rounded-full border border-slate-200">
@@ -221,29 +333,72 @@ export default function ProjectDetails() {
                         transition={{ delay: 0.1 }}
                         className="lg:col-span-8 space-y-10"
                     >
-                        {/* Abstract */}
-                        <section className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                                <BookOpen className="text-teal-500" /> Abstract
-                            </h2>
-                            <div className={`relative transition-all duration-500 ease-in-out ${isAbstractExpanded ? 'max-h-none' : 'max-h-48 overflow-hidden'}`}>
-                                <p className="text-lg text-slate-600 leading-8 font-medium whitespace-pre-line text-justify">
-                                    {project.abstract}
-                                </p>
-                                {!isAbstractExpanded && (
-                                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent" />
+                        {/* Abstract with AI Toggle */}
+                        <section className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-visible group">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                                    <BookOpen className="text-teal-500" /> Abstract
+                                </h2>
+                                {/* Smart Toggle */}
+                                <button
+                                    onClick={toggleSmartSummary}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all border ${isAiAbstract
+                                        ? 'bg-indigo-100 text-indigo-700 border-indigo-200 shadow-indigo-100'
+                                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600'
+                                        }`}
+                                >
+                                    <Sparkles size={14} className={isAiAbstract ? "fill-current" : ""} />
+                                    {isAiAbstract ? 'AI Optimized' : 'Optimize with AI'}
+                                </button>
+                            </div>
+
+                            <div className={`relative transition-all duration-500 ease-in-out`}>
+                                <motion.div
+                                    initial={false}
+                                    animate={{ height: isAbstractExpanded ? 'auto' : 100 }}
+                                    className="overflow-hidden relative"
+                                >
+                                    <AnimatePresence mode="wait">
+                                        {loadingAiAbstract ? (
+                                            <motion.div
+                                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                                className="h-full flex items-center justify-center gap-3 text-indigo-500 font-medium pt-8"
+                                            >
+                                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                Optimizing for clarity...
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key={isAiAbstract ? 'ai' : 'raw'}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                            >
+                                                <p className={`text-lg leading-8 font-medium whitespace-pre-line text-justify ${isAiAbstract ? 'text-indigo-900/80 font-semibold' : 'text-slate-600'}`}>
+                                                    {isAiAbstract ? aiAbstract : project.abstract}
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+
+                                {!isAbstractExpanded && !loadingAiAbstract && (
+                                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                                 )}
                             </div>
-                            <button
-                                onClick={() => setIsAbstractExpanded(!isAbstractExpanded)}
-                                className="mt-4 text-teal-600 font-bold text-sm flex items-center gap-2 hover:text-teal-700 transition-colors"
-                            >
-                                {isAbstractExpanded ? (
-                                    <>Read Less <ChevronRight className="-rotate-90" size={16} /></>
-                                ) : (
-                                    <>Read More <ChevronRight className="rotate-90" size={16} /></>
-                                )}
-                            </button>
+
+                            {!isAiAbstract && (
+                                <button
+                                    onClick={() => setIsAbstractExpanded(!isAbstractExpanded)}
+                                    className="mt-4 text-teal-600 font-bold text-sm flex items-center gap-2 hover:text-teal-700 transition-colors"
+                                >
+                                    {isAbstractExpanded ? (
+                                        <>Read Less <ChevronRight className="-rotate-90" size={16} /></>
+                                    ) : (
+                                        <>Read More <ChevronRight className="rotate-90" size={16} /></>
+                                    )}
+                                </button>
+                            )}
                         </section>
 
                         {/* Methodology Timeline */}
@@ -267,28 +422,60 @@ export default function ProjectDetails() {
                             </div>
                         </section>
 
-
-
-                        {/* Tech Stack - Added by Antigravity */}
+                        {/* Tech Stack - With Deep Dive */}
                         {project.tech_stack && project.tech_stack.length > 0 && (
                             <section className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
                                 <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                                     <Code2 className="text-teal-500" /> Technologies Used
                                 </h2>
                                 <div className="flex flex-wrap gap-3">
-                                    {(Array.isArray(project.tech_stack) ? project.tech_stack : project.tech_stack.split(',')).map((tech: string, i: number) => (
-                                        <span
-                                            key={i}
-                                            className="px-4 py-2 bg-teal-50 text-teal-700 rounded-xl font-bold text-sm border border-teal-100 shadow-md shadow-teal-50 hover:shadow-lg hover:-translate-y-0.5 transition-all text-center cursor-default"
-                                        >
-                                            {tech.trim()}
-                                        </span>
-                                    ))}
+                                    {(Array.isArray(project.tech_stack) ? project.tech_stack : project.tech_stack.split(',')).map((tech: string, i: number) => {
+                                        const t = tech.trim();
+                                        return (
+                                            <div key={i} className="relative group/tech">
+                                                <button
+                                                    onClick={() => fetchTechSnippet(t)}
+                                                    className={`px-4 py-2 rounded-xl font-bold text-sm border shadow-sm transition-all text-center flex items-center gap-2
+                                                        ${activeTechTooltip === t
+                                                            ? 'bg-teal-600 text-white border-teal-600 shadow-md'
+                                                            : 'bg-teal-50 text-teal-700 border-teal-100 hover:shadow-md hover:-translate-y-0.5'
+                                                        }`}
+                                                >
+                                                    {t}
+                                                    {activeTechTooltip === t && <Zap size={12} className="fill-current animate-pulse" />}
+                                                </button>
+
+                                                {/* Tooltip */}
+                                                <AnimatePresence>
+                                                    {activeTechTooltip === t && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                            exit={{ opacity: 0, y: 5 }}
+                                                            className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 bg-slate-900 text-white p-4 rounded-xl text-xs z-50 shadow-xl"
+                                                        >
+                                                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45"></div>
+                                                            {techTooltips[t] ? (
+                                                                <>
+                                                                    <div className="flex items-center gap-1 font-bold text-teal-400 mb-1">
+                                                                        <Sparkles size={10} /> AI Context
+                                                                    </div>
+                                                                    {techTooltips[t]}
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex items-center justify-center py-2">
+                                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                </div>
+                                                            )}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </section>
                         )}
-
-
                     </motion.div>
 
                     {/* Right Column (35%) */}
@@ -298,6 +485,55 @@ export default function ProjectDetails() {
                         transition={{ delay: 0.2 }}
                         className="lg:col-span-4 space-y-8"
                     >
+                        {/* AI Insights Sidebar (Replacing QR) */}
+                        <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-teal-900/5 border border-white/60 overflow-hidden group">
+                            {/* Pulse Effect */}
+                            <div className="absolute inset-0 rounded-3xl border-2 border-teal-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow pointer-events-none"></div>
+
+                            <div className="relative z-10">
+                                <h3 className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600 mb-6 flex items-center gap-2">
+                                    <BrainCircuit size={20} className="text-teal-600" /> AI Insights
+                                </h3>
+
+                                {aiInsights ? (
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">At a Glance</h4>
+                                            <p className="text-sm font-medium text-slate-700 leading-6">{aiInsights.summary}</p>
+                                        </div>
+
+                                        {aiInsights.author_expertise && (
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Lead Expertise</h4>
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100">
+                                                    <Sparkles size={12} />
+                                                    {aiInsights.author_expertise}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Key Innovations</h4>
+                                            <ul className="space-y-3">
+                                                {aiInsights.innovations.map((inv: string, i: number) => (
+                                                    <li key={i} className="flex gap-2 text-sm text-slate-600">
+                                                        <div className="mt-1 min-w-[6px] h-1.5 rounded-full bg-indigo-400"></div>
+                                                        {inv}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-8 text-center space-y-3">
+                                        <div className="w-10 h-10 mx-auto border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
+                                        <p className="text-xs font-medium text-slate-400">Analyzing Project...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+
                         {/* Action Hub */}
                         <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
                             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -316,57 +552,55 @@ export default function ProjectDetails() {
                                     <Copy size={20} /> Copy Citation
                                 </button>
                             </div>
-
-                            {/* QR Code */}
-                            <div className="mt-8 pt-8 border-t border-slate-100 text-center">
-                                <div className="bg-white p-4 rounded-2xl border-2 border-dashed border-slate-200 inline-block mb-3">
-                                    <QrCode size={64} className="text-slate-800" />
-                                </div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scan to Share</p>
-                            </div>
                         </div>
 
-                        {/* Document Preview Placeholder */}
-                        <div className="bg-slate-200 rounded-3xl aspect-[3/4] relative overflow-hidden group cursor-pointer border-4 border-white shadow-lg">
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                                <FileText size={48} className="mb-2 opacity-50" />
-                                <span className="font-bold text-sm uppercase tracking-wider">Preview Unavailable</span>
-                            </div>
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <span className="px-4 py-2 bg-white/90 backdrop-blur rounded-lg shadow-lg font-bold text-sm">Read Online</span>
-                            </div>
-                        </div>
-
-                        {/* Contributors Section - GitHub Style */}
-                        {collaborators.length > 0 && (
+                        {/* Contributors Section - Unified and Always Visible if any team member exists */}
+                        {allTeamMembers.length > 0 && (
                             <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
                                 <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                                     <Users size={20} className="text-slate-400" /> Contributors
                                 </h3>
                                 <div className="space-y-3">
-                                    {collaborators.filter(c => c.status === 'accepted' || c.role === 'leader').map((collab: any) => (
-                                        <div key={collab.id} className="flex items-center gap-3 group">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border-2 border-white nav-shadow group-hover:scale-110 transition-transform">
-                                                {collab.profiles?.full_name?.charAt(0) || '?'}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-slate-800 truncate">
-                                                    {collab.profiles?.full_name || 'Unknown'}
-                                                </p>
-                                                <div className="flex gap-2 mt-1">
-                                                    {collab.role === 'leader' ? (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide border border-amber-200">
-                                                            Leader
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 uppercase tracking-wide border border-blue-100">
-                                                            Contributor
-                                                        </span>
-                                                    )}
+                                    {allTeamMembers.map((collab: any, index: number) => {
+                                        // Assign AI Badge
+                                        let aiBadge = null;
+                                        if (collab.isLeader && aiInsights?.author_expertise) {
+                                            aiBadge = aiInsights.author_expertise;
+                                        } else if (aiInsights?.key_roles && !collab.isLeader) {
+                                            aiBadge = aiInsights.key_roles[index % aiInsights.key_roles.length];
+                                        }
+
+                                        return (
+                                            <div key={collab.id || index} className="flex items-center gap-3 group">
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border-2 border-white nav-shadow group-hover:scale-110 transition-transform">
+                                                    {collab.initial}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="text-sm font-bold text-slate-800 truncate">
+                                                            {collab.name}
+                                                        </p>
+                                                        {aiBadge && (
+                                                            <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
+                                                                <Sparkles size={8} /> {aiBadge}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex gap-2 mt-1">
+                                                        {collab.role === 'Team Lead' || collab.role === 'leader' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide border border-amber-200">
+                                                                Leader
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 uppercase tracking-wide border border-blue-100">
+                                                                Contributor
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

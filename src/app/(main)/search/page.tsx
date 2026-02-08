@@ -294,7 +294,7 @@ function SearchContent() {
                                         <p className="text-slate-500 mb-8 max-w-md">We couldn't find any projects matching your current filters. Try adjusting your search criteria.</p>
                                         <button
                                             onClick={() => { setSearchTerm(''); setSelectedYear([]); setSelectedCategory([]); setSelectedTech([]) }}
-                                            className="px-8 py-3 bg-teal-500 text-white font-bold rounded-full shadow-lg shadow-teal-200 hover:bg-teal-600 hover:shadow-xl transition-all"
+                                            className="mt-6 px-8 py-3 bg-teal-500 text-white font-bold rounded-full shadow-lg shadow-teal-200 hover:bg-teal-600 hover:shadow-xl transition-all"
                                         >
                                             Clear All Filters
                                         </button>
@@ -304,37 +304,16 @@ function SearchContent() {
                                         <motion.div
                                             key={project.id}
                                             className="col-span-1 h-full"
-                                            variants={{
-                                                hidden: {
-                                                    opacity: 0,
-                                                    y: 50,
-                                                    scale: 0.9,
-                                                    rotate: -2 // Subtle rotation for fun
-                                                },
-                                                show: {
-                                                    opacity: 1,
-                                                    y: 0,
-                                                    scale: 1,
-                                                    rotate: 0,
-                                                    transition: {
-                                                        type: "spring",
-                                                        stiffness: 100,
-                                                        damping: 15
-                                                    }
-                                                },
-                                                exit: {
-                                                    opacity: 0,
-                                                    scale: 0.9,
-                                                    transition: { duration: 0.2 }
-                                                }
-                                            }}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: i * 0.05 }}
                                             layout
                                         >
                                             <Project3DCard
                                                 project={project}
                                                 spanClass="h-full"
                                                 index={i}
-                                                noAnimation={true} // We handle animation in the wrapper
+                                                noAnimation={true}
                                             />
                                         </motion.div>
                                     ))

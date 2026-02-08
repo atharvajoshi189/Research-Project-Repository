@@ -155,6 +155,22 @@
     animation: pulse-glow 4s ease-in-out infinite;
   }
 
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: .5;
+    }
+  }
+
   @keyframes pulse-glow {
 
     0%,
