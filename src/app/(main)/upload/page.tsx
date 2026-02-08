@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { UploadCloud, FileText, Users, CheckCircle, X, Search, UserPlus, Info, ChevronUp, ChevronDown, Rocket, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SuccessParticleBurst from "@/components/SuccessParticleBurst";
 
 export default function UploadProject() {
     const router = useRouter();
@@ -13,6 +14,33 @@ export default function UploadProject() {
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+
+    // 3D Card Refs & Motion Values
+    const cardRef = useRef<HTMLDivElement>(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const mouseX = useSpring(x, { stiffness: 500, damping: 100 });
+    const mouseY = useSpring(y, { stiffness: 500, damping: 100 });
+    const rotateX = useTransform(mouseY, [-0.5, 0.5], ["7deg", "-7deg"]);
+    const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-7deg", "7deg"]);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        const mX = e.clientX - rect.left;
+        const mY = e.clientY - rect.top;
+        const xPct = mX / width - 0.5;
+        const yPct = mY / height - 0.5;
+        x.set(xPct);
+        y.set(yPct);
+    };
+
+    const handleMouseLeave = () => {
+        x.set(0);
+        y.set(0);
+    };
 
     // Form Data
     const [title, setTitle] = useState('');
@@ -30,9 +58,24 @@ export default function UploadProject() {
     const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
 
     // Collaborator State
+    // Collaborator State
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
+
+    // Transition State
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    // Animated Step Transition Handler
+    const handleAppTransition = async (nextStep: number, callback?: () => void) => {
+        if (callback) callback();
+        setIsTransitioning(true);
+        // Wait for animation (expand -> spin)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setStep(nextStep);
+        setIsTransitioning(false);
+    };
 
     // Load draft from localStorage on mount
     useEffect(() => {
@@ -76,6 +119,11 @@ export default function UploadProject() {
         };
         localStorage.setItem('upload_project_draft', JSON.stringify(draft));
     }, [step, title, abstract, category, techStack, reportLink, githubLink, guideName, guideId, academicYear, selectedMembers, isLoaded]);
+
+    // Scroll to top on step change
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [step]);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -265,8 +313,9 @@ export default function UploadProject() {
             }
 
             localStorage.removeItem('upload_project_draft');
+            setIsSuccess(true); // Trigger Particle Burst
             toast.success("Project submitted successfully!");
-            setTimeout(() => router.push('/dashboard'), 1500);
+            setTimeout(() => router.push('/dashboard'), 2500); // 2.5s delay for animation
 
         } catch (error: any) {
             console.error("CRITICAL UPLOAD ERROR:", error);
@@ -326,6 +375,7 @@ export default function UploadProject() {
         <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 font-sans text-slate-900 overflow-hidden relative">
 
             {/* Background Gradients & Floating Blobs */}
+            {isSuccess && <SuccessParticleBurst />}
             <div className="fixed inset-0 pointer-events-none">
                 <motion.div
                     animate={{
@@ -351,6 +401,7 @@ export default function UploadProject() {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
+                style={{ perspective: 1000 }}
                 className="w-full max-w-4xl relative z-10"
             >
                 {/* Header */}
@@ -369,15 +420,43 @@ export default function UploadProject() {
                     </motion.div>
                 </div>
 
-                {/* Main Card */}
-                <div className="bg-white/60 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-teal-900/5 border border-white/50 p-8 md:p-12 relative overflow-hidden">
+                {/* Main Card with Glow Interaction */}
+                <motion.div
+                    ref={cardRef}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    className="bg-white/60 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-teal-900/5 border border-white/50 p-8 md:p-12 relative overflow-hidden group transition-all duration-300"
+                >
+                    {/* Dynamic Glare Effect - Stronger to match Home Page */}
+                    <motion.div
+                        className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                        style={{
+                            background: useTransform(
+                                [mouseX, mouseY],
+                                ([x, y]) => `radial-gradient(circle at ${(x as number + 0.5) * 100}% ${(y as number + 0.5) * 100}%, rgba(45, 212, 191, 0.1) 0%, rgba(45, 212, 191, 0) 60%)`
+                            )
+                        }}
+                    />
 
-                    {/* Bento Grid Pattern */}
-                    <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+                    {/* Bento Grid Pattern with Soft Reveal */}
+                    <motion.div
+                        initial={{
+                            opacity: 0.04,
+                            maskImage: 'radial-gradient(circle at center, black 0%, transparent 0%)',
+                            WebkitMaskImage: 'radial-gradient(circle at center, black 0%, transparent 0%)'
+                        } as any}
+                        animate={{
+                            opacity: 0.04,
+                            maskImage: 'radial-gradient(circle at center, black 100%, transparent 100%)',
+                            WebkitMaskImage: 'radial-gradient(circle at center, black 100%, transparent 100%)'
+                        } as any}
+                        transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
+                        className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"
+                    />
 
-                    {/* Ambient Glow Elements */}
-                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-teal-100/40 to-blue-100/40 rounded-full blur-[80px] pointer-events-none" />
-                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-[80px] pointer-events-none" />
+                    {/* Ambient Glow Elements - Dynamic on Hover */}
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-teal-100/40 to-blue-100/40 rounded-full blur-[80px] pointer-events-none opacity-50 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" />
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-purple-100/40 to-pink-100/40 rounded-full blur-[80px] pointer-events-none opacity-50 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" />
 
                     {/* Decorative Top Line */}
                     <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
@@ -385,16 +464,31 @@ export default function UploadProject() {
                     {/* Stepper */}
                     <div className="flex justify-between items-center mb-12 relative px-4 select-none">
                         <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-slate-100 -z-10"></div>
+                        {/* Animated Liquid Fill Line */}
+                        <motion.div
+                            className="absolute left-0 top-1/2 h-0.5 bg-teal-500 -z-10 origin-left"
+                            initial={{ width: "0%" }}
+                            animate={{
+                                width: step === 1 ? "0%" : step === 2 ? "50%" : "100%"
+                            }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                        />
 
                         {[1, 2, 3].map((s) => (
-                            <div key={s} className={`relative flex flex-col items-center gap-2 ${step >= s ? 'text-teal-600' : 'text-slate-300'}`}>
+                            <div
+                                key={s}
+                                onClick={() => setStep(s)}
+                                className={`relative flex flex-col items-center gap-2 cursor-pointer group ${step >= s ? 'text-teal-600' : 'text-slate-300'}`}
+                            >
                                 <motion.div
                                     layout
-                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= s ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100 text-slate-300'}`}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all duration-500 ${step >= s ? 'bg-teal-500 text-white shadow-lg shadow-teal-200' : 'bg-white border-2 border-slate-100 text-slate-300 group-hover:border-teal-200 group-hover:text-teal-400'}`}
                                 >
                                     {step > s ? <CheckCircle size={24} /> : s}
                                 </motion.div>
-                                <span className="text-xs font-bold uppercase tracking-wider bg-white px-2">
+                                <span className={`text-xs font-bold uppercase tracking-wider bg-white px-2 transition-colors duration-300 ${step >= s ? 'text-teal-600' : 'text-slate-300 group-hover:text-teal-400'}`}>
                                     {s === 1 ? 'Details' : s === 2 ? 'Team' : 'Submit'}
                                 </span>
                             </div>
@@ -449,25 +543,169 @@ export default function UploadProject() {
                                         </motion.div>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Abstract</label>
-                                    <motion.textarea
-                                        whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
-                                        value={abstract}
-                                        onChange={(e) => setAbstract(e.target.value)}
-                                        rows={5}
-                                        className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-medium text-slate-700 placeholder:text-slate-300 outline-none transition-all resize-none"
-                                        placeholder="Brief description of your project..."
-                                    ></motion.textarea>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                                    {/* Abstract Input */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Abstract</label>
+                                        <motion.textarea
+                                            whileFocus={{ scale: 1.01, borderColor: "#14b8a6", boxShadow: "0 0 0 4px rgba(20, 184, 166, 0.1)" }}
+                                            value={abstract}
+                                            onChange={(e) => setAbstract(e.target.value)}
+                                            rows={8}
+                                            className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl font-medium text-slate-700 placeholder:text-slate-300 outline-none transition-all resize-none h-full min-h-[200px]"
+                                            placeholder="Brief description of your project..."
+                                        ></motion.textarea>
+                                    </div>
+
+                                    {/* Terminal Live Preview */}
+                                    <div className="hidden lg:block">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Live Terminal Analysis</label>
+                                        <div className="w-full h-full min-h-[200px] bg-slate-900 rounded-2xl p-4 font-mono text-xs text-green-400 overflow-hidden relative shadow-inner border border-slate-800">
+                                            {/* Terminal Header */}
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-green-900/50 text-[10px] text-green-600 uppercase tracking-widest">
+                                                <div className="w-2 h-2 rounded-full bg-red-500/50"></div>
+                                                <div className="w-2 h-2 rounded-full bg-yellow-500/50"></div>
+                                                <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                                <span className="ml-auto">AI_CORE // METADATA_EXTRACTION</span>
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="relative z-10 break-words whitespace-pre-wrap leading-relaxed opacity-90 font-mono">
+                                                <div className="mb-3 text-green-600/70 text-[10px]">
+                                                    {">"} connecting_to_neural_net...<br />
+                                                    {">"} analyzing_project_semantics...
+                                                </div>
+
+                                                {abstract ? (
+                                                    <div className="space-y-3">
+                                                        {(() => {
+                                                            const sentences = abstract.match(/[^.!?]+[.!?]+/g) || [abstract];
+
+                                                            // 1. Problem Heuristic: Explicit keywords -> First sentence
+                                                            let problemSentence = sentences.find(s =>
+                                                                /problem|issue|challenge|drawback|limitation|hard|difficult|expensive|slow|traditional|conventional/i.test(s)
+                                                            );
+                                                            if (!problemSentence) problemSentence = sentences[0];
+
+                                                            // 2. Solution Heuristic: Explicit keywords -> Start tokens -> Last sentence
+                                                            // MUST be different from problemSentence
+                                                            const solutionKeywords = /propose|solution|method|system|approach|algorithm|model|develop|create|design|utilize|using|framework/i;
+
+                                                            let solutionSentence = sentences.find(s => s !== problemSentence && solutionKeywords.test(s));
+
+                                                            if (!solutionSentence) {
+                                                                solutionSentence = sentences.find(s => s !== problemSentence && /^(We |This |The proposed)/.test(s.trim()));
+                                                            }
+
+                                                            if (!solutionSentence && sentences.length > 1) {
+                                                                const last = sentences[sentences.length - 1];
+                                                                if (last !== problemSentence) solutionSentence = last;
+                                                            }
+
+                                                            if (!solutionSentence) solutionSentence = "Analyzing methodology described in text...";
+
+                                                            // Entity Extraction
+                                                            const words = abstract.match(/\b[A-Z][a-zA-Z0-9]+\b/g) || [];
+                                                            const entities = Array.from(new Set(words.filter(w => w.length > 2 && !['The', 'A', 'An', 'My', 'Our', 'In', 'To', 'We', 'This', 'It', 'For', 'On'].includes(w))));
+                                                            const complexTerms = abstract.split(/\s+/).filter(w => w.length > 7 && !entities.includes(w)).map(w => w.replace(/[^a-zA-Z]/g, ''));
+                                                            const allTags = [...entities, ...complexTerms].slice(0, 10);
+
+                                                            return (
+                                                                <>
+                                                                    {/* Problem Extraction */}
+                                                                    <div>
+                                                                        <span className="text-red-400 font-bold border-b border-red-400/30">PROBLEM_CONTEXT:</span>
+                                                                        <div className="text-slate-300 mt-1 pl-2 border-l-2 border-red-500/20 text-xs text-justify">
+                                                                            "{problemSentence?.trim()}"
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Solution Extraction */}
+                                                                    <div>
+                                                                        <span className="text-blue-400 font-bold border-b border-blue-400/30">DETECTED_SOLUTION:</span>
+                                                                        <div className="text-slate-300 mt-1 pl-2 border-l-2 border-blue-500/20 text-xs text-justify">
+                                                                            "{solutionSentence?.trim()}"
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Key Entities & Tech */}
+                                                                    <div>
+                                                                        <span className="text-teal-400 font-bold border-b border-teal-400/30">CORE_KEYWORDS:</span>
+                                                                        <div className="flex flex-wrap gap-1.5 mt-1.5 pl-1">
+                                                                            {allTags.length > 0 ? allTags.map((tag, i) => (
+                                                                                <span key={i} className="px-1.5 py-0.5 bg-teal-500/10 border border-teal-500/30 rounded text-[10px] text-teal-200">
+                                                                                    {tag}
+                                                                                </span>
+                                                                            )) : <span className="text-slate-500 italic text-[10px]">scanning_lexicon...</span>}
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
+
+                                                        {/* System Status Footer */}
+                                                        <div className="pt-2 mt-2 border-t border-slate-800 text-[10px] text-slate-500 flex justify-between">
+                                                            <span>CONFIDENCE: {(Math.min(abstract.length / 5, 98) + Math.random()).toFixed(1)}%</span>
+                                                            <span className="text-green-500 animate-pulse">● LIVE_ANALYSIS</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="animate-pulse text-slate-500 italic">
+                                                        [Waiting for project abstract data stream...]
+                                                    </div>
+                                                )}
+
+                                                <motion.span
+                                                    animate={{ opacity: [1, 0, 1] }}
+                                                    transition={{ duration: 0.8, repeat: Infinity }}
+                                                    className="inline-block w-2 h-4 bg-green-400 align-middle ml-1 mt-1"
+                                                />
+                                            </div>
+
+                                            {/* Scanline Effect */}
+                                            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0),rgba(255,255,255,0)_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2))] bg-[size:100%_4px] pointer-events-none opacity-20"></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="flex justify-end pt-4">
                                     <motion.button
-                                        whileHover={{ scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setStep(2)}
-                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center gap-2 group"
+                                        layout
+                                        whileHover={!isTransitioning ? { scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" } : {}}
+                                        whileTap={!isTransitioning ? { scale: 0.95 } : {}}
+                                        onClick={() => handleAppTransition(2)}
+                                        disabled={isTransitioning}
+                                        initial={{ width: "auto", borderRadius: "1rem" }}
+                                        animate={{
+                                            width: isTransitioning ? "60px" : "auto",
+                                            borderRadius: isTransitioning ? "50px" : "1rem",
+                                            padding: isTransitioning ? "0px" : "16px 32px"
+                                        }}
+                                        transition={{ duration: 0.3, type: "spring", stiffness: 200, damping: 20 }}
+                                        className="bg-slate-900 text-white font-bold flex items-center justify-center gap-2 group overflow-hidden h-[60px] min-w-[60px]"
                                     >
-                                        Next Step <Users size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        <AnimatePresence mode="wait">
+                                            {isTransitioning ? (
+                                                <motion.div
+                                                    key="loading"
+                                                    initial={{ opacity: 0, scale: 0.5 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.5 }}
+                                                >
+                                                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div
+                                                    key="text"
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.9 }}
+                                                    className="flex items-center gap-2 whitespace-nowrap"
+                                                >
+                                                    Next Step <Users size={18} className="group-hover:translate-x-1 transition-transform" />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </motion.button>
                                 </div>
                             </motion.div>
@@ -666,15 +904,42 @@ export default function UploadProject() {
                                         Back
                                     </motion.button>
                                     <motion.button
-                                        whileHover={{ scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => {
-                                            addPendingTech();
-                                            setStep(3);
+                                        layout
+                                        whileHover={!isTransitioning ? { scale: 1.05, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.2)" } : {}}
+                                        whileTap={!isTransitioning ? { scale: 0.95 } : {}}
+                                        onClick={() => handleAppTransition(3, addPendingTech)}
+                                        disabled={isTransitioning}
+                                        initial={{ width: "auto", borderRadius: "1rem" }}
+                                        animate={{
+                                            width: isTransitioning ? "60px" : "auto",
+                                            borderRadius: isTransitioning ? "50px" : "1rem",
+                                            padding: isTransitioning ? "0px" : "16px 32px"
                                         }}
-                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center gap-2 group"
+                                        transition={{ duration: 0.3, type: "spring", stiffness: 200, damping: 20 }}
+                                        className="bg-slate-900 text-white font-bold flex items-center justify-center gap-2 group overflow-hidden h-[60px] min-w-[60px]"
                                     >
-                                        Final Details <UploadCloud size={18} className="group-hover:-translate-y-1 transition-transform" />
+                                        <AnimatePresence mode="wait">
+                                            {isTransitioning ? (
+                                                <motion.div
+                                                    key="loading"
+                                                    initial={{ opacity: 0, scale: 0.5 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.5 }}
+                                                >
+                                                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div
+                                                    key="text"
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.9 }}
+                                                    className="flex items-center gap-2 whitespace-nowrap"
+                                                >
+                                                    Final Details <UploadCloud size={18} className="group-hover:-translate-y-1 transition-transform" />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </motion.button>
                                 </div>
                             </motion.div>
@@ -774,7 +1039,7 @@ export default function UploadProject() {
                         )}
                     </AnimatePresence>
 
-                </div>
+                </motion.div>
             </motion.div>
         </div>
     );
