@@ -344,7 +344,7 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mentees.length > 0 ? mentees.map((mentee) => (
-                                <div key={mentee.id} className="bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 text-center shadow-lg shadow-teal-900/5 hover:-translate-y-1 transition-all duration-300">
+                                <div key={mentee.id} className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 text-center shadow-lg shadow-teal-900/5 hover:-translate-y-1 transition-all duration-300">
                                     <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl mb-3">
                                         {(mentee.full_name || 'S')[0]}
                                     </div>
@@ -368,7 +368,7 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="space-y-4">
                             {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
-                                <div key={proj.id} className="bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-amber-100/50 shadow-lg shadow-amber-900/5 flex items-center justify-between">
+                                <div key={proj.id} className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-amber-100/50 shadow-lg shadow-amber-900/5 flex items-center justify-between">
                                     <div>
                                         <h3 className="font-bold text-slate-900 text-lg mb-1">{proj.title}</h3>
                                         <p className="text-sm text-slate-500">{proj.abstract?.substring(0, 100)}...</p>
@@ -465,7 +465,7 @@ export default function StudentDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {recommendedProjects.map((project) => (
                                 <Link href={`/project/${project.id}`} key={project.id} className="group">
-                                    <div className="bg-white/60 backdrop-blur-xl p-5 rounded-3xl border border-white/50 shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden group">
+                                    <div className="bg-white/40 backdrop-blur-xl p-5 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
                                         <div className="flex justify-between items-start mb-3 relative z-10">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">
@@ -496,7 +496,7 @@ export default function StudentDashboard() {
                                 <StatCard label="Total Views" value={totalViews.toLocaleString()} icon={Eye} color="bg-blue-50 text-blue-600 border-blue-100" />
                                 <StatCard label="Downloads" value={totalDownloads.toLocaleString()} icon={Download} color="bg-emerald-50 text-emerald-600 border-emerald-100" />
                             </div>
-                            <div className="mt-6 bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 shadow-lg shadow-teal-900/5 relative overflow-hidden">
+                            <div className="mt-6 bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 relative overflow-hidden">
                                 <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Tech Domain Influence</h3>
                                 {topTechs.length > 0 ? (
                                     <div className="space-y-4">

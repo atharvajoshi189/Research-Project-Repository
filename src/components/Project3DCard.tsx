@@ -72,7 +72,7 @@ const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: 
                     rotateY,
                     transformStyle: "preserve-3d",
                 }}
-                className="relative w-full h-full rounded-3xl bg-white/60 backdrop-blur-3xl border border-white/50 shadow-xl overflow-hidden group hover:z-20 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-900/10"
+                className="relative w-full h-full rounded-3xl bg-white/40 backdrop-blur-3xl border border-white/40 shadow-xl overflow-hidden group hover:z-20 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-900/10"
             >
                 {/* 1. Dynamic Glare Effect */}
                 <motion.div
@@ -124,6 +124,23 @@ const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: 
                             <span className="text-xs font-bold text-slate-400 bg-slate-100/80 px-2.5 py-1 rounded-md">
                                 {project.year || '2025'}
                             </span>
+                        </div>
+                    </div>
+
+                    {/* Holographic Tech Reveal */}
+                    <div className="absolute bottom-0 left-0 w-full p-6 bg-slate-900/60 backdrop-blur-md border-t border-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-30">
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)] animate-pulse"></span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-teal-200/80">System Architecture</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2">
+                            {project.tech_stack ? (Array.isArray(project.tech_stack) ? project.tech_stack : project.tech_stack.split(',')).slice(0, 5).map((tech: string, i: number) => (
+                                <span key={i} className="text-xs font-mono font-bold text-teal-300 drop-shadow-[0_0_5px_rgba(20,184,166,0.8)]">
+                                    {tech.trim()}
+                                </span>
+                            )) : (
+                                <span className="text-xs font-mono text-slate-300">View Project Analysis_</span>
+                            )}
                         </div>
                     </div>
                 </Link>

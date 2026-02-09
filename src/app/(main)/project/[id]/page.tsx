@@ -486,7 +486,7 @@ export default function ProjectDetails() {
                         className="lg:col-span-4 space-y-8"
                     >
                         {/* AI Insights Sidebar (Replacing QR) */}
-                        <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-teal-900/5 border border-white/60 overflow-hidden group">
+                        <div className="relative bg-white/40 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-teal-900/5 border border-white/40 overflow-hidden group">
                             {/* Pulse Effect */}
                             <div className="absolute inset-0 rounded-3xl border-2 border-teal-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow pointer-events-none"></div>
 

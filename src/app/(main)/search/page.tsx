@@ -7,6 +7,11 @@ import NextLink from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Project3DCard from '@/components/Project3DCard'; // Added import
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
+import TechConstellation from '@/components/TechConstellation';
+import DistributionChart from '@/components/DistributionChart';
 
 function SearchContent() {
     const searchParams = useSearchParams();
@@ -151,11 +156,12 @@ function SearchContent() {
     };
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden pb-20">
-            {/* Aura Mesh Background */}
-            <div className="fixed inset-0 top-0 left-0 w-full h-full -z-50 overflow-hidden pointer-events-none bg-white">
-                <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vh] bg-[#E0FBFC] rounded-full blur-[100px] opacity-60 animate-blob mix-blend-multiply"></div>
-                <div className="absolute top-[20%] -right-[10%] w-[60vw] h-[60vh] bg-[#E0E7FF] rounded-full blur-[120px] opacity-60 animate-blob animation-delay-2000 mix-blend-multiply"></div>
+        <div className="relative min-h-screen w-full overflow-hidden pb-20 bg-[#F8FAFC]">
+            {/* Background Animations */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
             </div>
 
             <div className="max-w-[95rem] mx-auto px-4 md:px-8 pt-6">
@@ -183,7 +189,27 @@ function SearchContent() {
                                 <button onClick={() => setIsMobileFilterOpen(false)} className="text-slate-500">Close</button>
                             </div>
 
-                            <div className="bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                            {/* Tech Constellation Visualization */}
+                            <TechConstellation />
+
+                            {/* Distribution Chart */}
+                            {allProjects.length > 0 && (
+                                <DistributionChart
+                                    selected={selectedCategory}
+                                    onSelect={(cat) => toggleFilter(selectedCategory, setSelectedCategory, cat)}
+                                    data={Object.entries(allProjects.reduce((acc: any, proj: any) => {
+                                        const cat = proj.category || 'Uncategorized';
+                                        acc[cat] = (acc[cat] || 0) + 1;
+                                        return acc;
+                                    }, {})).map(([label, count]: any, i: number) => ({
+                                        label,
+                                        count,
+                                        color: i === 0 ? "bg-indigo-500" : i === 1 ? "bg-teal-500" : i === 2 ? "bg-rose-500" : "bg-amber-500"
+                                    })).sort((a: any, b: any) => b.count - a.count).slice(0, 5)}
+                                />
+                            )}
+
+                            <div className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5">
                                 <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
                                     <h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                                         <Filter size={16} className="text-teal-500" /> Smart Filters
@@ -285,7 +311,7 @@ function SearchContent() {
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
-                                        className="col-span-full flex flex-col items-center justify-center py-24 bg-white/60 backdrop-blur-md rounded-[3rem] border border-white/60 text-center px-4"
+                                        className="col-span-full flex flex-col items-center justify-center py-24 bg-white/40 backdrop-blur-xl rounded-[3rem] border border-white/40 text-center px-4"
                                     >
                                         <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                                             <FolderX size={48} className="text-slate-400" />
