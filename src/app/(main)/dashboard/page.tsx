@@ -8,6 +8,10 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getSmartDownloadUrl } from '@/lib/utils';
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
+import { AnimatePresence } from 'framer-motion';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -21,8 +25,23 @@ export default function StudentDashboard() {
     const [mentees, setMentees] = useState<any[]>([]);
     const [approvalRequests, setApprovalRequests] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState('active'); // 'mentees', 'active', 'approvals'
+    const [lastLogin, setLastLogin] = useState<string>('');
 
     useEffect(() => {
+        // Set Last Login (Simulated or Real if available)
+        const now = new Date();
+        const formatted = now.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        setLastLogin(formatted);
+
         const fetchUserData = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
@@ -278,22 +297,35 @@ export default function StudentDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-teal-100">
-            <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none opacity-40"
-                style={{ backgroundImage: 'radial-gradient(#E2E8F0 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-teal-100 relative overflow-x-hidden">
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
 
                 {/* Header */}
-                <header className="mb-12">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-widest mb-4">
-                        <BookOpen size={14} /> The Scholar's Hub
+                <header className="mb-12 relative">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-widest mb-4">
+                                <BookOpen size={14} /> The Scholar's Hub
+                            </div>
+                            <div className="flex items-center gap-4 mb-2">
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-900">
+                                    Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
+                                </h1>
+                            </div>
+                            <p className="text-slate-500 text-lg mb-2">Manage your academic legacy.</p>
+
+                            <div className="inline-block px-3 py-1 bg-slate-900 text-green-400 font-mono text-xs rounded border border-slate-800 shadow-inner opacity-80">
+                                <span className="text-slate-500 mr-2">$ system_access:</span>
+                                {lastLogin || '...'}
+                            </div>
+                        </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                        Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
-                    </h1>
-                    <p className="text-slate-500 text-lg">Manage your academic legacy.</p>
                 </header>
 
                 {/* TEACHER TABS (Only for Teacher Role) */}
@@ -312,7 +344,7 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mentees.length > 0 ? mentees.map((mentee) => (
-                                <div key={mentee.id} className="bg-white p-6 rounded-2xl border border-slate-100 text-center shadow-sm">
+                                <div key={mentee.id} className="bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 text-center shadow-lg shadow-teal-900/5 hover:-translate-y-1 transition-all duration-300">
                                     <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl mb-3">
                                         {(mentee.full_name || 'S')[0]}
                                     </div>
@@ -336,7 +368,7 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="space-y-4">
                             {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
-                                <div key={proj.id} className="bg-white p-6 rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between">
+                                <div key={proj.id} className="bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-amber-100/50 shadow-lg shadow-amber-900/5 flex items-center justify-between">
                                     <div>
                                         <h3 className="font-bold text-slate-900 text-lg mb-1">{proj.title}</h3>
                                         <p className="text-sm text-slate-500">{proj.abstract?.substring(0, 100)}...</p>
@@ -346,7 +378,7 @@ export default function StudentDashboard() {
                                     </Link>
                                 </div>
                             )) : (
-                                <div className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                                <div className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-3xl bg-white/30 backdrop-blur-sm">
                                     No pending approvals.
                                 </div>
                             )}
@@ -369,7 +401,7 @@ export default function StudentDashboard() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {invitations.map((invite: any) => (
-                                        <div key={invite.id} className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-xl shadow-indigo-100/50 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                                        <div key={invite.id} className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-indigo-100/50 shadow-xl shadow-indigo-100/20 flex items-center justify-between group hover:border-indigo-200 transition-all">
                                             <div>
                                                 <span className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-1 block">Project Invitation</span>
                                                 <h3 className="font-bold text-slate-900 text-lg">{invite.projects?.title || 'Untitled Project'}</h3>
@@ -433,8 +465,8 @@ export default function StudentDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {recommendedProjects.map((project) => (
                                 <Link href={`/project/${project.id}`} key={project.id} className="group">
-                                    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                    <div className="bg-white/60 backdrop-blur-xl p-5 rounded-3xl border border-white/50 shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
                                         <div className="flex justify-between items-start mb-3 relative z-10">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">
                                                 {project.category}
@@ -464,7 +496,7 @@ export default function StudentDashboard() {
                                 <StatCard label="Total Views" value={totalViews.toLocaleString()} icon={Eye} color="bg-blue-50 text-blue-600 border-blue-100" />
                                 <StatCard label="Downloads" value={totalDownloads.toLocaleString()} icon={Download} color="bg-emerald-50 text-emerald-600 border-emerald-100" />
                             </div>
-                            <div className="mt-6 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
+                            <div className="mt-6 bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 shadow-lg shadow-teal-900/5 relative overflow-hidden">
                                 <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Tech Domain Influence</h3>
                                 {topTechs.length > 0 ? (
                                     <div className="space-y-4">
@@ -482,7 +514,7 @@ export default function StudentDashboard() {
                             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <Clock className="text-amber-500" /> Submission Timeline
                             </h2>
-                            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                            <div className="bg-white/40 backdrop-blur-xl p-8 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5">
                                 <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
                                     {projects.map((project, i) => (
                                         <div key={i} className="relative">
@@ -518,7 +550,7 @@ export default function StudentDashboard() {
                             ) : (
                                 // Existing Team Card for Student
                                 projects[0] ? (
-                                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                                    <div className="bg-white/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-[100px] -z-0 opacity-50 transition-transform group-hover:scale-110"></div>
                                         <div className="relative z-10">
                                             <div className="mb-6">
@@ -585,10 +617,10 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`
-                bg-white p-6 rounded-3xl border-2 transition-all group
-                ${isPending ? 'border-amber-100 hover:border-amber-200' :
-                    isApproved ? 'border-emerald-100 hover:border-emerald-200' :
-                        'border-red-100 hover:border-red-200'}
+                bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 transition-all group shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1
+                ${isPending ? 'hover:border-amber-200/60' :
+                    isApproved ? 'hover:border-emerald-200/60' :
+                        'hover:border-red-200/60'}
             `}
         >
             <div className="flex justify-between items-start mb-4">
@@ -656,7 +688,7 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
 };
 
 const StatCard = ({ label, value, icon: Icon, color }: any) => (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5">
+    <div className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 flex items-center gap-5 hover:scale-105 transition-transform duration-300">
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color}`}>
             <Icon size={24} />
         </div>

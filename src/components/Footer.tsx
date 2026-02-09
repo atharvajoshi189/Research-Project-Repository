@@ -11,7 +11,7 @@ export default function Footer() {
     if (isAIActive) return null;
 
     return (
-        <footer className="relative bg-slate-50 text-slate-600 font-sans border-t border-slate-200">
+        <footer className="relative bg-slate-50/80 backdrop-blur-md text-slate-600 font-sans border-t border-slate-200">
             {/* Formal Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-600"></div>
 
