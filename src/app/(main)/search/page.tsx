@@ -2,11 +2,13 @@
 
 import { useState, Suspense, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github } from 'lucide-react';
+import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github, LayoutGrid, List, Share2 } from 'lucide-react';
 import NextLink from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import Project3DCard from '@/components/Project3DCard'; // Added import
+import Project3DCard from '@/components/Project3DCard';
+import ProjectListView from '@/components/ProjectListView';
+import ProjectGraphView from '@/components/ProjectGraphView';
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
 import BentoGrid from '@/components/BentoGrid';
@@ -26,6 +28,8 @@ function SearchContent() {
     const [selectedCategory, setSelectedCategory] = useState<string[]>(initialCategory ? [initialCategory] : []);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [isFocused, setIsFocused] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'graph'>('grid');
 
     // Fetch logic that handles both initial load and search
     useEffect(() => {
@@ -107,7 +111,12 @@ function SearchContent() {
             // matchesSearch is redundant if searchTerm was sent to RPC. 
             // However, to keep it robust (e.g. if we want to filter within the returned set for refined matches or if RPC returns broadly):
             // Let's just return true for search match portion since `allProjects` is ALREADY filtered by search term via RPC.
-            const matchesSearch = true;
+            // Strict Filtering: Only show projects that match the search term
+            const matchesSearch = !searchTerm || (
+                (project.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (Array.isArray(project.tech_stack) && project.tech_stack.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+                (typeof project.tech_stack === 'string' && project.tech_stack.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
 
             // Note: Use existing tech/year/category filters on the result set.
 
@@ -225,7 +234,18 @@ function SearchContent() {
                                 />
                             )}
 
-                            <div className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5">
+                            <div className="bg-white/30 backdrop-blur-[15px] p-6 rounded-3xl border border-teal-400/30 shadow-xl shadow-teal-900/5 transition-all hover:shadow-teal-900/10">
+                                {/* Live Stats Counter */}
+                                <div className="mb-6 bg-white/50 rounded-2xl p-4 text-center border border-white/50 shadow-inner">
+                                    <span className="block text-3xl font-black text-slate-900 leading-none mb-1">
+                                        {filteredProjects.length}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">
+                                        {selectedTech.length > 0 ? `${selectedTech[0]} Projects` :
+                                            selectedCategory.length > 0 ? `${selectedCategory[0]}` :
+                                                searchTerm ? 'Matching Results' : 'Total Projects'}
+                                    </span>
+                                </div>
                                 <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
                                     <h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                                         <Filter size={16} className="text-teal-500" /> Smart Filters
@@ -290,6 +310,8 @@ function SearchContent() {
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
+                                        onFocus={() => setIsFocused(true)}
+                                        onBlur={() => setIsFocused(false)}
                                         placeholder="Type to activate Neural Search..."
                                         className="w-full py-4 px-4 bg-transparent text-slate-800 font-medium placeholder-slate-400 focus:outline-none"
                                     />
@@ -297,6 +319,16 @@ function SearchContent() {
                                     {searchTerm && (
                                         <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent animate-pulse shadow-[0_0_10px_rgba(45,212,191,0.8)]"></div>
                                     )}
+
+                                    {/* Search Circuit Traces (Left & Right) */}
+                                    <div className={`absolute top-1/2 right-full h-[2px] bg-gradient-to-l from-teal-500/50 to-transparent transition-all duration-700 ease-out ${isFocused ? 'w-[100vw] opacity-100' : 'w-0 opacity-0'}`} style={{ transform: 'translateY(-50%)' }}>
+                                        {/* Traveling Data Packet (Left) */}
+                                        {(loading || searchTerm) && <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-teal-200 to-transparent animate-[shimmer_2s_infinite] shadow-[0_0_15px_rgba(45,212,191,0.8)]"></div>}
+                                    </div>
+                                    <div className={`absolute top-1/2 left-full h-[2px] bg-gradient-to-r from-teal-500/50 to-transparent transition-all duration-700 ease-out ${isFocused ? 'w-[100vw] opacity-100' : 'w-0 opacity-0'}`} style={{ transform: 'translateY(-50%)' }}>
+                                        {/* Traveling Data Packet (Right) */}
+                                        {(loading || searchTerm) && <div className="absolute top-0 left-0 h-full w-20 bg-gradient-to-r from-teal-200 to-transparent animate-[shimmer_2s_infinite] shadow-[0_0_15px_rgba(45,212,191,0.8)]"></div>}
+                                    </div>
                                     {searchTerm && (
                                         <button onClick={() => setSearchTerm('')} className="mr-5 text-slate-400 hover:text-red-400 transition-colors text-sm font-bold px-3 py-1 bg-slate-50 rounded-full">
                                             Clear
@@ -304,7 +336,11 @@ function SearchContent() {
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                        </div>
+
+                        {/* Visual Controls Header (View Toggle) */}
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
                                 <span className="font-bold text-slate-900">{filteredProjects.length}</span> Results Found
                                 {initialTech && (
                                     <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
@@ -312,9 +348,40 @@ function SearchContent() {
                                     </span>
                                 )}
                             </div>
-                        </div>
 
-                        {/* Bento Grid with Project3DCard */}
+                            <div className="flex items-center bg-white/50 backdrop-blur rounded-xl p-1 shadow-sm border border-slate-200">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Grid View"
+                                >
+                                    <LayoutGrid size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="List View"
+                                >
+                                    <List size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('graph')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'graph' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Graph View"
+                                >
+                                    <Share2 size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content Area based on View Mode */}
+                    {viewMode === 'list' ? (
+                        <ProjectListView projects={filteredProjects} />
+                    ) : viewMode === 'graph' ? (
+                        <ProjectGraphView projects={filteredProjects} />
+                    ) : (
+                        /* Bento Grid with Project3DCard */
                         <motion.div
                             variants={containerVariants}
                             initial="hidden"
@@ -371,7 +438,7 @@ function SearchContent() {
                                 )}
                             </AnimatePresence>
                         </motion.div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
