@@ -2,13 +2,11 @@
 
 import { useState, Suspense, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github, LayoutGrid, List, Share2 } from 'lucide-react';
+import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github } from 'lucide-react';
 import NextLink from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import Project3DCard from '@/components/Project3DCard';
-import ProjectListView from '@/components/ProjectListView';
-import ProjectGraphView from '@/components/ProjectGraphView';
+import Project3DCard from '@/components/Project3DCard'; // Added import
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
 import BentoGrid from '@/components/BentoGrid';
@@ -29,7 +27,6 @@ function SearchContent() {
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isFocused, setIsFocused] = useState(false);
-    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'graph'>('grid');
 
     // Fetch logic that handles both initial load and search
     useEffect(() => {
@@ -336,11 +333,7 @@ function SearchContent() {
                                     )}
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Visual Controls Header (View Toggle) */}
-                        <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
                                 <span className="font-bold text-slate-900">{filteredProjects.length}</span> Results Found
                                 {initialTech && (
                                     <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
@@ -348,40 +341,9 @@ function SearchContent() {
                                     </span>
                                 )}
                             </div>
-
-                            <div className="flex items-center bg-white/50 backdrop-blur rounded-xl p-1 shadow-sm border border-slate-200">
-                                <button
-                                    onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                    title="Grid View"
-                                >
-                                    <LayoutGrid size={18} />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                    title="List View"
-                                >
-                                    <List size={18} />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('graph')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'graph' ? 'bg-white shadow text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                    title="Graph View"
-                                >
-                                    <Share2 size={18} />
-                                </button>
-                            </div>
                         </div>
-                    </div>
 
-                    {/* Content Area based on View Mode */}
-                    {viewMode === 'list' ? (
-                        <ProjectListView projects={filteredProjects} />
-                    ) : viewMode === 'graph' ? (
-                        <ProjectGraphView projects={filteredProjects} />
-                    ) : (
-                        /* Bento Grid with Project3DCard */
+                        {/* Bento Grid with Project3DCard */}
                         <motion.div
                             variants={containerVariants}
                             initial="hidden"
@@ -438,7 +400,7 @@ function SearchContent() {
                                 )}
                             </AnimatePresence>
                         </motion.div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
