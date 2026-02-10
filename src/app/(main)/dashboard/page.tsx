@@ -125,29 +125,36 @@ export default function StudentDashboard() {
 
             } else {
                 // STUDENT VIEW
-                // 1. Fetch ALL projects (RLS is open)
+                // 1. Fetch ALL projects (RLS is now open for collaborators too)
                 const { data: allProjects, error: projectsError } = await supabase
                     .from('projects')
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                // 2. Fetch MY collaborations (to know which projects I'm part of)
+                if (projectsError) console.warn("Fetch Projects error:", projectsError);
+
+                // 2. Fetch MY collaborations including project details for invitations
                 const { data: myCollabs, error: collabError } = await supabase
                     .from('project_collaborators')
-                    .select('project_id')
-                    .eq('student_id', userId)
-                    .eq('status', 'accepted');
+                    .select('*, projects(*)')
+                    .eq('student_id', userId);
 
-                if (projectsError) console.warn("Fetch error:", projectsError);
+                if (collabError) console.warn("Fetch Collabs error:", collabError);
 
-                const myCollabProjectIds = (myCollabs || []).map((c: any) => c.project_id);
+                const myCollabsList = myCollabs || [];
+                const myAcceptedCollabProjectIds = myCollabsList
+                    .filter(c => c.status === 'accepted')
+                    .map(c => c.project_id);
+
+                // Identify Pending Invitations
+                pendingInvites = myCollabsList.filter(c => c.status === 'pending');
 
                 if (allProjects && allProjects.length > 0) {
                     allProjects.forEach((project: any) => {
                         const isLeader = project.student_id === userId;
-                        const isCollaborator = myCollabProjectIds.includes(project.id);
+                        const isCollaborator = myAcceptedCollabProjectIds.includes(project.id);
 
-                        // FILTER: Only show if I am Leader OR Collaborator
+                        // FILTER: Only show if I am Leader OR Accepted Collaborator
                         if (isLeader || isCollaborator) {
                             const projectWithRole = {
                                 ...project,
@@ -447,7 +454,12 @@ export default function StudentDashboard() {
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {projects.map((project) => (
-                                        <StatusCard key={project.id} project={project} onShare={() => copyLink(project.id)} />
+                                        <StatusCard
+                                            key={project.id}
+                                            project={project}
+                                            onShare={() => copyLink(project.id)}
+                                            onClick={() => router.push(`/project/${project.id}`)}
+                                        />
                                     ))}
                                 </div>
                             )}
@@ -607,7 +619,7 @@ export default function StudentDashboard() {
 
 // Sub-components
 
-const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
+const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any, onClick: () => void }) => {
     const isPending = !project.status || project.status === 'pending';
     const isApproved = project.status === 'approved';
     const isRejected = project.status === 'rejected';
@@ -616,8 +628,9 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            onClick={onClick}
             className={`
-                bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 transition-all group shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1
+                bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 transition-all group shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 cursor-pointer
                 ${isPending ? 'hover:border-amber-200/60' :
                     isApproved ? 'hover:border-emerald-200/60' :
                         'hover:border-red-200/60'}
@@ -634,17 +647,31 @@ const StatusCard = ({ project, onShare }: { project: any, onShare: any }) => {
                 </span>
 
                 <div className="flex gap-2">
-                    <button onClick={onShare} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-teal-600 rounded-full transition-colors" title="Share Link">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onShare(); }}
+                        className="p-2 hover:bg-slate-50 text-slate-400 hover:text-teal-600 rounded-full transition-colors"
+                        title="Share Link"
+                    >
                         <Share2 size={16} />
                     </button>
                     {isPending && (
-                        <Link href={`/upload?edit=${project.id}`} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors" title="Edit Pending Project">
+                        <Link
+                            onClick={(e) => e.stopPropagation()}
+                            href={`/upload?edit=${project.id}`}
+                            className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors"
+                            title="Edit Pending Project"
+                        >
                             <Edit size={16} />
                         </Link>
                     )}
                     {/* Add Edit Button for Leaders (Always visible if leader) */}
                     {project.userRole === 'leader' && !isPending && (
-                        <Link href={`/project/edit/${project.id}`} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors" title="Edit Project">
+                        <Link
+                            onClick={(e) => e.stopPropagation()}
+                            href={`/project/edit/${project.id}`}
+                            className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors"
+                            title="Edit Project"
+                        >
                             <Edit size={16} />
                         </Link>
                     )}
