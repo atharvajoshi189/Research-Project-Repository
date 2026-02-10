@@ -10,9 +10,10 @@ interface Project3DCardProps {
     spanClass?: string;
     index: number;
     noAnimation?: boolean;
+    isPriority?: boolean;
 }
 
-const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: Project3DCardProps) => {
+const Project3DCard = ({ project, spanClass = "", index, noAnimation = false, isPriority = false }: Project3DCardProps) => {
     const ref = useRef<HTMLDivElement>(null);
 
     const x = useMotionValue(0);
@@ -72,7 +73,12 @@ const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: 
                     rotateY,
                     transformStyle: "preserve-3d",
                 }}
-                className="relative w-full h-full rounded-3xl bg-white/40 backdrop-blur-3xl border border-white/40 shadow-xl overflow-hidden group hover:z-20 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-900/10"
+                className={`relative w-full h-full rounded-3xl bg-white/40 backdrop-blur-3xl border shadow-xl overflow-hidden group hover:z-20 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-900/10
+                    ${isPriority
+                        ? 'border-teal-400/80 shadow-[0_0_30px_-5px_rgba(45,212,191,0.6)] ring-2 ring-teal-400/20 z-10 scale-[1.02]'
+                        : 'border-white/40'
+                    }
+                `}
             >
                 {/* 1. Dynamic Glare Effect */}
                 <motion.div
@@ -153,8 +159,7 @@ const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: 
                     <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:16px_16px] group-hover:opacity-[0.07] transition-opacity" />
                 </div>
 
-                {/* 4. Project Image Background */}
-                <ProjectImage title={project.title} category={project.category} />
+
 
 
             </motion.div>
@@ -164,43 +169,5 @@ const Project3DCard = ({ project, spanClass = "", index, noAnimation = false }: 
 
 export default Project3DCard;
 
-const ProjectImage = ({ title, category }: { title: string, category: string }) => {
-    // Map of keywords or strict titles to image paths
-    // In a real app, this should come from the database
-    const imageMap: Record<string, string> = {
-        "psybridge": "/project-images/psybridge.png",
-        "clause-aware": "/project-images/clause-retrieval.png",
-        "modelmate": "/project-images/modelmate.jpg",
-        "multimodal": "/project-images/multimodal-nav.png",
-        "fall detection": "/project-images/fall-detection.jpg",
-        "llm": "/project-images/llm-chatbot.png",
-        "sign language": "/project-images/sign-language.png",
-        "disaster": "/project-images/disaster-relief.svg",
-    };
 
-    const normalize = (str: string) => str.toLowerCase();
-
-    // Find matching image
-    const matchingKey = Object.keys(imageMap).find(key => normalize(title).includes(normalize(key)));
-    const imageSrc = matchingKey ? imageMap[matchingKey] : null;
-
-    if (imageSrc) {
-        return (
-            <div className="absolute inset-0 z-0">
-                <img
-                    src={imageSrc}
-                    alt={title}
-                    className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent mix-blend-overlay" />
-                <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-white/90" />
-            </div>
-        );
-    }
-
-    // Fallback Gradient if no image found
-    return (
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-100 to-slate-200 opacity-50" />
-    );
-};
 

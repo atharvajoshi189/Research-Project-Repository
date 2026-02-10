@@ -139,6 +139,22 @@ function SearchContent() {
         }
     };
 
+    // Calculate all unique tech stacks from loaded projects
+    const allUniqueTechs = useMemo(() => {
+        const techs = new Set<string>();
+        allProjects.forEach(p => {
+            const stack = p.tech_stack || p.techStack;
+            if (stack) {
+                if (Array.isArray(stack)) {
+                    stack.forEach((t: string) => techs.add(t));
+                } else if (typeof stack === 'string') {
+                    stack.split(',').forEach((t: string) => techs.add(t.trim()));
+                }
+            }
+        });
+        return Array.from(techs);
+    }, [allProjects]);
+
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
         show: {
@@ -190,7 +206,7 @@ function SearchContent() {
                             </div>
 
                             {/* Tech Constellation Visualization */}
-                            <TechConstellation />
+                            <TechConstellation allTechs={allUniqueTechs} />
 
                             {/* Distribution Chart */}
                             {allProjects.length > 0 && (
@@ -269,14 +285,18 @@ function SearchContent() {
                             <div className="relative group max-w-2xl">
                                 <div className="absolute -inset-1 rounded-full bg-teal-400/20 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500"></div>
                                 <div className="relative bg-white rounded-full shadow-[0_0_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center overflow-hidden transition-shadow group-focus-within:shadow-[0_0_20px_-5px_rgba(45,212,191,0.2)]">
-                                    <SearchIcon className="ml-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={22} />
+                                    <SearchIcon className={`ml-5 transition-colors duration-300 ${searchTerm ? 'text-teal-500' : 'text-slate-400'}`} size={22} />
                                     <input suppressHydrationWarning
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Refine search by name or tech..."
+                                        placeholder="Type to activate Neural Search..."
                                         className="w-full py-4 px-4 bg-transparent text-slate-800 font-medium placeholder-slate-400 focus:outline-none"
                                     />
+                                    {/* Circuit Beam Emitter */}
+                                    {searchTerm && (
+                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent animate-pulse shadow-[0_0_10px_rgba(45,212,191,0.8)]"></div>
+                                    )}
                                     {searchTerm && (
                                         <button onClick={() => setSearchTerm('')} className="mr-5 text-slate-400 hover:text-red-400 transition-colors text-sm font-bold px-3 py-1 bg-slate-50 rounded-full">
                                             Clear
@@ -340,6 +360,11 @@ function SearchContent() {
                                                 spanClass="h-full"
                                                 index={i}
                                                 noAnimation={true}
+                                                isPriority={searchTerm.length > 2 && (
+                                                    (project.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                                    (Array.isArray(project.tech_stack) && project.tech_stack.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+                                                    (typeof project.tech_stack === 'string' && project.tech_stack.toLowerCase().includes(searchTerm.toLowerCase()))
+                                                )}
                                             />
                                         </motion.div>
                                     ))
