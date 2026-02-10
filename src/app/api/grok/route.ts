@@ -90,6 +90,28 @@ export async function POST(req: Request) {
                 `;
                 break;
 
+            case 'comprehensive_analysis':
+                systemPrompt += " You provide a 360-degree analysis of a student project for potential investors.";
+                userPrompt = `
+                    Analyze this project:
+                    Title: ${context.title}
+                    Abstract: ${context.abstract}
+                    Tech Stack: ${context.tech_stack}
+
+                    Provide a JSON response with these exact keys:
+                    1. "industry": { "sector": "e.g. EdTech", "commercial_potential": "One sentence on market fit." }
+                    2. "tech_architecture": { "insight": "Why this stack is better than alternatives (e.g. Python vs Java)." }
+                    3. "social_impact": { "sdg_goals": ["SDG 4: Quality Education", "SDG 9: Innovation"], "description": "How it helps society." }
+                    4. "roadmap": [
+                        { "step": "Phase 1", "feature": "..." },
+                        { "step": "Phase 2", "feature": "..." },
+                        { "step": "Phase 3", "feature": "..." }
+                    ]
+                    
+                    Keep detailed but concise.
+                `;
+                break;
+
             default:
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         }
@@ -103,14 +125,14 @@ export async function POST(req: Request) {
             temperature: 0.7,
             max_tokens: 300,
             // Only use json_object for models that definitely support it or when strictly required
-            response_format: (action === 'insights' && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
+            response_format: ((action === 'insights' || action === 'comprehensive_analysis') && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
         });
 
         const content = completion.choices[0].message.content;
 
         // Parse JSON if needed
         let data: any = content;
-        if (action === 'insights') {
+        if (action === 'insights' || action === 'comprehensive_analysis') {
             try {
                 // If the model didn't return pure JSON, try to extract it
                 const jsonMatch = content?.match(/\{[\s\S]*\}/);

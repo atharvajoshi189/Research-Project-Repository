@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import { getSmartDownloadUrl } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import GrokPanel from '@/components/GrokPanel';
 
 export default function ProjectDetails() {
     const params = useParams();
@@ -20,7 +21,9 @@ export default function ProjectDetails() {
     const [similarProjects, setSimilarProjects] = useState<any[]>([]);
 
     // AI States
-    const [aiInsights, setAiInsights] = useState<any>(null);
+    const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+    const [loadingAiAnalysis, setLoadingAiAnalysis] = useState(false);
+
     const [aiAbstract, setAiAbstract] = useState<string | null>(null);
     const [isAiAbstract, setIsAiAbstract] = useState(false);
     const [loadingAiAbstract, setLoadingAiAbstract] = useState(false);
@@ -44,13 +47,14 @@ export default function ProjectDetails() {
         if (data) setSimilarProjects(data);
     }, []);
 
-    // AI Fetchers (No changes here)
-    const fetchAiInsights = useCallback(async (proj: any) => {
+    // AI Fetchers
+    const fetchAiAnalysis = useCallback(async (proj: any) => {
+        setLoadingAiAnalysis(true);
         try {
             const res = await fetch('/api/grok', {
                 method: 'POST',
                 body: JSON.stringify({
-                    action: 'insights',
+                    action: 'comprehensive_analysis', // Updated action
                     context: {
                         title: proj.title,
                         abstract: proj.abstract,
@@ -59,9 +63,11 @@ export default function ProjectDetails() {
                 })
             });
             const { data } = await res.json();
-            if (data) setAiInsights(data);
+            if (data) setAiAnalysis(data);
         } catch (e) {
-            console.error("AI Insights Error", e);
+            console.error("AI Analysis Error", e);
+        } finally {
+            setLoadingAiAnalysis(false);
         }
     }, []);
 
@@ -138,7 +144,7 @@ export default function ProjectDetails() {
             } else {
                 setProject(data);
                 fetchSimilarProjects(data.category, data.id);
-                fetchAiInsights(data); // Trigger AI
+                fetchAiAnalysis(data); // Trigger Comprehensive Analysis
 
                 // Fetch Project Leader Profile
                 if (data.student_id) {
@@ -183,7 +189,7 @@ export default function ProjectDetails() {
         if (id) {
             fetchProjectAndIncrementViews();
         }
-    }, [id, fetchSimilarProjects, fetchAiInsights]);
+    }, [id, fetchSimilarProjects, fetchAiAnalysis]);
 
     const handleDownload = async () => {
         if (!project?.pdf_url) {
@@ -205,7 +211,7 @@ export default function ProjectDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen grid place-items-center bg-white">
+            <div className="min-h-screen grid place-items-center bg-[#F8FAFC]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-400 text-sm font-medium animate-pulse">Initializing Neural Hub...</p>
@@ -216,7 +222,7 @@ export default function ProjectDetails() {
 
     if (notFound || !project) {
         return (
-            <div className="min-h-screen grid place-items-center bg-white">
+            <div className="min-h-screen grid place-items-center bg-[#F8FAFC]">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-slate-900 mb-4">Project Not Found</h1>
                     <button onClick={() => router.back()} className="px-6 py-3 bg-teal-500 text-white rounded-full font-bold hover:bg-teal-600 transition-colors">
@@ -266,7 +272,7 @@ export default function ProjectDetails() {
     });
 
     return (
-        <div className="min-h-screen w-full relative overflow-hidden bg-slate-50/50">
+        <div className="min-h-screen w-full relative overflow-hidden bg-[#F8FAFC]">
 
             {/* 1. Aura Background */}
             <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none overflow-hidden">
@@ -314,7 +320,7 @@ export default function ProjectDetails() {
                                 {allTeamMembers.map(t => t.name).join(', ')}
                             </span>
                         </div>
-                        <div className="flex items-center gap-2 font-medium bg-white px-4 py-2 rounded-full border border-slate-200">
+                        <div className="flex items-center gap-2 font-medium bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
                             <Award size={18} className="text-amber-500" /> Guide: {project.guide_name || 'Prof. R. K. Patil'}
                         </div>
                         <div className="flex items-center gap-2 font-medium">
@@ -334,7 +340,7 @@ export default function ProjectDetails() {
                         className="lg:col-span-8 space-y-10"
                     >
                         {/* Abstract with AI Toggle */}
-                        <section className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-visible group">
+                        <section className="bg-white/70 backdrop-blur-md rounded-[2rem] p-8 border border-white shadow-xl shadow-slate-200/50 relative overflow-visible group">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
                                     <BookOpen className="text-teal-500" /> Abstract
@@ -352,7 +358,7 @@ export default function ProjectDetails() {
                                 </button>
                             </div>
 
-                            <div className={`relative transition-all duration-500 ease-in-out`}>
+                            <div className={`relative`}>
                                 <motion.div
                                     initial={false}
                                     animate={{ height: isAbstractExpanded ? 'auto' : 100 }}
@@ -424,7 +430,7 @@ export default function ProjectDetails() {
 
                         {/* Tech Stack - With Deep Dive */}
                         {project.tech_stack && project.tech_stack.length > 0 && (
-                            <section className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                            <section className="bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-white shadow-sm">
                                 <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                                     <Code2 className="text-teal-500" /> Technologies Used
                                 </h2>
@@ -485,57 +491,11 @@ export default function ProjectDetails() {
                         transition={{ delay: 0.2 }}
                         className="lg:col-span-4 space-y-8"
                     >
-                        {/* AI Insights Sidebar (Replacing QR) */}
-                        <div className="relative bg-white/40 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-teal-900/5 border border-white/40 overflow-hidden group">
-                            {/* Pulse Effect */}
-                            <div className="absolute inset-0 rounded-3xl border-2 border-teal-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow pointer-events-none"></div>
-
-                            <div className="relative z-10">
-                                <h3 className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600 mb-6 flex items-center gap-2">
-                                    <BrainCircuit size={20} className="text-teal-600" /> AI Insights
-                                </h3>
-
-                                {aiInsights ? (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">At a Glance</h4>
-                                            <p className="text-sm font-medium text-slate-700 leading-6">{aiInsights.summary}</p>
-                                        </div>
-
-                                        {aiInsights.author_expertise && (
-                                            <div>
-                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Lead Expertise</h4>
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100">
-                                                    <Sparkles size={12} />
-                                                    {aiInsights.author_expertise}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Key Innovations</h4>
-                                            <ul className="space-y-3">
-                                                {aiInsights.innovations.map((inv: string, i: number) => (
-                                                    <li key={i} className="flex gap-2 text-sm text-slate-600">
-                                                        <div className="mt-1 min-w-[6px] h-1.5 rounded-full bg-indigo-400"></div>
-                                                        {inv}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="py-8 text-center space-y-3">
-                                        <div className="w-10 h-10 mx-auto border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
-                                        <p className="text-xs font-medium text-slate-400">Analyzing Project...</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
+                        {/* 2. Grok Intelligence Panel (Replacing old AI Insights) */}
+                        <GrokPanel data={aiAnalysis} loading={loadingAiAnalysis} />
 
                         {/* Action Hub */}
-                        <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
+                        <div className="bg-white/70 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-white">
                             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <FileText size={20} className="text-slate-400" /> Actions
                             </h3>
@@ -556,20 +516,12 @@ export default function ProjectDetails() {
 
                         {/* Contributors Section - Unified and Always Visible if any team member exists */}
                         {allTeamMembers.length > 0 && (
-                            <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
+                            <div className="bg-white/70 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-white">
                                 <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                                     <Users size={20} className="text-slate-400" /> Contributors
                                 </h3>
                                 <div className="space-y-3">
                                     {allTeamMembers.map((collab: any, index: number) => {
-                                        // Assign AI Badge
-                                        let aiBadge = null;
-                                        if (collab.isLeader && aiInsights?.author_expertise) {
-                                            aiBadge = aiInsights.author_expertise;
-                                        } else if (aiInsights?.key_roles && !collab.isLeader) {
-                                            aiBadge = aiInsights.key_roles[index % aiInsights.key_roles.length];
-                                        }
-
                                         return (
                                             <div key={collab.id || index} className="flex items-center gap-3 group">
                                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border-2 border-white nav-shadow group-hover:scale-110 transition-transform">
@@ -580,11 +532,6 @@ export default function ProjectDetails() {
                                                         <p className="text-sm font-bold text-slate-800 truncate">
                                                             {collab.name}
                                                         </p>
-                                                        {aiBadge && (
-                                                            <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
-                                                                <Sparkles size={8} /> {aiBadge}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                     <div className="flex gap-2 mt-1">
                                                         {collab.role === 'Team Lead' || collab.role === 'leader' ? (
