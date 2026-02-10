@@ -128,6 +128,31 @@ export default function ProjectDetails() {
     };
 
 
+    const fetchCollaborators = useCallback(async (projectId: string) => {
+        const { data: collabData, error: collabError } = await supabase
+            .from('project_collaborators')
+            .select('id, student_id, role, status')
+            .eq('project_id', projectId);
+
+        if (collabData && collabData.length > 0) {
+            const studentIds = collabData.map(c => c.student_id);
+            const { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', studentIds);
+
+            if (!profileError && profiles) {
+                const merged = collabData.map(c => ({
+                    ...c,
+                    profile: profiles.find(p => p.id === c.student_id)
+                }));
+                setCollaborators(merged);
+            }
+        } else {
+            setCollaborators([]);
+        }
+    }, []);
+
     useEffect(() => {
         const fetchProjectAndIncrementViews = async () => {
             setLoading(true);
@@ -156,29 +181,8 @@ export default function ProjectDetails() {
                     if (leaderData) setProjectLeader(leaderData);
                 }
 
-                // Fetch Collaborators (Robust 2-step)
-                const { data: collabData, error: collabError } = await supabase
-                    .from('project_collaborators')
-                    .select('id, student_id, role, status')
-                    .eq('project_id', id);
-
-                if (collabData && collabData.length > 0) {
-                    const studentIds = collabData.map(c => c.student_id);
-                    const { data: profiles, error: profileError } = await supabase
-                        .from('profiles')
-                        .select('id, full_name')
-                        .in('id', studentIds);
-
-                    if (!profileError && profiles) {
-                        const merged = collabData.map(c => ({
-                            ...c,
-                            profile: profiles.find(p => p.id === c.student_id)
-                        }));
-                        setCollaborators(merged);
-                    }
-                } else {
-                    setCollaborators([]);
-                }
+                // Fetch Collaborators
+                fetchCollaborators(id);
 
                 // Increment Views (RPC)
                 await supabase.rpc('increment_views', { row_id: id });
@@ -188,8 +192,30 @@ export default function ProjectDetails() {
 
         if (id) {
             fetchProjectAndIncrementViews();
+
+            // Real-time Listener for Collaborators
+            const channel = supabase
+                .channel(`project-collabs-${id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'project_collaborators',
+                        filter: `project_id=eq.${id}`
+                    },
+                    (payload) => {
+                        console.log('Collaborators updated:', payload);
+                        fetchCollaborators(id);
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
         }
-    }, [id, fetchSimilarProjects, fetchAiAnalysis]);
+    }, [id, fetchSimilarProjects, fetchAiAnalysis, fetchCollaborators]);
 
     const handleDownload = async () => {
         if (!project?.pdf_url) {
