@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getProjectMetadataForAI } from '@/lib/ai-data';
 
 // Initialize client based on available keys
 // Priority: GROQ_API_KEY (Groq Cloud) -> GROK_API_KEY (Common Typo/Alt) -> XAI_API_KEY (xAI) -> OPENAI_API_KEY (Fallback)
@@ -112,6 +113,64 @@ export async function POST(req: Request) {
                 `;
                 break;
 
+            case 'suggested_readings':
+                systemPrompt += " You are a bibliography expert. You suggest academic readings.";
+                userPrompt = `
+                    For the project "${context.title}" which is about "${context.abstract}", suggest 3 relevant academic papers or standard reference books.
+                    
+                    Provide a JSON response with an array of objects:
+                    Format: { "readings": [ { "title": "...", "author": "...", "type": "Paper/Book", "relevance": "Why it's relevant (1 sentence)" } ] }
+                `;
+                break;
+
+            case 'presentation_pitch':
+                systemPrompt += " You are a pitch coach. You write engaging scripts.";
+                userPrompt = `
+                    Write a 2-minute viva presentation script for the project "${context.title}".
+                    Abstract: "${context.abstract}"
+                    
+                    Structure:
+                    1. Hook (Grab attention)
+                    2. Problem Statement
+                    3. Our Solution (Technical approach)
+                    4. Impact
+                    5. Conclusion
+                    
+                    Return a JSON object: { "script": "The full script text..." }
+                `;
+                break;
+
+            case 'project_health':
+                systemPrompt += " You are a documentation auditor. You evaluate project quality.";
+                userPrompt = `
+                    Evaluate the documentation quality for project "${context.title}".
+                    Abstract length: ${context.abstract?.length || 0} chars.
+                    Abstract content: "${context.abstract}"
+                    Tech Stack: ${context.tech_stack}
+                    
+                    Rate it 0-100 based on clarity, completeness, and technical depth.
+                    provide a JSON: { "score": 85, "feedback": "One sentence specific tip to improve." }
+                `;
+                break;
+
+            case 'related_innovations':
+                // Fetch the project context server-side to ensure we have the latest data and avoid client payload limits
+                const allProjectsContext = await getProjectMetadataForAI();
+
+                systemPrompt += " You are a research connector. You find conceptually similar projects.";
+                userPrompt = `
+                    I have a database of student projects. 
+                    Target Project: "${context.title}" (${context.abstract})
+                    
+                    Here is the list of available projects (ID | Title | Tech | Summary):
+                    ${allProjectsContext}
+                    
+                    Find 3 projects from this list that share *concept logic* or *problem domain*, not just tech stack.
+                    
+                    Return JSON: { "related": [ { "id": "...", "reason": "..." } ] }
+                `;
+                break;
+
             default:
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         }
@@ -123,16 +182,16 @@ export async function POST(req: Request) {
                 { role: "user", content: userPrompt }
             ],
             temperature: 0.7,
-            max_tokens: 300,
+            max_tokens: 800, // Process more tokens for scripts
             // Only use json_object for models that definitely support it or when strictly required
-            response_format: ((action === 'insights' || action === 'comprehensive_analysis') && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
+            response_format: ((action === 'insights' || action === 'comprehensive_analysis' || action === 'suggested_readings' || action === 'presentation_pitch' || action === 'project_health' || action === 'related_innovations') && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
         });
 
         const content = completion.choices[0].message.content;
 
         // Parse JSON if needed
         let data: any = content;
-        if (action === 'insights' || action === 'comprehensive_analysis') {
+        if (['insights', 'comprehensive_analysis', 'suggested_readings', 'presentation_pitch', 'project_health', 'related_innovations'].includes(action)) {
             try {
                 // If the model didn't return pure JSON, try to extract it
                 const jsonMatch = content?.match(/\{[\s\S]*\}/);
@@ -140,7 +199,7 @@ export async function POST(req: Request) {
                 data = JSON.parse(jsonStr || '{}');
             } catch (e) {
                 console.error("JSON Parse Error", e);
-                data = { summary: "Could not generate summary.", innovations: [] };
+                data = { error: "Could not generate valid JSON." };
             }
         }
 
