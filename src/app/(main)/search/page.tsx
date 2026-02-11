@@ -13,6 +13,10 @@ import BentoGrid from '@/components/BentoGrid';
 import TechConstellation from '@/components/TechConstellation';
 import DistributionChart from '@/components/DistributionChart';
 
+import ProjectListView from '@/components/ProjectListView';
+import ProjectGraphView from '@/components/ProjectGraphView';
+import { LayoutGrid, List as ListIcon, Network } from 'lucide-react';
+
 function SearchContent() {
     const searchParams = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
@@ -27,6 +31,7 @@ function SearchContent() {
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isFocused, setIsFocused] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'graph'>('grid');
 
     // Fetch logic that handles both initial load and search
     useEffect(() => {
@@ -297,62 +302,74 @@ function SearchContent() {
 
                     {/* Results Area */}
                     <div className="flex-1 flex flex-col min-h-[60vh]">
-                        {/* Search Input */}
-                        <div className="mb-10 relative z-10">
-                            <div className="relative group max-w-2xl">
-                                <div className="absolute -inset-1 rounded-full bg-teal-400/20 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500"></div>
-                                <div className="relative bg-white rounded-full shadow-[0_0_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center overflow-hidden transition-shadow group-focus-within:shadow-[0_0_20px_-5px_rgba(45,212,191,0.2)]">
-                                    <SearchIcon className={`ml-5 transition-colors duration-300 ${searchTerm ? 'text-teal-500' : 'text-slate-400'}`} size={22} />
-                                    <input suppressHydrationWarning
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        onFocus={() => setIsFocused(true)}
-                                        onBlur={() => setIsFocused(false)}
-                                        placeholder="Type to activate Neural Search..."
-                                        className="w-full py-4 px-4 bg-transparent text-slate-800 font-medium placeholder-slate-400 focus:outline-none"
-                                    />
-                                    {/* Circuit Beam Emitter */}
-                                    {searchTerm && (
-                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent animate-pulse shadow-[0_0_10px_rgba(45,212,191,0.8)]"></div>
-                                    )}
-
-                                    {/* Search Circuit Traces (Left & Right) */}
-                                    <div className={`absolute top-1/2 right-full h-[2px] bg-gradient-to-l from-teal-500/50 to-transparent transition-all duration-700 ease-out ${isFocused ? 'w-[100vw] opacity-100' : 'w-0 opacity-0'}`} style={{ transform: 'translateY(-50%)' }}>
-                                        {/* Traveling Data Packet (Left) */}
-                                        {(loading || searchTerm) && <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-teal-200 to-transparent animate-[shimmer_2s_infinite] shadow-[0_0_15px_rgba(45,212,191,0.8)]"></div>}
+                        {/* Search Input & View Toggle */}
+                        <div className="mb-10 flex flex-col sm:flex-row gap-4">
+                            <div className="relative z-10 flex-1">
+                                <div className="relative group max-w-2xl">
+                                    <div className="absolute -inset-1 rounded-full bg-teal-400/20 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500"></div>
+                                    <div className="relative bg-white rounded-full shadow-[0_0_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center overflow-hidden transition-shadow group-focus-within:shadow-[0_0_20px_-5px_rgba(45,212,191,0.2)]">
+                                        <SearchIcon className={`ml-5 transition-colors duration-300 ${searchTerm ? 'text-teal-500' : 'text-slate-400'}`} size={22} />
+                                        <input suppressHydrationWarning
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onFocus={() => setIsFocused(true)}
+                                            onBlur={() => setIsFocused(false)}
+                                            placeholder="Type to activate Neural Search..."
+                                            className="w-full py-4 px-4 bg-transparent text-slate-800 font-medium placeholder-slate-400 focus:outline-none"
+                                        />
+                                        {/* Circuit Beam Emitter */}
+                                        {searchTerm && (
+                                            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent animate-pulse shadow-[0_0_10px_rgba(45,212,191,0.8)]"></div>
+                                        )}
+                                        {searchTerm && (
+                                            <button onClick={() => setSearchTerm('')} className="mr-5 text-slate-400 hover:text-red-400 transition-colors text-sm font-bold px-3 py-1 bg-slate-50 rounded-full">
+                                                Clear
+                                            </button>
+                                        )}
                                     </div>
-                                    <div className={`absolute top-1/2 left-full h-[2px] bg-gradient-to-r from-teal-500/50 to-transparent transition-all duration-700 ease-out ${isFocused ? 'w-[100vw] opacity-100' : 'w-0 opacity-0'}`} style={{ transform: 'translateY(-50%)' }}>
-                                        {/* Traveling Data Packet (Right) */}
-                                        {(loading || searchTerm) && <div className="absolute top-0 left-0 h-full w-20 bg-gradient-to-r from-teal-200 to-transparent animate-[shimmer_2s_infinite] shadow-[0_0_15px_rgba(45,212,191,0.8)]"></div>}
-                                    </div>
-                                    {searchTerm && (
-                                        <button onClick={() => setSearchTerm('')} className="mr-5 text-slate-400 hover:text-red-400 transition-colors text-sm font-bold px-3 py-1 bg-slate-50 rounded-full">
-                                            Clear
-                                        </button>
+                                </div>
+                                <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                                    <span className="font-bold text-slate-900">{filteredProjects.length}</span> Results Found
+                                    {initialTech && (
+                                        <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                                            Filtering by: {initialTech}
+                                        </span>
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                                <span className="font-bold text-slate-900">{filteredProjects.length}</span> Results Found
-                                {initialTech && (
-                                    <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
-                                        Filtering by: {initialTech}
-                                    </span>
-                                )}
+
+                            {/* View Switcher */}
+                            <div className="flex bg-white rounded-full p-1 border border-slate-200 shadow-sm self-start h-12 items-center">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2.5 rounded-full transition-all duration-300 flex items-center justify-center ${viewMode === 'grid' ? 'bg-teal-500 text-white shadow-md' : 'text-slate-400 hover:text-teal-500'}`}
+                                    title="Grid View"
+                                >
+                                    <LayoutGrid size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-2.5 rounded-full transition-all duration-300 flex items-center justify-center ${viewMode === 'list' ? 'bg-teal-500 text-white shadow-md' : 'text-slate-400 hover:text-teal-500'}`}
+                                    title="List View"
+                                >
+                                    <ListIcon size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('graph')}
+                                    className={`p-2.5 rounded-full transition-all duration-300 flex items-center justify-center ${viewMode === 'graph' ? 'bg-teal-500 text-white shadow-md' : 'text-slate-400 hover:text-teal-500'}`}
+                                    title="Graph View"
+                                >
+                                    <Network size={18} />
+                                </button>
                             </div>
                         </div>
 
-                        {/* Bento Grid with Project3DCard */}
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="show"
-                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[350px] pb-20"
-                        >
+                        {/* Content Area */}
+                        <div className="pb-20">
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {loading ? (
-                                    <div className="col-span-full flex justify-center py-20">
+                                    <div className="flex justify-center py-20">
                                         <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
                                     </div>
                                 ) : filteredProjects.length === 0 && !loading ? (
@@ -360,7 +377,7 @@ function SearchContent() {
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
-                                        className="col-span-full flex flex-col items-center justify-center py-24 bg-white/40 backdrop-blur-xl rounded-[3rem] border border-white/40 text-center px-4"
+                                        className="flex flex-col items-center justify-center py-24 bg-white/40 backdrop-blur-xl rounded-[3rem] border border-white/40 text-center px-4"
                                     >
                                         <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                                             <FolderX size={48} className="text-slate-400" />
@@ -375,31 +392,63 @@ function SearchContent() {
                                         </button>
                                     </motion.div>
                                 ) : (
-                                    filteredProjects.map((project, i) => (
+                                    // VIEW MODE SWITCHING
+                                    viewMode === 'grid' ? (
                                         <motion.div
-                                            key={project.id}
-                                            className="col-span-1 h-full"
+                                            key="grid"
+                                            variants={containerVariants}
+                                            initial="hidden"
+                                            animate="show"
+                                            exit={{ opacity: 0 }}
+                                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[350px]"
+                                        >
+                                            {filteredProjects.map((project, i) => (
+                                                <motion.div
+                                                    key={project.id}
+                                                    className="col-span-1 h-full"
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                                                    layout
+                                                >
+                                                    <Project3DCard
+                                                        project={project}
+                                                        spanClass="h-full"
+                                                        index={i}
+                                                        noAnimation={true}
+                                                        isPriority={searchTerm.length > 2 && (
+                                                            (project.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                                            (Array.isArray(project.tech_stack) && project.tech_stack.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+                                                            (typeof project.tech_stack === 'string' && project.tech_stack.toLowerCase().includes(searchTerm.toLowerCase()))
+                                                        )}
+                                                    />
+                                                </motion.div>
+                                            ))}
+                                        </motion.div>
+                                    ) : viewMode === 'list' ? (
+                                        <motion.div
+                                            key="list"
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.3, delay: i * 0.05 }}
-                                            layout
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            transition={{ duration: 0.4 }}
                                         >
-                                            <Project3DCard
-                                                project={project}
-                                                spanClass="h-full"
-                                                index={i}
-                                                noAnimation={true}
-                                                isPriority={searchTerm.length > 2 && (
-                                                    (project.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                                                    (Array.isArray(project.tech_stack) && project.tech_stack.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-                                                    (typeof project.tech_stack === 'string' && project.tech_stack.toLowerCase().includes(searchTerm.toLowerCase()))
-                                                )}
-                                            />
+                                            <ProjectListView projects={filteredProjects} />
                                         </motion.div>
-                                    ))
+                                    ) : (
+                                        <motion.div
+                                            key="graph"
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, opacity: 0 }}
+                                            transition={{ duration: 0.5 }}
+                                        >
+                                            <ProjectGraphView projects={filteredProjects} />
+                                        </motion.div>
+                                    )
                                 )}
                             </AnimatePresence>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </div>
