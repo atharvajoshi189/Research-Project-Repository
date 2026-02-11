@@ -34,7 +34,7 @@ function AdminContent() {
                 return;
             }
             const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-            if (profile?.role !== 'hod' && profile?.role !== 'faculty') {
+            if (profile?.role !== 'hod' && profile?.role !== 'faculty' && profile?.role !== 'teacher' && profile?.role !== 'admin') {
                 toast.error("Access Denied: Admin Area");
                 router.push('/dashboard');
                 return;

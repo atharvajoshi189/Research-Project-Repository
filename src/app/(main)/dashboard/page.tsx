@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
-import { Eye, Download, Share2, Edit, AlertCircle, CheckCircle, Clock, BookOpen, User, Users, BarChart3, ExternalLink } from 'lucide-react';
+import { Eye, Download, Share2, Edit, AlertCircle, CheckCircle, Clock, BookOpen, User, Users, BarChart3, ExternalLink, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -282,10 +282,103 @@ export default function StudentDashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen grid place-items-center bg-slate-50">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-medium animate-pulse">Loading Workspace...</p>
+            <div className="min-h-screen relative overflow-hidden bg-[#F8FAFC] flex flex-col items-center justify-center">
+                <BackgroundBlobs />
+                <div className="fixed inset-0 z-0 pointer-events-none">
+                    <GridPulse />
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative w-32 h-32 mb-10">
+                        {/* Outer Atmospheric Glow */}
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.4, 1],
+                                opacity: [0.1, 0.3, 0.1],
+                            }}
+                            transition={{
+                                duration: 4,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            className="absolute -inset-10 rounded-full bg-teal-400 blur-[60px]"
+                        />
+
+                        {/* Spinning Gradient Ring */}
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                                duration: 8,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
+                            className="absolute inset-0 rounded-full border-2 border-dashed border-teal-200/50"
+                        />
+
+                        {/* Neural Core */}
+                        <motion.div
+                            animate={{
+                                scale: [0.9, 1.05, 0.9],
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            className="absolute inset-2 rounded-[2.5rem] bg-white/40 backdrop-blur-2xl border border-white/50 flex items-center justify-center shadow-2xl overflow-hidden group"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-indigo-500/10 opacity-50" />
+                            <BrainCircuit className="text-teal-600 w-12 h-12 relative z-10" />
+
+                            {/* Scanning Effect */}
+                            <motion.div
+                                animate={{ y: [-100, 100] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-teal-400/50 to-transparent blur-sm z-20"
+                            />
+                        </motion.div>
+
+                        {/* Orbiting Nodes */}
+                        {[0, 72, 144, 216, 288].map((angle, i) => (
+                            <motion.div
+                                key={i}
+                                animate={{ rotate: [angle, angle + 360] }}
+                                transition={{
+                                    duration: 10 + i * 2,
+                                    repeat: Infinity,
+                                    ease: "linear"
+                                }}
+                                className="absolute inset-0"
+                            >
+                                <motion.div
+                                    animate={{
+                                        scale: [0.8, 1.2, 0.8],
+                                        opacity: [0.5, 1, 0.5]
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
+                                    className="absolute -top-1 left-1/2 w-3 h-3 bg-white rounded-lg shadow-lg border border-teal-100 flex items-center justify-center"
+                                >
+                                    <div className="w-1 h-1 bg-teal-500 rounded-full" />
+                                </motion.div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-col items-center text-center px-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col items-center"
+                        >
+                            <div className="h-px w-12 bg-gradient-to-r from-transparent via-teal-500 to-transparent mb-6 opacity-50" />
+                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-4 animate-pulse">Loading Workspace...</p>
+                            <div className="flex items-center gap-2">
+                                <span className="w-1 h-1 bg-teal-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="w-1 h-1 bg-teal-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="w-1 h-1 bg-teal-500 rounded-full animate-bounce"></span>
+                            </div>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
         );
@@ -351,19 +444,19 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mentees.length > 0 ? mentees.map((mentee) => (
-                                <div key={mentee.id} className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 text-center shadow-lg shadow-teal-900/5 hover:-translate-y-1 transition-all duration-300">
-                                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl mb-3">
+                                <div key={mentee.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 text-center shadow-2xl shadow-teal-900/5 hover:-translate-y-2 hover:border-teal-400/50 transition-all duration-300 group">
+                                    <div className="w-20 h-20 mx-auto bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-2xl mb-4 group-hover:scale-110 transition-transform">
                                         {(mentee.full_name || 'S')[0]}
                                     </div>
-                                    <h3 className="font-bold text-slate-800">{mentee.full_name}</h3>
-                                    <p className="text-xs text-slate-400 mb-4">{mentee.college_id || 'No ID'}</p>
-                                    <div className="text-xs bg-slate-50 py-1 px-2 rounded-lg inline-block text-slate-500">
-                                        {mentee.section} - {mentee.academic_year}
+                                    <h3 className="font-black text-slate-800 text-lg mb-1">{mentee.full_name}</h3>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">{mentee.college_id || 'No ID'}</p>
+                                    <div className="text-[10px] font-bold uppercase tracking-tighter bg-slate-900/5 py-1.5 px-3 rounded-lg inline-block text-slate-500">
+                                        {mentee.section} • {mentee.academic_year}
                                     </div>
                                 </div>
                             )) : (
-                                <div className="col-span-4 p-8 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
-                                    No students assigned yet.
+                                <div className="col-span-4 p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[3rem] bg-white/30 backdrop-blur-xl">
+                                    <p className="font-medium text-lg">No students assigned yet.</p>
                                 </div>
                             )}
                         </div>
@@ -375,18 +468,22 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="space-y-4">
                             {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
-                                <div key={proj.id} className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-amber-100/50 shadow-lg shadow-amber-900/5 flex items-center justify-between">
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 text-lg mb-1">{proj.title}</h3>
-                                        <p className="text-sm text-slate-500">{proj.abstract?.substring(0, 100)}...</p>
+                                <div key={proj.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl shadow-amber-900/5 flex items-center justify-between group hover:border-amber-400/50 transition-all">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Review Required</span>
+                                        </div>
+                                        <h3 className="font-black text-slate-900 text-2xl mb-2 group-hover:text-amber-600 transition-colors">{proj.title}</h3>
+                                        <p className="text-slate-500 text-sm line-clamp-1 max-w-2xl font-medium">{proj.abstract}</p>
                                     </div>
-                                    <Link href={`/upload?edit=${proj.id}`} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20">
-                                        Review
+                                    <Link href={`/upload?edit=${proj.id}`} className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-amber-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-2">
+                                        Open Review <ArrowRight size={18} />
                                     </Link>
                                 </div>
                             )) : (
-                                <div className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-3xl bg-white/30 backdrop-blur-sm">
-                                    No pending approvals.
+                                <div className="p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[3rem] bg-white/30 backdrop-blur-xl">
+                                    <p className="font-medium text-lg">Your queue is clear. No pending approvals.</p>
                                 </div>
                             )}
                         </div>
@@ -398,37 +495,39 @@ export default function StudentDashboard() {
                     <>
                         {invitations.length > 0 && (
                             <motion.section
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mb-12"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="mb-16"
                             >
-                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                                    Pending Invitations
+                                <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                                    <div className="p-2 bg-rose-50 rounded-xl text-rose-500">
+                                        <Users size={20} />
+                                    </div>
+                                    Team Invitations
                                 </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {invitations.map((invite: any) => (
-                                        <div key={invite.id} className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-indigo-100/50 shadow-xl shadow-indigo-100/20 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                                        <div key={invite.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl shadow-indigo-900/5 flex items-center justify-between group hover:border-indigo-400/50 transition-all">
                                             <div>
-                                                <span className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-1 block">Project Invitation</span>
-                                                <h3 className="font-bold text-slate-900 text-lg">{invite.projects?.title || 'Untitled Project'}</h3>
-                                                <p className="text-slate-500 text-sm">
-                                                    Invited as <span className="font-semibold text-slate-700 capitalize">{invite.role}</span>
+                                                <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 block">Collaboration Request</span>
+                                                <h3 className="font-black text-slate-900 text-xl mb-1">{invite.projects?.title || 'Untitled Project'}</h3>
+                                                <p className="text-slate-500 text-sm font-medium">
+                                                    As <span className="text-indigo-600 capitalize font-bold">{invite.role}</span>
                                                     {invite.projects?.authors?.[0] && (
-                                                        <span className="text-slate-400 font-normal"> by {invite.projects.authors[0]}</span>
+                                                        <span className="text-slate-400"> • Inviter: {invite.projects.authors[0]}</span>
                                                     )}
                                                 </p>
                                             </div>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-3">
                                                 <button
                                                     onClick={() => handleInvitation(invite.project_id || invite.id, 'accepted')}
-                                                    className="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-teal-600 transition-colors"
+                                                    className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-teal-500 transition-all shadow-lg active:scale-95"
                                                 >
                                                     Accept
                                                 </button>
                                                 <button
                                                     onClick={() => handleInvitation(invite.project_id || invite.id, 'rejected')}
-                                                    className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                    className="px-6 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95"
                                                 >
                                                     Decline
                                                 </button>
@@ -439,20 +538,26 @@ export default function StudentDashboard() {
                             </motion.section>
                         )}
 
-                        <section className="mb-16">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <ActivityIcon /> {user?.role === 'teacher' ? 'Active Projects' : 'Project Status Tracker'}
+                        <section className="mb-20">
+                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-teal-400 blur-lg opacity-40 rounded-full"></div>
+                                    <Clock className="relative z-10 text-teal-600" />
+                                </div>
+                                {user?.role === 'teacher' ? 'Active Projects' : 'Project Status Tracker'}
                             </h2>
 
                             {projects.length === 0 ? (
-                                <div className="p-8 rounded-3xl border-2 border-dashed border-slate-200 text-center bg-white/50">
-                                    <p className="text-slate-500 mb-4">You have no active projects.</p>
+                                <div className="p-20 rounded-[3rem] border-2 border-dashed border-slate-200/60 text-center bg-white/30 backdrop-blur-xl">
+                                    <p className="text-slate-500 text-lg font-medium mb-8">No active projects found in your workspace.</p>
                                     {user?.role === 'student' && (
-                                        <Link href="/upload" className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-teal-600 transition-colors">Submit Your First Project</Link>
+                                        <Link href="/upload" className="px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-105 transition-all inline-flex items-center gap-3 group">
+                                            Start Your Submission <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                                        </Link>
                                     )}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {projects.map((project) => (
                                         <StatusCard
                                             key={project.id}
@@ -470,25 +575,25 @@ export default function StudentDashboard() {
 
                 {/* Recommended For You - Only Student */}
                 {user?.role === 'student' && recommendedProjects.length > 0 && (
-                    <section className="mb-16">
-                        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                            <span className="text-2xl animate-pulse">✨</span> Recommended for You (Powered by Grok)
+                    <section className="mb-20">
+                        <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                            <Sparkles className="text-yellow-500 fill-yellow-500" /> AI Insights & Recommendations
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {recommendedProjects.map((project) => (
                                 <Link href={`/project/${project.id}`} key={project.id} className="group">
-                                    <div className="bg-white/40 backdrop-blur-xl p-5 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                        <div className="flex justify-between items-start mb-3 relative z-10">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">
+                                    <div className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 shadow-2xl shadow-teal-900/5 hover:border-teal-400/50 hover:-translate-y-2 transition-all flex flex-col h-full relative overflow-hidden">
+                                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+                                        <div className="mb-6">
+                                            <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-[10px] font-black uppercase tracking-widest border border-teal-500/20">
                                                 {project.category}
                                             </span>
                                         </div>
-                                        <h3 className="font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors line-clamp-2 relative z-10">{project.title}</h3>
-                                        <p className="text-slate-500 text-xs line-clamp-2 mb-4 flex-grow relative z-10">{project.abstract}</p>
-                                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mt-auto pt-3 border-t border-slate-50 relative z-10">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-                                            AI Selected
+                                        <h3 className="font-black text-slate-900 text-xl mb-3 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors">{project.title}</h3>
+                                        <p className="text-slate-500 text-sm line-clamp-3 mb-6 font-medium leading-relaxed">{project.abstract}</p>
+                                        <div className="mt-auto pt-6 border-t border-slate-50 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Match Accuracy: 98%</span>
                                         </div>
                                     </div>
                                 </Link>
@@ -499,48 +604,61 @@ export default function StudentDashboard() {
 
                 {/* Common Stats Area */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div className="lg:col-span-2 space-y-12">
+                    <div className="lg:col-span-2 space-y-20">
                         <section>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
                                 <BarChart3 className="text-indigo-500" /> Portfolio Analytics
                             </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <StatCard label="Total Views" value={totalViews.toLocaleString()} icon={Eye} color="bg-blue-50 text-blue-600 border-blue-100" />
-                                <StatCard label="Downloads" value={totalDownloads.toLocaleString()} icon={Download} color="bg-emerald-50 text-emerald-600 border-emerald-100" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <StatCard label="Total Reach" value={totalViews.toLocaleString()} icon={Eye} color="bg-indigo-500/10 text-indigo-600 border-indigo-500/20" />
+                                <StatCard label="Citations" value={totalDownloads.toLocaleString()} icon={Download} color="bg-teal-500/10 text-teal-600 border-teal-500/20" />
                             </div>
-                            <div className="mt-6 bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 relative overflow-hidden">
-                                <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Tech Domain Influence</h3>
+                            <div className="mt-8 bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-indigo-900/5 relative overflow-hidden group">
+                                <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform"></div>
+                                <h3 className="font-black text-slate-900 mb-8 text-sm uppercase tracking-widest flex items-center gap-2">
+                                    <Sparkles size={16} className="text-indigo-400" /> Domain expertise scale
+                                </h3>
                                 {topTechs.length > 0 ? (
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         {topTechs.map((tech, i) => (
-                                            <TechBar key={tech.label} label={tech.label} percent={tech.percent} color={i === 0 ? "bg-indigo-500" : i === 1 ? "bg-purple-500" : "bg-teal-500"} />
+                                            <TechBar key={tech.label} label={tech.label} percent={tech.percent} color={i === 0 ? "bg-indigo-500" : i === 1 ? "bg-teal-500" : "bg-purple-500"} />
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-slate-400 text-sm">Add projects with tech stacks to see analytics.</p>
+                                    <div className="p-10 text-center text-slate-400 italic">
+                                        No domain data detected. Upload your first research project.
+                                    </div>
                                 )}
                             </div>
                         </section>
+
                         {/* Submission Timeline */}
                         <section>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <Clock className="text-amber-500" /> Submission Timeline
+                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                                <Clock className="text-amber-500" /> Research Roadmap
                             </h2>
-                            <div className="bg-white/40 backdrop-blur-xl p-8 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5">
-                                <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
+                            <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-amber-900/5">
+                                <div className="relative border-l-4 border-slate-100/50 ml-4 space-y-12 pl-10 py-4">
                                     {projects.map((project, i) => (
-                                        <div key={i} className="relative">
-                                            <div className="absolute -left-[43px] top-1 w-6 h-6 rounded-full bg-white border-4 border-slate-200 flex items-center justify-center">
-                                                <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                                        <div key={i} className="relative group">
+                                            <div className="absolute -left-[54px] top-1 w-10 h-10 rounded-full bg-white border-[6px] border-slate-100 flex items-center justify-center shadow-lg group-hover:border-teal-500 transition-all duration-500 group-hover:scale-110">
+                                                <div className="w-2.5 h-2.5 bg-slate-200 rounded-full group-hover:bg-teal-200 transition-colors"></div>
                                             </div>
                                             <div>
-                                                <span className="text-xs font-bold text-slate-400 block mb-1">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 group-hover:text-teal-600 transition-colors">
                                                     {new Date(project.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                                                 </span>
-                                                <h4 className="font-bold text-slate-800 text-lg">{project.title}</h4>
-                                                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500 mt-1 inline-block">
-                                                    {project.category}
-                                                </span>
+                                                <h4 className="font-black text-slate-900 text-2xl mb-2 group-hover:translate-x-1 transition-transform">{project.title}</h4>
+                                                <div className="flex gap-2">
+                                                    <span className="text-[10px] font-bold uppercase px-3 py-1 rounded-lg bg-slate-900/5 text-slate-600 border border-slate-900/10">
+                                                        {project.category}
+                                                    </span>
+                                                    <span className={`text-[10px] font-bold uppercase px-3 py-1 rounded-lg border
+                                                        ${project.status === 'approved' ? 'bg-teal-500/10 text-teal-700 border-teal-500/20' : 'bg-amber-500/10 text-amber-700 border-amber-500/20'}
+                                                    `}>
+                                                        {project.status || 'Pending Review'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -549,43 +667,56 @@ export default function StudentDashboard() {
                         </section>
                     </div>
 
-                    <div className="space-y-8">
-                        {/* My Team / Network - Different for Teacher vs Student */}
+                    <div className="space-y-12">
+                        {/* Profile/Network Card */}
                         <section>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <User className="text-rose-500" /> {user?.role === 'teacher' ? 'My Profile' : 'My Academic Network'}
+                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                                <User className="text-rose-500" /> Identity Profile
                             </h2>
                             {user?.role === 'teacher' ? (
-                                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-                                    <p className="text-slate-500 text-center">You are logged in as Teacher.</p>
+                                <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-rose-900/5 text-center">
+                                    <div className="w-24 h-24 mx-auto bg-gradient-to-br from-rose-500/10 to-orange-500/10 rounded-[2rem] flex items-center justify-center text-rose-500 font-black text-4xl mb-6 shadow-xl shadow-rose-500/5">
+                                        {(user?.full_name || 'F')[0]}
+                                    </div>
+                                    <h3 className="font-black text-2xl text-slate-900 mb-1">{user?.full_name}</h3>
+                                    <p className="text-slate-500 font-black uppercase tracking-widest text-[10px] mb-8">Faculty Research Mentor</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-900/5 p-4 rounded-2xl">
+                                            <p className="text-2xl font-black text-slate-900">{mentees.length}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Mentees</p>
+                                        </div>
+                                        <div className="bg-slate-900/5 p-4 rounded-2xl">
+                                            <p className="text-2xl font-black text-slate-900">{projects.length}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ongoing Labs</p>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
-                                // Existing Team Card for Student
                                 projects[0] ? (
-                                    <div className="bg-white/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-[100px] -z-0 opacity-50 transition-transform group-hover:scale-110"></div>
+                                    <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-rose-900/5 relative overflow-hidden group hover:-translate-y-2 transition-all">
+                                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/5 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform"></div>
                                         <div className="relative z-10">
-                                            <div className="mb-6">
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Project Guide</p>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-lg">
-                                                        {(projects[0].guide_name || 'Prof')[0]}
+                                            <div className="mb-10">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Research Mentor</p>
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-16 h-16 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600 font-black text-2xl shadow-xl shadow-rose-500/5 border border-rose-500/10">
+                                                        {(projects[0].guide_name || 'P')[0]}
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-slate-900">{projects[0].guide_name || 'Prof. Not Assigned'}</h3>
-                                                        <p className="text-xs text-slate-500">Faculty Mentor</p>
+                                                        <h3 className="font-black text-slate-900 text-lg group-hover:text-rose-500 transition-colors">{projects[0].guide_name || 'Mentor TBD'}</h3>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Senior Faculty Advisor</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="border-t border-slate-50 pt-6">
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Team Members</p>
-                                                <div className="flex flex-col gap-3">
+                                            <div className="border-t border-slate-50/50 pt-10">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Collaborators</p>
+                                                <div className="space-y-4">
                                                     {(Array.isArray(projects[0].authors) ? projects[0].authors : [projects[0].authors]).map((author: string, i: number) => (
-                                                        <div key={i} className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs border border-white shadow-sm from-slate-50 to-slate-100 bg-gradient-to-br">
+                                                        <div key={i} className="flex items-center gap-4 group/item">
+                                                            <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-lg border border-white/20 group-hover/item:scale-110 transition-transform">
                                                                 {author[0]}
                                                             </div>
-                                                            <span className="text-sm font-semibold text-slate-700">{author}</span>
+                                                            <span className="text-sm font-black text-slate-700 group-hover/item:text-slate-900 transition-colors">{author}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -593,21 +724,26 @@ export default function StudentDashboard() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="p-6 bg-white rounded-2xl border border-slate-100 text-center text-slate-400">
-                                        No team data available.
+                                    <div className="p-10 bg-white/60 backdrop-blur-3xl rounded-[3rem] border border-white/50 text-center text-slate-400 font-medium">
+                                        No active network detected.
                                     </div>
                                 )
                             )}
                         </section>
 
                         {user?.role === 'student' && (
-                            <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-                                <h3 className="text-2xl font-black mb-2">Build Your Legacy</h3>
-                                <p className="text-teal-100 mb-6 font-medium">Upload another project to expand your portfolio.</p>
-                                <Link href="/upload" className="block w-full text-center py-3 bg-white text-teal-600 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all">
-                                    Upload New Project
-                                </Link>
+                            <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all">
+                                <div className="absolute top-0 right-0 w-60 h-60 bg-teal-500 opacity-20 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform"></div>
+                                <div className="relative z-10">
+                                    <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 border border-white/10">
+                                        <Sparkles className="text-teal-400" />
+                                    </div>
+                                    <h3 className="text-3xl font-black mb-4 leading-tight">Build your <br />academic legacy.</h3>
+                                    <p className="text-slate-400 mb-10 font-medium leading-relaxed">Expand your portfolio by contributing new research and innovations.</p>
+                                    <Link href="/upload" className="block w-full text-center py-5 bg-teal-500 text-slate-900 rounded-2xl font-black uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all shadow-xl shadow-teal-500/20 active:scale-95">
+                                        New Submission
+                                    </Link>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -626,51 +762,38 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={onClick}
             className={`
-                bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 transition-all group shadow-lg shadow-teal-900/5 hover:shadow-2xl hover:shadow-teal-900/10 hover:-translate-y-1 cursor-pointer
-                ${isPending ? 'hover:border-amber-200/60' :
-                    isApproved ? 'hover:border-emerald-200/60' :
-                        'hover:border-red-200/60'}
+                bg-white/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 transition-all group shadow-2xl shadow-teal-900/5 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden
+                ${isPending ? 'hover:border-amber-400/50' :
+                    isApproved ? 'hover:border-teal-400/50' :
+                        'hover:border-rose-400/50'}
             `}
         >
-            <div className="flex justify-between items-start mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5
-                    ${isPending ? 'bg-amber-50 text-amber-600' :
-                        isApproved ? 'bg-emerald-50 text-emerald-600' :
-                            'bg-red-50 text-red-600'}
+            <div className="flex justify-between items-start mb-8">
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border
+                    ${isPending ? 'bg-amber-50/10 text-amber-700 border-amber-500/20' :
+                        isApproved ? 'bg-teal-500/10 text-teal-700 border-teal-500/20' :
+                            'bg-rose-500/10 text-rose-700 border-rose-500/20'}
                 `}>
-                    <span className={`w-2 h-2 rounded-full ${isPending ? 'bg-amber-500' : isApproved ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                    {project.status || 'Pending'}
+                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPending ? 'bg-amber-500' : isApproved ? 'bg-teal-500' : 'bg-rose-500'}`}></div>
+                    {project.status || 'Pending Review'}
                 </span>
 
                 <div className="flex gap-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); onShare(); }}
-                        className="p-2 hover:bg-slate-50 text-slate-400 hover:text-teal-600 rounded-full transition-colors"
-                        title="Share Link"
+                        className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
                     >
                         <Share2 size={16} />
                     </button>
-                    {isPending && (
+                    {(isPending || project.userRole === 'leader') && (
                         <Link
                             onClick={(e) => e.stopPropagation()}
-                            href={`/upload?edit=${project.id}`}
-                            className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors"
-                            title="Edit Pending Project"
-                        >
-                            <Edit size={16} />
-                        </Link>
-                    )}
-                    {/* Add Edit Button for Leaders (Always visible if leader) */}
-                    {project.userRole === 'leader' && !isPending && (
-                        <Link
-                            onClick={(e) => e.stopPropagation()}
-                            href={`/project/edit/${project.id}`}
-                            className="p-2 hover:bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-full transition-colors"
-                            title="Edit Project"
+                            href={isPending ? `/upload?edit=${project.id}` : `/project/edit/${project.id}`}
+                            className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
                         >
                             <Edit size={16} />
                         </Link>
@@ -678,68 +801,73 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
                 </div>
             </div>
 
-            <h3 className="font-bold text-slate-900 text-lg mb-2 line-clamp-1">{project.title}</h3>
+            <h3 className="font-black text-slate-900 text-2xl mb-4 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
 
-            {/* User Role Badge */}
-            <div className="mb-3">
-                {project.userRole === 'leader' ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide border border-amber-200">
-                        <User size={10} /> Leader
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 uppercase tracking-wide border border-blue-100">
-                        <Users size={10} /> Contributor
-                    </span>
-                )}
+            <div className="flex gap-3 mb-6">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border
+                    ${project.userRole === 'leader' ? 'bg-indigo-900 text-white border-indigo-900 shadow-md' : 'bg-slate-100 text-slate-600 border-slate-200'}
+                `}>
+                    {project.userRole === 'leader' ? <User size={10} className="fill-white" /> : <Users size={10} />}
+                    {project.userRole === 'leader' ? 'Lead Researcher' : 'Contributor'}
+                </span>
+                <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                    {project.category}
+                </span>
             </div>
 
-            <p className="text-slate-500 text-sm mb-4 line-clamp-2 min-h-[40px]">{project.abstract}</p>
+            <p className="text-slate-500 text-sm mb-10 line-clamp-3 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{project.abstract}</p>
 
             {(isRejected || project.remarks) && (project.remarks || project.admin_feedback) && (
-                <div className="bg-red-50 p-3 rounded-xl border border-red-100 flex items-start gap-2 mt-4 animate-in fade-in slide-in-from-top-2">
-                    <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                <div className="bg-rose-500/5 p-5 rounded-2xl border border-rose-500/10 flex items-start gap-4 mb-4">
+                    <AlertCircle size={20} className="text-rose-500 flex-shrink-0" />
                     <div>
-                        <p className="text-xs font-bold text-red-700 uppercase mb-1">Feedback / Remarks</p>
-                        <p className="text-xs text-red-600 leading-snug">"{project.remarks || project.admin_feedback}"</p>
+                        <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Feedback Digest</p>
+                        <p className="text-xs text-rose-600/80 font-medium italic leading-relaxed">"{project.remarks || project.admin_feedback}"</p>
                     </div>
                 </div>
             )}
 
             {isApproved && (
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-600 mt-4 bg-emerald-50/50 p-2 rounded-lg">
-                    <CheckCircle size={14} /> LIVE on Repository
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-500/5 p-4 rounded-2xl border border-teal-500/10">
+                    <div className="w-5 h-5 bg-teal-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                        <CheckCircle size={14} />
+                    </div>
+                    Synchronized with Repository
                 </div>
             )}
+
+            {/* Subtle Gradient Shadow Reveal */}
+            <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-slate-200/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
         </motion.div>
     );
 };
 
 const StatCard = ({ label, value, icon: Icon, color }: any) => (
-    <div className="bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/40 shadow-lg shadow-teal-900/5 flex items-center gap-5 hover:scale-105 transition-transform duration-300">
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color}`}>
-            <Icon size={24} />
+    <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-teal-900/5 flex items-center gap-8 hover:-translate-y-2 transition-all duration-500 group">
+        <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-3xl shadow-xl transition-all group-hover:scale-110 group-hover:rotate-6 ${color}`}>
+            <Icon size={32} />
         </div>
         <div>
-            <p className="text-3xl font-black text-slate-900">{value}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+            <p className="text-5xl font-black text-slate-900 tracking-tighter mb-1">{value}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{label}</p>
         </div>
     </div>
 );
 
-const ActivityIcon = () => (
-    <div className="relative">
-        <div className="absolute inset-0 bg-teal-400 blur opacity-40 rounded-full"></div>
-        <Clock className="relative z-10 text-teal-600" />
-    </div>
-)
-
-// New component for TechBar (assuming it's needed for the new UI)
 const TechBar = ({ label, percent, color }: { label: string, percent: string, color: string }) => (
-    <div className="flex items-center gap-4">
-        <span className="text-sm font-semibold text-slate-700 w-24 flex-shrink-0">{label}</span>
-        <div className="relative flex-grow h-2 rounded-full bg-slate-100">
-            <div className={`absolute top-0 left-0 h-full rounded-full ${color}`} style={{ width: percent }}></div>
+    <div className="group/bar">
+        <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest group-hover/bar:text-indigo-600 transition-colors">{label}</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tabular-nums">{percent}</span>
         </div>
-        <span className="text-xs font-bold text-slate-500 w-10 text-right">{percent}</span>
+        <div className="h-3 rounded-full bg-slate-900/5 p-0.5 overflow-hidden">
+            <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: percent }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className={`h-full rounded-full shadow-lg ${color}`}
+            ></motion.div>
+        </div>
     </div>
 );
+

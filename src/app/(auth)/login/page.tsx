@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, GraduationCap, Building2, ArrowRight, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -14,13 +14,16 @@ function AuthContent() {
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Check URL params to set initial state
+    // Check URL params and pathname to set initial state
+    const pathname = usePathname();
     useEffect(() => {
         const view = searchParams.get('view');
-        if (view === 'signup') {
+        if (view === 'signup' || pathname === '/signup') {
             setIsLogin(false);
+        } else if (view === 'login' || pathname === '/login') {
+            setIsLogin(true);
         }
-    }, [searchParams]);
+    }, [searchParams, pathname]);
 
     // Login State
     const [loginEmail, setLoginEmail] = useState('');
@@ -294,6 +297,23 @@ function AuthContent() {
                             }}>
                             <div className="w-full max-w-sm mx-auto relative z-10">
                                 <div className="mb-10">
+                                    {/* Auth Tabs */}
+                                    <div className="flex p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl mb-8 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLogin(true)}
+                                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${isLogin ? 'bg-white text-[#0F172A] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Login
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLogin(false)}
+                                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${!isLogin ? 'bg-white text-[#0F172A] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Sign Up
+                                        </button>
+                                    </div>
                                     <h3 className="text-3xl font-black text-slate-800 tracking-tight font-[family-name:var(--font-playfair)] italic">Login Account</h3>
                                     <p className="text-slate-500 text-base mt-2 font-medium">Please sign in to continue.</p>
                                 </div>
@@ -368,6 +388,23 @@ function AuthContent() {
                             }}>
                             <div className="w-full max-w-sm mx-auto relative z-10">
                                 <div className="mb-6">
+                                    {/* Auth Tabs */}
+                                    <div className="flex p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl mb-6 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLogin(true)}
+                                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${isLogin ? 'bg-white text-[#0F172A] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Login
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLogin(false)}
+                                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${!isLogin ? 'bg-white text-[#0F172A] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Sign Up
+                                        </button>
+                                    </div>
                                     <h3 className="text-2xl font-black text-slate-900 tracking-tight font-[family-name:var(--font-playfair)] italic">Create Account</h3>
                                     <p className="text-slate-600 text-sm mt-1 font-medium">Join us to get started.</p>
                                 </div>
