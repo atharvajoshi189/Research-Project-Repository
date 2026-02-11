@@ -303,7 +303,7 @@ export default function Home() {
                     {/* Glow Effect */}
                     <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full opacity-20 group-focus-within:opacity-50 blur-xl transition-opacity duration-500" />
 
-                    <div className={`relative bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ${showDropdown ? 'rounded-3xl' : 'rounded-full'}`}>
+                    <div className={`relative bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 ${showDropdown ? 'rounded-3xl' : 'rounded-full'}`}>
                       <div className="flex items-center pl-6 pr-2 py-2">
                         <Search className="text-slate-400 w-5 h-5 flex-shrink-0 mr-4" />
                         <input
