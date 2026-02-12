@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getSmartDownloadUrl } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import NeuralLoading from '@/components/NeuralLoading';
 
 import { useRealtimeProjects } from '@/hooks/useRealtimeProjects';
 
@@ -668,7 +669,7 @@ function AdminContent() {
 
 export default function AdminPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen grid place-items-center"><div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Suspense fallback={<NeuralLoading message="Accessing Control Center..." />}>
             <AdminContent />
         </Suspense>
     );
