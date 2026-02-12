@@ -11,6 +11,10 @@ import toast from 'react-hot-toast';
 import GrokPanel from '@/components/GrokPanel';
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
+import SuggestedReadings from '@/components/SuggestedReadings';
+import PresentationPitch from '@/components/PresentationPitch';
+import ProjectHealth from '@/components/ProjectHealth';
+import RelatedInnovations from '@/components/RelatedInnovations';
 
 export default function ProjectDetails() {
     const params = useParams();
@@ -615,12 +619,28 @@ export default function ProjectDetails() {
                         {/* 2. Grok Intelligence Panel (Replacing old AI Insights) */}
                         <GrokPanel data={aiAnalysis} loading={loadingAiAnalysis} />
 
+                        {/* Project Health Meter */}
+                        {project && (
+                            <ProjectHealth
+                                projectTitle={project.title}
+                                projectAbstract={project.abstract}
+                                techStack={Array.isArray(project.tech_stack) ? project.tech_stack.join(', ') : project.tech_stack}
+                            />
+                        )}
+
+                        {/* Suggested Readings */}
+                        {project && (
+                            <SuggestedReadings projectTitle={project.title} projectAbstract={project.abstract} />
+                        )}
+
                         {/* Action Hub */}
                         <div className="bg-white/70 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-white">
                             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <FileText size={20} className="text-slate-400" /> Actions
                             </h3>
                             <div className="space-y-4">
+                                <PresentationPitch projectTitle={project.title} projectAbstract={project.abstract} />
+
                                 <button onClick={handleDownload} className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-400 text-white font-bold shadow-lg shadow-teal-200 hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
                                     <Download size={20} /> Download PDF
                                 </button>
@@ -675,8 +695,13 @@ export default function ProjectDetails() {
                     </motion.div>
                 </div>
 
+                {/* Intelligent Recommendations */}
+                {project && (
+                    <RelatedInnovations projectTitle={project.title} projectAbstract={project.abstract} />
+                )}
+
                 {/* Similar Projects */}
-                <section className="mt-32 border-t border-slate-200 pt-16">
+                <section className="mt-24 border-t border-slate-200 pt-16">
                     <div className="flex justify-between items-end mb-10">
                         <div>
                             <h2 className="text-3xl font-bold text-slate-900 mb-2">Recommended for You</h2>
