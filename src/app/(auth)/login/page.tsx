@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2, GraduationCap, Building2, ArrowRight, Sparkles } 
 import toast from 'react-hot-toast';
 import { signInUser, signUpUser, getUserRole } from '@/lib/authService';
 import Image from 'next/image';
+import NeuralLoading from '@/components/NeuralLoading';
 
 function AuthContent() {
     const router = useRouter();
@@ -522,11 +523,7 @@ function AuthContent() {
 
 export default function AuthPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC]">
-                <Loader2 className="animate-spin h-10 w-10 text-[#0F172A]" />
-            </div>
-        }>
+        <Suspense fallback={<NeuralLoading message="Syncing Neural Profiles..." />}>
             <AuthContent />
         </Suspense>
     );

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Save, X, Info, CheckCircle, ArrowLeft, Plus, Trash2, Users, Search, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import NeuralLoading from '@/components/NeuralLoading';
 
 export default function EditProjectPage() {
     const router = useRouter();
@@ -424,11 +425,7 @@ export default function EditProjectPage() {
     // --- Loading & Auth States ---
 
     if (loading) {
-        return (
-            <div className="min-h-screen grid place-items-center bg-slate-50">
-                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
+        return <NeuralLoading message="Decrypting Workspace Data..." />;
     }
 
     if (unauthorized) {

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Github, FileText, Search, BrainCircuit, Code2, Cpu, X } from 'lucide-react';
 import { searchProjectsWithAI } from '../actions/aiAction';
 import { useAITheme } from '@/context/AIThemeContext';
+import NeuralLoading from '@/components/NeuralLoading';
 
 // Helper for Typing Effect
 function TypingText({ text }: { text: string }) {
@@ -139,20 +140,7 @@ function AIModeContent() {
 
                 {/* 2. Loading State */}
                 {loading && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center py-12"
-                    >
-                        <div className="relative">
-                            <div className="absolute -inset-4 bg-cyan-500/20 rounded-full blur-xl animate-pulse"></div>
-                            <Cpu size={48} className="text-cyan-400 relative z-10 animate-spin-slow" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mt-6 animate-pulse">
-                            Neural Processing...
-                        </h2>
-                    </motion.div>
+                    <NeuralLoading message="Neural Processing..." />
                 )}
 
                 {/* 3. Results Content */}
@@ -260,7 +248,7 @@ function AIModeContent() {
 
 export default function AIModePage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-cyan-500">Loading Neural Interface...</div>}>
+        <Suspense fallback={<NeuralLoading message="Initializing Neural Interface..." />}>
             <AIModeContent />
         </Suspense>
     );

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { getSmartDownloadUrl } from '@/lib/utils';
+import NeuralLoading from '@/components/NeuralLoading';
 
 import { useRealtimeProjects } from '@/hooks/useRealtimeProjects';
 
@@ -308,10 +309,7 @@ function TeacherDashboardContent() {
 
                 {/* Loading State */}
                 {loading ? (
-                    <div className="py-20 text-center">
-                        <div className="animate-spin w-8 h-8 border-4 border-indigo-500 rounded-full border-t-transparent mx-auto mb-4"></div>
-                        <p className="text-slate-400 font-bold">Syncing Matrix...</p>
-                    </div>
+                    <NeuralLoading message="Syncing Matrix..." />
                 ) : (
                     <>
                         {/* MASTER STATS CARDS (HOD Only) */}
@@ -764,7 +762,7 @@ function TeacherDashboardContent() {
 
 export default function TeacherPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen grid place-items-center"><div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Suspense fallback={<NeuralLoading message="Initializing Teacher Portal..." />}>
             <TeacherDashboardContent />
         </Suspense>
     );

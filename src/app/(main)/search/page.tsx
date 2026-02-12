@@ -12,6 +12,7 @@ import GridPulse from '@/components/GridPulse';
 import BentoGrid from '@/components/BentoGrid';
 import TechConstellation from '@/components/TechConstellation';
 import DistributionChart from '@/components/DistributionChart';
+import NeuralLoading from '@/components/NeuralLoading';
 
 import ProjectListView from '@/components/ProjectListView';
 import ProjectGraphView from '@/components/ProjectGraphView';
@@ -369,8 +370,13 @@ function SearchContent() {
                         <div className="pb-20">
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {loading ? (
+<<<<<<< HEAD
                                     <div className="flex justify-center py-20">
                                         <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+=======
+                                    <div className="col-span-full">
+                                        <NeuralLoading message="Synthesizing Results..." />
+>>>>>>> e3c1109 (Standardized NeuralLoading animation across all major pages (Login, Admin, Search, AI Mode, Allotment, Dashboard, Project Details/Edit))
                                     </div>
                                 ) : filteredProjects.length === 0 && !loading ? (
                                     <motion.div
@@ -458,7 +464,7 @@ function SearchContent() {
 
 export default function SearchPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen grid place-items-center"><div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Suspense fallback={<NeuralLoading message="Initializing Search Matrix..." />}>
             <SearchContent />
         </Suspense>
     );

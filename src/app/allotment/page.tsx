@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Users, UserPlus, BookOpen, ChevronRight, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import NeuralLoading from '@/components/NeuralLoading';
 
 export default function AllotmentPage() {
     const router = useRouter();
@@ -135,7 +136,7 @@ export default function AllotmentPage() {
         }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin w-8 h-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div></div>;
+    if (loading) return <NeuralLoading message="Initializing Allotment Matrix..." />;
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-sans pt-24 pb-12 px-6">
