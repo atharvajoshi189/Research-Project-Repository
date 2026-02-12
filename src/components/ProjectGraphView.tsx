@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { CircleDot, Maximize, Info, Share2 } from 'lucide-react';
+import { CircleDot, Maximize, Info, Share2, Activity, ExternalLink, X } from 'lucide-react';
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
@@ -27,6 +27,51 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 600, height: 600 });
     const graphRef = useRef<any>(null);
+
+    // Interaction State
+    const [selectedNode, setSelectedNode] = useState<any>(null);
+    const [highlightNodes, setHighlightNodes] = useState(new Set());
+    const [highlightLinks, setHighlightLinks] = useState(new Set());
+
+    const handleNodeClick = (node: any) => {
+        const newHighlightNodes = new Set();
+        const newHighlightLinks = new Set();
+
+        // Focus Pulse Logic
+        if (node) {
+            newHighlightNodes.add(node.id);
+            // Find neighbors
+            graphData.links.forEach((link: any) => {
+                if (link.source.id === node.id || link.target.id === node.id) {
+                    newHighlightLinks.add(link);
+                    newHighlightNodes.add(link.source.id);
+                    newHighlightNodes.add(link.target.id);
+                }
+            });
+        }
+
+        setSelectedNode(node || null);
+        setHighlightNodes(newHighlightNodes);
+        setHighlightLinks(newHighlightLinks);
+
+        // Center view on node
+        if (node && graphRef.current) {
+            graphRef.current.centerAt(node.x, node.y, 1000);
+            graphRef.current.zoom(6, 2000);
+        }
+    };
+
+    const handleBackgroundClick = () => {
+        setSelectedNode(null);
+        setHighlightNodes(new Set());
+        setHighlightLinks(new Set());
+    };
+
+    const handleShake = () => {
+        if (graphRef.current) {
+            graphRef.current.d3ReheatSimulation();
+        }
+    };
 
     useEffect(() => {
         if (containerRef.current) {
@@ -94,6 +139,7 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
                     // Node Styling - "Floating Dots"
                     nodeLabel="name"
                     nodeColor={(node: any) => {
+                        if (highlightNodes.size > 0 && !highlightNodes.has(node.id)) return '#cbd5e1'; // Dim others
                         if (node.group === 'Final Year Project') return '#0d9488'; // Teal-600
                         if (node.group === 'Research Paper') return '#4f46e5'; // Indigo-600
                         if (node.group === 'Micro-Project') return '#e11d48'; // Rose-600
@@ -104,23 +150,53 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
 
                     // Link Styling - Subtle connections
                     linkColor={() => '#cbd5e1'} // Slate-300
-                    linkWidth={(link: any) => 0.5} // Thin lines
-                    linkDirectionalParticles={0}
+                    linkWidth={(link: any) => highlightLinks.has(link) ? 2 : 0.5} // Thicker if highlighted
+                    linkDirectionalParticles={0} // No particles for cleanliness, or maybe add them on highlight?
 
+                    // Canvas Object for custom rendering
                     nodeCanvasObject={(node: any, ctx, globalScale) => {
+                        const isHighlighted = highlightNodes.has(node.id);
+                        const isSelected = selectedNode?.id === node.id;
+                        const isDimmed = highlightNodes.size > 0 && !isHighlighted;
+
                         const label = node.name;
                         const fontSize = 12 / globalScale;
+                        const nodeColor = node.color || '#64748b';
 
-                        // Soft Glow for "Floating" effect
-                        ctx.shadowColor = node.color || '#64748b';
-                        ctx.shadowBlur = 10;
+                        // Skip rendering details if dimmed (optimization + visual focus)
+                        if (isDimmed) {
+                            ctx.beginPath();
+                            ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
+                            ctx.fillStyle = '#cbd5e1';
+                            ctx.fill();
+                            return;
+                        }
+
+                        // Focus Pulse Ring
+                        if (isHighlighted || isSelected) {
+                            ctx.beginPath();
+                            // Animate this if possible, for now static pulse ring
+                            ctx.arc(node.x, node.y, 8 + (isSelected ? 2 : 0), 0, 2 * Math.PI, false);
+                            ctx.strokeStyle = '#2dd4bf'; // Teal-400 (Aqua Green)
+                            ctx.lineWidth = isSelected ? 2 : 1;
+                            ctx.stroke();
+
+                            // Glow
+                            ctx.shadowColor = '#2dd4bf';
+                            ctx.shadowBlur = 15;
+                        } else {
+                            // Standard Glow
+                            ctx.shadowColor = nodeColor;
+                            ctx.shadowBlur = 10;
+                        }
+
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 0;
 
                         // Node Dot
                         ctx.beginPath();
                         ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
-                        ctx.fillStyle = node.color || '#64748b';
+                        ctx.fillStyle = nodeColor;
                         ctx.fill();
 
                         // Reset shadow
@@ -132,13 +208,13 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
                         ctx.lineWidth = 1.5;
                         ctx.stroke();
 
-                        // Label (Only when zoomed in close)
-                        if (globalScale > 2) {
+                        // Label (Show on zoom OR if highlighted)
+                        if (globalScale > 2 || isHighlighted) {
                             ctx.font = `600 ${fontSize}px Inter, sans-serif`;
                             const textWidth = ctx.measureText(label).width;
                             const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.4);
 
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                             ctx.roundRect(
                                 node.x - bckgDimensions[0] / 2,
                                 node.y + 8,
@@ -154,20 +230,27 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
                             ctx.fillText(label, node.x, node.y + 8 + bckgDimensions[1] / 2);
                         }
                     }}
-                    onNodeClick={(node: any) => {
-                        router.push(`/project/${node.id}`);
-                    }}
+                    onNodeClick={handleNodeClick}
+                    onBackgroundClick={handleBackgroundClick}
                     cooldownTicks={100}
                 />
 
                 {/* Floating Control Button */}
-                <div className="absolute bottom-4 left-4">
+                {/* Floating Controls */}
+                <div className="absolute bottom-4 left-4 flex gap-2">
                     <button
                         onClick={() => graphRef.current?.zoomToFit(400)}
                         className="p-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg shadow-sm transition-colors"
                         title="Reset View"
                     >
                         <Maximize size={18} />
+                    </button>
+                    <button
+                        onClick={handleShake}
+                        className="p-2 bg-white hover:bg-slate-100 text-rose-500 border border-slate-200 rounded-lg shadow-sm transition-colors"
+                        title="Shake Physics"
+                    >
+                        <Activity size={18} />
                     </button>
                 </div>
             </div>
@@ -188,16 +271,46 @@ const ProjectGraphView = ({ projects }: ProjectGraphViewProps) => {
 
                 <div className="space-y-6">
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                            <span className="block text-2xl font-bold text-slate-800">{graphData.nodes.length}</span>
-                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Nodes</span>
+                    {/* Stats or Selected Node Details */}
+                    {selectedNode ? (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full">
+                                    {selectedNode.group}
+                                </span>
+                                <button onClick={handleBackgroundClick} className="text-slate-400 hover:text-slate-600">
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
+                                {selectedNode.name}
+                            </h2>
+                            <div className="flex flex-wrap gap-1 mb-4">
+                                {selectedNode.tech.slice(0, 5).map((t: string, i: number) => (
+                                    <span key={i} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                        {t}
+                                    </span>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => router.push(`/project/${selectedNode.id}`)}
+                                className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-slate-900/20"
+                            >
+                                View Project <ExternalLink size={16} />
+                            </button>
                         </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                            <span className="block text-2xl font-bold text-slate-800">{graphData.links.length}</span>
-                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Links</span>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                                <span className="block text-2xl font-bold text-slate-800">{graphData.nodes.length}</span>
+                                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Nodes</span>
+                            </div>
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                                <span className="block text-2xl font-bold text-slate-800">{graphData.links.length}</span>
+                                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Links</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Legend */}
                     <div>
