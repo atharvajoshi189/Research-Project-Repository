@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect, useMemo } from 'react';
+import { useState, Suspense, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github } from 'lucide-react';
 import NextLink from 'next/link';
@@ -143,13 +143,13 @@ function SearchContent() {
         });
     }, [searchTerm, selectedYear, selectedCategory, selectedTech, allProjects]);
 
-    const toggleFilter = (list: string[], setList: any, item: string) => {
+    const toggleFilter = useCallback((list: string[], setList: any, item: string) => {
         if (list.includes(item)) {
             setList(list.filter((i: string) => i !== item));
         } else {
             setList([...list, item]);
         }
-    };
+    }, []);
 
     // Calculate all unique tech stacks from loaded projects
     const allUniqueTechs = useMemo(() => {
@@ -370,13 +370,8 @@ function SearchContent() {
                         <div className="pb-20">
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {loading ? (
-<<<<<<< HEAD
-                                    <div className="flex justify-center py-20">
-                                        <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-=======
                                     <div className="col-span-full">
                                         <NeuralLoading message="Synthesizing Results..." />
->>>>>>> e3c1109 (Standardized NeuralLoading animation across all major pages (Login, Admin, Search, AI Mode, Allotment, Dashboard, Project Details/Edit))
                                     </div>
                                 ) : filteredProjects.length === 0 && !loading ? (
                                     <motion.div
@@ -446,7 +441,7 @@ function SearchContent() {
                                             key="graph"
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, opacity: 0 }}
+                                            exit={{ opacity: 0 }}
                                             transition={{ duration: 0.5 }}
                                         >
                                             <ProjectGraphView projects={filteredProjects} />

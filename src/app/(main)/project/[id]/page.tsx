@@ -9,16 +9,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { getSmartDownloadUrl } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import GrokPanel from '@/components/GrokPanel';
-<<<<<<< HEAD
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
 import SuggestedReadings from '@/components/SuggestedReadings';
 import PresentationPitch from '@/components/PresentationPitch';
 import ProjectHealth from '@/components/ProjectHealth';
 import RelatedInnovations from '@/components/RelatedInnovations';
-=======
 import NeuralLoading from '@/components/NeuralLoading';
->>>>>>> e3c1109 (Standardized NeuralLoading animation across all major pages (Login, Admin, Search, AI Mode, Allotment, Dashboard, Project Details/Edit))
 
 export default function ProjectDetails() {
     const params = useParams();
