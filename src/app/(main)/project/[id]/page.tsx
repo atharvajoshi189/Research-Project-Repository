@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import GrokPanel from '@/components/GrokPanel';
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
 import SuggestedReadings from '@/components/SuggestedReadings';
 import PresentationPitch from '@/components/PresentationPitch';
 import ProjectHealth from '@/components/ProjectHealth';
@@ -300,11 +301,11 @@ export default function ProjectDetails() {
 
     return (
         <div className="min-h-screen w-full relative overflow-hidden bg-[#F8FAFC]">
-
-            {/* 1. Aura Background */}
-            <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 right-0 w-[50vw] h-[50vh] bg-teal-50 rounded-full blur-[120px] opacity-60"></div>
-                <div className="absolute bottom-0 left-0 w-[50vw] h-[50vh] bg-indigo-50 rounded-full blur-[120px] opacity-60"></div>
+            {/* Background Effects */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-12 md:py-20">

@@ -249,7 +249,7 @@ export default function Home() {
       <div className="relative z-10">
 
         {/* Hero Section */}
-        <section ref={heroRef} className="relative w-full min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
+        <section ref={heroRef} className="relative w-full min-h-[75vh] flex flex-col items-center justify-center overflow-hidden">
 
           <div className="w-full max-w-7xl mx-auto px-6 py-20">
             <div className="flex flex-col items-center text-center">
@@ -451,7 +451,7 @@ export default function Home() {
 
 
         {/* Bento Grid Featured */}
-        <section ref={featuresRef} className="px-4 pb-32 max-w-[90rem] mx-auto">
+        <section ref={featuresRef} className="px-4 pb-32 max-w-[90rem] mx-auto -mt-32 relative z-20">
           <div className="flex items-end justify-between mb-12 px-2">
             <div>
               <h2 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Featured Work</h2>

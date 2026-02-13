@@ -7,6 +7,9 @@ import { Users, UserPlus, BookOpen, ChevronRight, CheckCircle, AlertCircle, Spar
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import NeuralLoading from '@/components/NeuralLoading';
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
 
 export default function AllotmentPage() {
     const router = useRouter();
@@ -139,12 +142,12 @@ export default function AllotmentPage() {
     if (loading) return <NeuralLoading message="Initializing Allotment Matrix..." />;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans pt-24 pb-12 px-6">
-
-            {/* Background Ambience */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 right-[-10%] w-[600px] h-[600px] bg-indigo-100/40 rounded-full blur-3xl opacity-50"></div>
-                <div className="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-teal-100/40 rounded-full blur-3xl opacity-50"></div>
+        <div className="min-h-screen bg-[#F8FAFC] font-sans pt-24 pb-12 px-6 relative overflow-hidden">
+            {/* Background Effects */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
             </div>
 
             <div className="max-w-6xl mx-auto relative z-10">

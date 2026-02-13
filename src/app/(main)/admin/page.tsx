@@ -10,6 +10,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { getSmartDownloadUrl } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import NeuralLoading from '@/components/NeuralLoading';
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
 
 import { useRealtimeProjects } from '@/hooks/useRealtimeProjects';
 
@@ -309,10 +312,12 @@ function AdminContent() {
     };
 
     return (
-        <div className="min-h-screen font-sans relative bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
-            {/* Background Texture */}
-            <div className="fixed inset-0 w-full h-full -z-0 pointer-events-none opacity-40"
-                style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
+        <div className="min-h-screen font-sans relative bg-[#F8FAFC] overflow-hidden">
+            {/* Background Effects */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all relative z-10 pt-24">

@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { User, Lock, Mail, Save, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -76,7 +79,13 @@ export default function SettingsPage() {
     if (loading) return null;
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-teal-100 flex justify-center items-center p-6">
+        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-teal-100 flex justify-center items-center p-6 relative overflow-hidden">
+            {/* Background Effects */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
+            </div>
 
 
             <div className="max-w-4xl w-full bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col md:flex-row">

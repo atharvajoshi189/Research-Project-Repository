@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { getSmartDownloadUrl } from '@/lib/utils';
 import NeuralLoading from '@/components/NeuralLoading';
+import BackgroundBlobs from '@/components/BackgroundBlobs';
+import GridPulse from '@/components/GridPulse';
+import BentoGrid from '@/components/BentoGrid';
 
 import { useRealtimeProjects } from '@/hooks/useRealtimeProjects';
 
@@ -262,7 +265,13 @@ function TeacherDashboardContent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans transition-colors duration-500 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#F8FAFC] font-sans transition-colors duration-500 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            {/* Background Effects */}
+            <BackgroundBlobs />
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <GridPulse />
+                <BentoGrid />
+            </div>
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
