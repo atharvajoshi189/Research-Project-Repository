@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect, useMemo } from 'react';
+import { useState, Suspense, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Filter, Search as SearchIcon, ArrowRight, Check, SlidersHorizontal, FolderX, Github } from 'lucide-react';
 import NextLink from 'next/link';
@@ -143,13 +143,13 @@ function SearchContent() {
         });
     }, [searchTerm, selectedYear, selectedCategory, selectedTech, allProjects]);
 
-    const toggleFilter = (list: string[], setList: any, item: string) => {
+    const toggleFilter = useCallback((list: string[], setList: any, item: string) => {
         if (list.includes(item)) {
             setList(list.filter((i: string) => i !== item));
         } else {
             setList([...list, item]);
         }
-    };
+    }, []);
 
     // Calculate all unique tech stacks from loaded projects
     const allUniqueTechs = useMemo(() => {

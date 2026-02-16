@@ -17,40 +17,40 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
     // Define Deep, Premium Mesh Colors
     const getColors = () => {
         switch (activeSection) {
-            case "features": // Deep Blue
+            case "features": // Green Palette
                 return {
-                    bg: "#eff6ff", // Blue-50
+                    bg: "#ffffff", // Pure White
+                    blob1: "#10b981", // Emerald-500
+                    blob2: "#34d399", // Emerald-400
+                    blob3: "#059669", // Emerald-600
+                    blob4: "#6ee7b7", // Emerald-300
+                    accent: "rgba(16, 185, 129, 0.2)"
+                };
+            case "hall-of-fame": // Blue Palette
+                return {
+                    bg: "#ffffff", // Pure White
                     blob1: "#3b82f6", // Blue-500
                     blob2: "#60a5fa", // Blue-400
                     blob3: "#2563eb", // Blue-600
                     blob4: "#93c5fd", // Blue-300
                     accent: "rgba(37, 99, 235, 0.2)"
                 };
-            case "hall-of-fame": // Cyan / Sky Green (Transition)
+            case "repo-pulse": // Green (Teal) Palette
                 return {
-                    bg: "#ecfeff", // Cyan-50
-                    blob1: "#06b6d4", // Cyan-500
-                    blob2: "#22d3ee", // Cyan-400
-                    blob3: "#0891b2", // Cyan-600
-                    blob4: "#67e8f9", // Cyan-300
-                    accent: "rgba(8, 145, 178, 0.2)"
+                    bg: "#ffffff", // Pure White
+                    blob1: "#14b8a6", // Teal-500
+                    blob2: "#2dd4bf", // Teal-400
+                    blob3: "#0d9488", // Teal-600
+                    blob4: "#5eead4", // Teal-300
+                    accent: "rgba(13, 148, 136, 0.2)"
                 };
-            case "repo-pulse": // Emerald / Green (End of Spectrum)
+            default: // Hero: Blue Palette
                 return {
-                    bg: "#f0fdf4", // Green-50
-                    blob1: "#10b981", // Emerald-500
-                    blob2: "#34d399", // Emerald-400
-                    blob3: "#059669", // Emerald-600
-                    blob4: "#6ee7b7", // Emerald-300
-                    accent: "rgba(5, 150, 105, 0.2)"
-                };
-            default: // Hero: Light Sky Blue
-                return {
-                    bg: "#f0f9ff", // Sky-50
-                    blob1: "#38bdf8", // Sky-400
-                    blob2: "#7dd3fc", // Sky-300
-                    blob3: "#0ea5e9", // Sky-500
-                    blob4: "#bae6fd", // Sky-200
+                    bg: "#ffffff", // Pure White
+                    blob1: "#0ea5e9", // Sky-500
+                    blob2: "#38bdf8", // Sky-400
+                    blob3: "#0284c7", // Sky-600
+                    blob4: "#7dd3fc", // Sky-300
                     accent: "rgba(14, 165, 233, 0.15)"
                 };
         }

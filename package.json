@@ -16,6 +16,8 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.26",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "openai": "^6.17.0",
@@ -23,7 +25,8 @@
     "react-dom": "19.2.3",
     "react-force-graph-2d": "^1.29.1",
     "react-hot-toast": "^2.6.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

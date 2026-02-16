@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, User, Code, FileText, ArrowUpRight, Cpu, BrainCircuit, Coffee, Database, Cloud, FileType2, Terminal, Globe, Smartphone, Wifi, Layers, Box, Layout, Camera, Eye, Zap, Shield, Lock, Server, Link as LinkIcon, Smartphone as MobileIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -8,7 +9,7 @@ interface ProjectListViewProps {
     projects: any[];
 }
 
-const ProjectListView = ({ projects }: ProjectListViewProps) => {
+const ProjectListView = React.memo(({ projects }: ProjectListViewProps) => {
     // Helper function to map tech stack strings to icons
     const getTechIcon = (tech: string) => {
         const t = tech.toLowerCase().trim();
@@ -154,10 +155,10 @@ const ProjectListView = ({ projects }: ProjectListViewProps) => {
             </div>
             <div className="px-4 md:px-6 py-2 bg-slate-50 border-t border-slate-200 text-[9px] text-slate-400 flex justify-between items-center">
                 <span className="font-mono">SYS_STATUS: ONLINE</span>
-                <span className="font-mono">UPDATED: {new Date().toLocaleDateString()}</span>
+                <span className="font-mono">UPDATED: TODAY</span>
             </div>
         </div>
     );
-};
+});
 
 export default ProjectListView;
