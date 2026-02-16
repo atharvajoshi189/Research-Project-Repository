@@ -634,16 +634,16 @@ export default function StudentDashboard() {
                         </section>
 
                         {user?.role === 'student' && (
-                            <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all">
-                                <div className="absolute top-0 right-0 w-60 h-60 bg-teal-500 opacity-20 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform"></div>
+                            <div className="bg-white/60 backdrop-blur-3xl rounded-[3rem] p-10 border border-white/50 shadow-2xl shadow-teal-900/5 relative overflow-hidden group hover:-translate-y-2 transition-all hover:shadow-teal-900/20">
+                                <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-br from-teal-500/10 to-indigo-500/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform"></div>
                                 <div className="relative z-10">
-                                    <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 border border-white/10">
-                                        <Sparkles className="text-teal-400" />
+                                    <div className="w-16 h-16 bg-white/50 rounded-2xl flex items-center justify-center mb-8 border border-white/60 shadow-lg shadow-teal-900/5 group-hover:scale-110 transition-transform duration-500">
+                                        <Sparkles className="text-teal-500" size={28} />
                                     </div>
-                                    <h3 className="text-3xl font-black mb-4 leading-tight">Build your <br />academic legacy.</h3>
-                                    <p className="text-slate-400 mb-10 font-medium leading-relaxed">Expand your portfolio by contributing new research and innovations.</p>
-                                    <Link href="/upload" className="block w-full text-center py-5 bg-teal-500 text-slate-900 rounded-2xl font-black uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all shadow-xl shadow-teal-500/20 active:scale-95">
-                                        New Submission
+                                    <h3 className="text-3xl font-black text-slate-900 mb-4 leading-tight group-hover:text-teal-600 transition-colors">Build your <br />academic legacy.</h3>
+                                    <p className="text-slate-500 mb-10 font-medium leading-relaxed">Expand your portfolio by contributing new research and innovations.</p>
+                                    <Link href="/upload" className="block w-full text-center py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-teal-500 hover:text-white hover:scale-[1.02] transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3">
+                                        New Submission <ArrowRight size={18} />
                                     </Link>
                                 </div>
                             </div>
