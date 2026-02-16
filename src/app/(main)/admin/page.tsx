@@ -353,12 +353,22 @@ function AdminContent() {
                     </button>
                 </div>
 
-                {/* CONTENT AREA */}
-                <div className="min-h-[500px]">
+                <motion.div
+                    variants={{
+                        show: {
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
+                    initial="hidden"
+                    animate="show"
+                    className="min-h-[500px]"
+                >
 
                     {/* 1. OVERVIEW TAB */}
                     {activeTab === 'overview' && (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="space-y-8">
                             <StatsCards
                                 totalProjects={stats.total}
                                 pendingProjects={stats.pending}
@@ -419,13 +429,14 @@ function AdminContent() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
+
 
 
                     {/* 2. PROJECTS REPOSITORY TAB */}
                     {activeTab === 'projects' && (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                        <motion.div variants={{ hidden: { opacity: 0, x: 20 }, show: { opacity: 1, x: 0 } }}>
                             {/* Toolbar */}
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
                                 <div className="relative flex-1 min-w-[300px]">
@@ -505,49 +516,85 @@ function AdminContent() {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* 3. FACULTY MONITOR TAB */}
                     {activeTab === 'faculty' && (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {faculty.map((teacher) => (
-                                    <div key={teacher.id} className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-all">
-                                        <div className="w-20 h-20 rounded-full bg-indigo-50 border-4 border-white dark:border-slate-700 shadow-lg flex items-center justify-center text-indigo-600 font-bold text-2xl mb-4">
-                                            {(teacher.full_name || 'T')[0]}
-                                        </div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white text-lg">{teacher.full_name}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{teacher.email}</p>
-
-                                        <div className="grid grid-cols-3 w-full gap-2 text-center mb-6">
-                                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
-                                                <span className="block text-xl font-bold text-slate-900 dark:text-white">{teacher.total_projects}</span>
-                                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Guide</span>
-                                            </div>
-                                            <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-xl">
-                                                <span className="block text-xl font-bold text-emerald-600">{teacher.active_projects}</span>
-                                                <span className="block text-[10px] font-bold text-emerald-600/60 uppercase tracking-wider">Active</span>
-                                            </div>
-                                            <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl">
-                                                <span className="block text-xl font-bold text-amber-600">{teacher.pending_reviews}</span>
-                                                <span className="block text-[10px] font-bold text-amber-600/60 uppercase tracking-wider">Pending</span>
-                                            </div>
-                                        </div>
-
-                                        <button className="w-full py-2.5 rounded-xl border-2 border-slate-100 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold text-sm hover:border-indigo-600 hover:text-indigo-600 transition-colors">
-                                            View Details
-                                        </button>
+                        <motion.div
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.1
+                                    }
+                                }
+                            }}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-50px" }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+                        >
+                            {faculty.map((teacher, i) => (
+                                <motion.div
+                                    key={teacher.id}
+                                    variants={{
+                                        hidden: {
+                                            opacity: 0,
+                                            y: -100,
+                                            x: -200 + (i * 20),
+                                            scale: 0.9,
+                                            rotate: -10 + (i * 2)
+                                        },
+                                        visible: {
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1,
+                                            x: 0,
+                                            rotate: 0,
+                                            transition: {
+                                                type: "spring",
+                                                stiffness: 100,
+                                                damping: 15
+                                            }
+                                        }
+                                    }}
+                                    className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-all h-full"
+                                >
+                                    <div className="w-20 h-20 rounded-full bg-indigo-50 border-4 border-white dark:border-slate-700 shadow-lg flex items-center justify-center text-indigo-600 font-bold text-2xl mb-4">
+                                        {(teacher.full_name || 'T')[0]}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                    <h3 className="font-bold text-slate-900 dark:text-white text-lg line-clamp-1">{teacher.full_name}</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 truncate w-full">{teacher.email}</p>
+
+                                    <div className="grid grid-cols-3 w-full gap-2 text-center mb-6">
+                                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
+                                            <span className="block text-xl font-bold text-slate-900 dark:text-white">{teacher.total_projects}</span>
+                                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Guide</span>
+                                        </div>
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-xl">
+                                            <span className="block text-xl font-bold text-emerald-600">{teacher.active_projects}</span>
+                                            <span className="block text-[10px] font-bold text-emerald-600/60 uppercase tracking-wider">Active</span>
+                                        </div>
+                                        <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl">
+                                            <span className="block text-xl font-bold text-amber-600">{teacher.pending_reviews}</span>
+                                            <span className="block text-[10px] font-bold text-amber-600/60 uppercase tracking-wider">Pending</span>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full mt-auto py-2.5 rounded-xl border-2 border-slate-100 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold text-sm hover:border-indigo-600 hover:text-indigo-600 transition-colors">
+                                        View Details
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </motion.div>
                     )}
 
 
                     {/* 4. USER MANAGEMENT TAB */}
                     {activeTab === 'users' && (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                        <motion.div variants={{ hidden: { opacity: 0, x: 20 }, show: { opacity: 1, x: 0 } }}>
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm mb-6">
                                 <input
                                     type="text"
@@ -589,86 +636,90 @@ function AdminContent() {
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     )}
 
-                </div>
+                </motion.div>
 
                 {/* Reject Modal */}
-                {rejectId && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Reject Project</h3>
-                            <p className="text-sm text-slate-500 mb-4">Please provide feedback for the student so they can improve.</p>
+                {
+                    rejectId && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">Reject Project</h3>
+                                <p className="text-sm text-slate-500 mb-4">Please provide feedback for the student so they can improve.</p>
 
-                            <textarea
-                                value={feedback}
-                                onChange={(e) => setFeedback(e.target.value)}
-                                className="w-full h-32 p-4 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-red-500 mb-4 text-sm font-medium"
-                                placeholder="e.g. Please update the Abstract to include more technical details..."
-                                autoFocus
-                            ></textarea>
+                                <textarea
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    className="w-full h-32 p-4 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-red-500 mb-4 text-sm font-medium"
+                                    placeholder="e.g. Please update the Abstract to include more technical details..."
+                                    autoFocus
+                                ></textarea>
 
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={() => { setRejectId(null); setFeedback(''); }}
-                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-50 rounded-lg"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleReject}
-                                    disabled={!feedback.trim()}
-                                    className="px-6 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Reject Project
-                                </button>
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => { setRejectId(null); setFeedback(''); }}
+                                        className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-50 rounded-lg"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleReject}
+                                        disabled={!feedback.trim()}
+                                        className="px-6 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Reject Project
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Assign Modal */}
-                {assignModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Assign Guide</h3>
+                {
+                    assignModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Assign Guide</h3>
 
-                            <div className="mb-6">
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Faculty</label>
-                                <select
-                                    value={assignGuideId}
-                                    onChange={(e) => setAssignGuideId(e.target.value)}
-                                    className="w-full p-3 bg-slate-50 dark:bg-slate-900 border-none rounded-xl text-sm font-bold text-slate-800 dark:text-white"
-                                >
-                                    <option value="">Choose a Teacher...</option>
-                                    {users.filter(u => u.role === 'teacher').map(t => (
-                                        <option key={t.id} value={t.id}>{t.full_name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                <div className="mb-6">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Faculty</label>
+                                    <select
+                                        value={assignGuideId}
+                                        onChange={(e) => setAssignGuideId(e.target.value)}
+                                        className="w-full p-3 bg-slate-50 dark:bg-slate-900 border-none rounded-xl text-sm font-bold text-slate-800 dark:text-white"
+                                    >
+                                        <option value="">Choose a Teacher...</option>
+                                        {users.filter(u => u.role === 'teacher').map(t => (
+                                            <option key={t.id} value={t.id}>{t.full_name}</option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={() => setAssignModalOpen(false)}
-                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmAssign}
-                                    disabled={!assignGuideId}
-                                    className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm"
-                                >
-                                    Confirm Assignment
-                                </button>
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => setAssignModalOpen(false)}
+                                        className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmAssign}
+                                        disabled={!assignGuideId}
+                                        className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm"
+                                    >
+                                        Confirm Assignment
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
 

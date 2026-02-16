@@ -459,16 +459,55 @@ export default function StudentDashboard() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    {projects.map((project) => (
-                                        <StatusCard
+                                <motion.div
+                                    variants={{
+                                        hidden: { opacity: 0 },
+                                        visible: {
+                                            opacity: 1,
+                                            transition: {
+                                                staggerChildren: 0.1
+                                            }
+                                        }
+                                    }}
+                                    initial="hidden"
+                                    whileInView="visible"
+                                    viewport={{ once: true, margin: "-50px" }}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+                                >
+                                    {projects.map((project, i) => (
+                                        <motion.div
                                             key={project.id}
-                                            project={project}
-                                            onShare={() => copyLink(project.id)}
-                                            onClick={() => router.push(`/project/${project.id}`)}
-                                        />
+                                            variants={{
+                                                hidden: {
+                                                    opacity: 0,
+                                                    y: -100,
+                                                    x: -200 + (i * 20),
+                                                    scale: 0.9,
+                                                    rotate: -10 + (i * 2)
+                                                },
+                                                visible: {
+                                                    opacity: 1,
+                                                    y: 0,
+                                                    scale: 1,
+                                                    x: 0,
+                                                    rotate: 0,
+                                                    transition: {
+                                                        type: "spring",
+                                                        stiffness: 100,
+                                                        damping: 15
+                                                    }
+                                                }
+                                            }}
+                                            className="h-full"
+                                        >
+                                            <StatusCard
+                                                project={project}
+                                                onShare={() => copyLink(project.id)}
+                                                onClick={() => router.push(`/project/${project.id}`)}
+                                            />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             )}
                         </section>
                     </>
@@ -481,26 +520,66 @@ export default function StudentDashboard() {
                         <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
                             <Sparkles className="text-yellow-500 fill-yellow-500" /> AI Insights & Recommendations
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {recommendedProjects.map((project) => (
-                                <Link href={`/project/${project.id}`} key={project.id} className="group">
-                                    <div className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 shadow-2xl shadow-teal-900/5 hover:border-teal-400/50 hover:-translate-y-2 transition-all flex flex-col h-full relative overflow-hidden">
-                                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
-                                        <div className="mb-6">
-                                            <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-[10px] font-black uppercase tracking-widest border border-teal-500/20">
-                                                {project.category}
-                                            </span>
+                        <motion.div
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.1
+                                    }
+                                }
+                            }}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-50px" }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+                        >
+                            {recommendedProjects.map((project, i) => (
+                                <motion.div
+                                    key={project.id}
+                                    variants={{
+                                        hidden: {
+                                            opacity: 0,
+                                            y: -100,
+                                            x: -200 + (i * 20),
+                                            scale: 0.9,
+                                            rotate: -10 + (i * 2)
+                                        },
+                                        visible: {
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1,
+                                            x: 0,
+                                            rotate: 0,
+                                            transition: {
+                                                type: "spring",
+                                                stiffness: 100,
+                                                damping: 15
+                                            }
+                                        }
+                                    }}
+                                    className="h-full"
+                                >
+                                    <Link href={`/project/${project.id}`} className="group h-full block">
+                                        <div className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 shadow-2xl shadow-teal-900/5 hover:border-teal-400/50 hover:-translate-y-2 transition-all flex flex-col h-full relative overflow-hidden">
+                                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+                                            <div className="mb-6">
+                                                <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-[10px] font-black uppercase tracking-widest border border-teal-500/20">
+                                                    {project.category}
+                                                </span>
+                                            </div>
+                                            <h3 className="font-black text-slate-900 text-xl mb-3 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
+                                            <p className="text-slate-500 text-sm line-clamp-3 mb-6 font-medium leading-relaxed opacity-80">{project.abstract}</p>
+                                            <div className="mt-auto pt-6 border-t border-slate-50 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Match Accuracy: 98%</span>
+                                            </div>
                                         </div>
-                                        <h3 className="font-black text-slate-900 text-xl mb-3 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors">{project.title}</h3>
-                                        <p className="text-slate-500 text-sm line-clamp-3 mb-6 font-medium leading-relaxed">{project.abstract}</p>
-                                        <div className="mt-auto pt-6 border-t border-slate-50 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Match Accuracy: 98%</span>
-                                        </div>
-                                    </div>
-                                </Link>
+                                    </Link>
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </section>
                 )}
 
@@ -668,7 +747,7 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
             animate={{ opacity: 1, y: 0 }}
             onClick={onClick}
             className={`
-                bg-white/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 transition-all group shadow-2xl shadow-teal-900/5 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden
+                bg-white/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 transition-all group shadow-2xl shadow-teal-900/5 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden h-full
                 ${isPending ? 'hover:border-amber-400/50' :
                     isApproved ? 'hover:border-teal-400/50' :
                         'hover:border-rose-400/50'}

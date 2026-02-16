@@ -431,7 +431,7 @@ function TeacherDashboardContent() {
 
                             {/* ACTIVE ALLOTMENTS / MASTER MATRIX */}
                             {activeTab === 'active' && (
-                                <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="bg-white relative z-10 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ backgroundColor: 'white' }}>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left">
                                             <thead className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
@@ -632,7 +632,7 @@ function TeacherDashboardContent() {
 
                             {/* UNASSIGNED TAB */}
                             {activeTab === 'unassigned' && (
-                                <div className="bg-white rounded-[2rem] border border-amber-100 shadow-xl shadow-amber-500/5 overflow-hidden p-8 text-center animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="bg-white relative z-10 rounded-[2rem] border border-amber-100 shadow-xl shadow-amber-500/5 overflow-hidden p-8 text-center animate-in fade-in slide-in-from-right-4 duration-300" style={{ backgroundColor: 'white' }}>
                                     <AlertCircle size={48} className="mx-auto text-amber-400 mb-4" />
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Unassigned Groups</h3>
                                     {unassignedProjects.length > 0 ? (

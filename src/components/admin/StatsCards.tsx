@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { FileText, Clock, Users, GraduationCap, User } from 'lucide-react';
 
 interface StatsProps {
@@ -40,9 +41,27 @@ export default function StatsCards({ totalProjects, pendingProjects, totalStuden
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <motion.div
+            variants={{
+                show: {
+                    transition: {
+                        staggerChildren: 0.1
+                    }
+                }
+            }}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
+        >
             {cards.map((card, idx) => (
-                <div key={idx} className="group relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300">
+                <motion.div
+                    key={idx}
+                    variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        show: { opacity: 1, y: 0 }
+                    }}
+                    className="group relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300"
+                >
                     <div className="flex items-center justify-between mb-4">
                         <div className={`p-3 rounded-xl ${card.iconBg}`}>
                             <card.icon size={22} strokeWidth={2} />
@@ -61,8 +80,8 @@ export default function StatsCards({ totalProjects, pendingProjects, totalStuden
                             <span className="text-xs text-slate-400 font-medium mb-1.5">{card.trend}</span>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
     );
 }
