@@ -299,7 +299,7 @@ export default function StudentDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-teal-100 relative overflow-x-hidden">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-teal-100 relative overflow-x-hidden">
             <BackgroundBlobs />
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
@@ -316,14 +316,14 @@ export default function StudentDashboard() {
                                 <BookOpen size={14} /> The Scholar's Hub
                             </div>
                             <div className="flex items-center gap-4 mb-2">
-                                <h1 className="text-4xl md:text-5xl font-black text-slate-900">
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white">
                                     Welcome back, <span className="text-teal-600">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}</span>!
                                 </h1>
                             </div>
-                            <p className="text-slate-500 text-lg mb-2">Manage your academic legacy.</p>
+                            <p className="text-slate-500 dark:text-slate-400 text-lg mb-2">Manage your academic legacy.</p>
 
                             <div className="inline-block px-3 py-1 bg-slate-900 text-green-400 font-mono text-xs rounded border border-slate-800 shadow-inner opacity-80">
-                                <span className="text-slate-500 mr-2">$ system_access:</span>
+                                <span className="text-slate-500 dark:text-slate-400 mr-2">$ system_access:</span>
                                 {lastLogin || '...'}
                             </div>
                         </div>
@@ -346,13 +346,13 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mentees.length > 0 ? mentees.map((mentee) => (
-                                <div key={mentee.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 text-center shadow-2xl shadow-teal-900/5 hover:-translate-y-2 hover:border-teal-400/50 transition-all duration-300 group">
+                                <div key={mentee.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 dark:border-slate-800/50 text-center shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 hover:-translate-y-2 hover:border-teal-400/50 transition-all duration-300 group">
                                     <div className="w-20 h-20 mx-auto bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-2xl mb-4 group-hover:scale-110 transition-transform">
                                         {(mentee.full_name || 'S')[0]}
                                     </div>
-                                    <h3 className="font-black text-slate-800 text-lg mb-1">{mentee.full_name}</h3>
+                                    <h3 className="font-black text-slate-800 dark:text-slate-200 text-lg mb-1">{mentee.full_name}</h3>
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">{mentee.college_id || 'No ID'}</p>
-                                    <div className="text-[10px] font-bold uppercase tracking-tighter bg-slate-900/5 py-1.5 px-3 rounded-lg inline-block text-slate-500">
+                                    <div className="text-[10px] font-bold uppercase tracking-tighter bg-slate-900/5 dark:bg-white/5 py-1.5 px-3 rounded-lg inline-block text-slate-500 dark:text-slate-400">
                                         {mentee.section} • {mentee.academic_year}
                                     </div>
                                 </div>
@@ -370,14 +370,14 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="space-y-4">
                             {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
-                                <div key={proj.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl shadow-amber-900/5 flex items-center justify-between group hover:border-amber-400/50 transition-all">
+                                <div key={proj.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-amber-900/5 flex items-center justify-between group hover:border-amber-400/50 transition-all">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                                             <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Review Required</span>
                                         </div>
-                                        <h3 className="font-black text-slate-900 text-2xl mb-2 group-hover:text-amber-600 transition-colors">{proj.title}</h3>
-                                        <p className="text-slate-500 text-sm line-clamp-1 max-w-2xl font-medium">{proj.abstract}</p>
+                                        <h3 className="font-black text-slate-900 dark:text-white text-2xl mb-2 group-hover:text-amber-600 transition-colors">{proj.title}</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-1 max-w-2xl font-medium">{proj.abstract}</p>
                                     </div>
                                     <Link href={`/upload?edit=${proj.id}`} className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-amber-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-2">
                                         Open Review <ArrowRight size={18} />
@@ -401,7 +401,7 @@ export default function StudentDashboard() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="mb-16"
                             >
-                                <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                                     <div className="p-2 bg-rose-50 rounded-xl text-rose-500">
                                         <Users size={20} />
                                     </div>
@@ -409,11 +409,11 @@ export default function StudentDashboard() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {invitations.map((invite: any) => (
-                                        <div key={invite.id} className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl shadow-indigo-900/5 flex items-center justify-between group hover:border-indigo-400/50 transition-all">
+                                        <div key={invite.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-indigo-900/5 flex items-center justify-between group hover:border-indigo-400/50 transition-all">
                                             <div>
                                                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 block">Collaboration Request</span>
-                                                <h3 className="font-black text-slate-900 text-xl mb-1">{invite.projects?.title || 'Untitled Project'}</h3>
-                                                <p className="text-slate-500 text-sm font-medium">
+                                                <h3 className="font-black text-slate-900 dark:text-white text-xl mb-1">{invite.projects?.title || 'Untitled Project'}</h3>
+                                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                                                     As <span className="text-indigo-600 capitalize font-bold">{invite.role}</span>
                                                     {invite.projects?.authors?.[0] && (
                                                         <span className="text-slate-400"> • Inviter: {invite.projects.authors[0]}</span>
@@ -429,7 +429,7 @@ export default function StudentDashboard() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleInvitation(invite.project_id || invite.id, 'rejected')}
-                                                    className="px-6 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95"
+                                                    className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95"
                                                 >
                                                     Decline
                                                 </button>
@@ -441,7 +441,7 @@ export default function StudentDashboard() {
                         )}
 
                         <section className="mb-20">
-                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-teal-400 blur-lg opacity-40 rounded-full"></div>
                                     <Clock className="relative z-10 text-teal-600" />
@@ -451,7 +451,7 @@ export default function StudentDashboard() {
 
                             {projects.length === 0 ? (
                                 <div className="p-20 rounded-[3rem] border-2 border-dashed border-slate-200/60 text-center bg-white/30 backdrop-blur-xl">
-                                    <p className="text-slate-500 text-lg font-medium mb-8">No active projects found in your workspace.</p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-lg font-medium mb-8">No active projects found in your workspace.</p>
                                     {user?.role === 'student' && (
                                         <Link href="/upload" className="px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-105 transition-all inline-flex items-center gap-3 group">
                                             Start Your Submission <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -517,7 +517,7 @@ export default function StudentDashboard() {
                 {/* Recommended For You - Only Student */}
                 {user?.role === 'student' && recommendedProjects.length > 0 && (
                     <section className="mb-20">
-                        <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                             <Sparkles className="text-yellow-500 fill-yellow-500" /> AI Insights & Recommendations
                         </h2>
                         <motion.div
@@ -562,15 +562,15 @@ export default function StudentDashboard() {
                                     className="h-full"
                                 >
                                     <Link href={`/project/${project.id}`} className="group h-full block">
-                                        <div className="bg-white/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 shadow-2xl shadow-teal-900/5 hover:border-teal-400/50 hover:-translate-y-2 transition-all flex flex-col h-full relative overflow-hidden">
+                                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 hover:border-teal-400/50 hover:-translate-y-2 transition-all flex flex-col h-full relative overflow-hidden">
                                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
                                             <div className="mb-6">
                                                 <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-[10px] font-black uppercase tracking-widest border border-teal-500/20">
                                                     {project.category}
                                                 </span>
                                             </div>
-                                            <h3 className="font-black text-slate-900 text-xl mb-3 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
-                                            <p className="text-slate-500 text-sm line-clamp-3 mb-6 font-medium leading-relaxed opacity-80">{project.abstract}</p>
+                                            <h3 className="font-black text-slate-900 dark:text-white text-xl mb-3 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
+                                            <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-6 font-medium leading-relaxed opacity-80">{project.abstract}</p>
                                             <div className="mt-auto pt-6 border-t border-slate-50 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Match Accuracy: 98%</span>
@@ -587,16 +587,16 @@ export default function StudentDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     <div className="lg:col-span-2 space-y-20">
                         <section>
-                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                                 <BarChart3 className="text-indigo-500" /> Portfolio Analytics
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <StatCard label="Total Reach" value={totalViews.toLocaleString()} icon={Eye} color="bg-indigo-500/10 text-indigo-600 border-indigo-500/20" />
                                 <StatCard label="Citations" value={totalDownloads.toLocaleString()} icon={Download} color="bg-teal-500/10 text-teal-600 border-teal-500/20" />
                             </div>
-                            <div className="mt-8 bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-indigo-900/5 relative overflow-hidden group">
+                            <div className="mt-8 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-indigo-900/5 relative overflow-hidden group">
                                 <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform"></div>
-                                <h3 className="font-black text-slate-900 mb-8 text-sm uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="font-black text-slate-900 dark:text-white mb-8 text-sm uppercase tracking-widest flex items-center gap-2">
                                     <Sparkles size={16} className="text-indigo-400" /> Domain expertise scale
                                 </h3>
                                 {topTechs.length > 0 ? (
@@ -615,10 +615,10 @@ export default function StudentDashboard() {
 
                         {/* Submission Timeline */}
                         <section>
-                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                                 <Clock className="text-amber-500" /> Research Roadmap
                             </h2>
-                            <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-amber-900/5">
+                            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-amber-900/5">
                                 <div className="relative border-l-4 border-slate-100/50 ml-4 space-y-12 pl-10 py-4">
                                     {projects.map((project, i) => (
                                         <div key={i} className="relative group">
@@ -629,9 +629,9 @@ export default function StudentDashboard() {
                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 group-hover:text-teal-600 transition-colors">
                                                     {new Date(project.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                                                 </span>
-                                                <h4 className="font-black text-slate-900 text-2xl mb-2 group-hover:translate-x-1 transition-transform">{project.title}</h4>
+                                                <h4 className="font-black text-slate-900 dark:text-white text-2xl mb-2 group-hover:translate-x-1 transition-transform">{project.title}</h4>
                                                 <div className="flex gap-2">
-                                                    <span className="text-[10px] font-bold uppercase px-3 py-1 rounded-lg bg-slate-900/5 text-slate-600 border border-slate-900/10">
+                                                    <span className="text-[10px] font-bold uppercase px-3 py-1 rounded-lg bg-slate-900/5 dark:bg-white/5 text-slate-600 border border-slate-900/10">
                                                         {project.category}
                                                     </span>
                                                     <span className={`text-[10px] font-bold uppercase px-3 py-1 rounded-lg border
@@ -651,30 +651,30 @@ export default function StudentDashboard() {
                     <div className="space-y-12">
                         {/* Profile/Network Card */}
                         <section>
-                            <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
                                 <User className="text-rose-500" /> Identity Profile
                             </h2>
                             {user?.role === 'teacher' ? (
-                                <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-rose-900/5 text-center">
+                                <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-rose-900/5 text-center">
                                     <div className="w-24 h-24 mx-auto bg-gradient-to-br from-rose-500/10 to-orange-500/10 rounded-[2rem] flex items-center justify-center text-rose-500 font-black text-4xl mb-6 shadow-xl shadow-rose-500/5">
                                         {(user?.full_name || 'F')[0]}
                                     </div>
-                                    <h3 className="font-black text-2xl text-slate-900 mb-1">{user?.full_name}</h3>
-                                    <p className="text-slate-500 font-black uppercase tracking-widest text-[10px] mb-8">Faculty Research Mentor</p>
+                                    <h3 className="font-black text-2xl text-slate-900 dark:text-white mb-1">{user?.full_name}</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] mb-8">Faculty Research Mentor</p>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-slate-900/5 p-4 rounded-2xl">
-                                            <p className="text-2xl font-black text-slate-900">{mentees.length}</p>
+                                        <div className="bg-slate-900/5 dark:bg-white/5 p-4 rounded-2xl">
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{mentees.length}</p>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Mentees</p>
                                         </div>
-                                        <div className="bg-slate-900/5 p-4 rounded-2xl">
-                                            <p className="text-2xl font-black text-slate-900">{projects.length}</p>
+                                        <div className="bg-slate-900/5 dark:bg-white/5 p-4 rounded-2xl">
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{projects.length}</p>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ongoing Labs</p>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
                                 projects[0] ? (
-                                    <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-rose-900/5 relative overflow-hidden group hover:-translate-y-2 transition-all">
+                                    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-rose-900/5 relative overflow-hidden group hover:-translate-y-2 transition-all">
                                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/5 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform"></div>
                                         <div className="relative z-10">
                                             <div className="mb-10">
@@ -684,7 +684,7 @@ export default function StudentDashboard() {
                                                         {(projects[0].guide_name || 'P')[0]}
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-black text-slate-900 text-lg group-hover:text-rose-500 transition-colors">{projects[0].guide_name || 'Mentor TBD'}</h3>
+                                                        <h3 className="font-black text-slate-900 dark:text-white text-lg group-hover:text-rose-500 transition-colors">{projects[0].guide_name || 'Mentor TBD'}</h3>
                                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Senior Faculty Advisor</p>
                                                     </div>
                                                 </div>
@@ -697,7 +697,7 @@ export default function StudentDashboard() {
                                                             <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-lg border border-white/20 group-hover/item:scale-110 transition-transform">
                                                                 {author[0]}
                                                             </div>
-                                                            <span className="text-sm font-black text-slate-700 group-hover/item:text-slate-900 transition-colors">{author}</span>
+                                                            <span className="text-sm font-black text-slate-700 group-hover/item:text-slate-900 dark:text-white transition-colors">{author}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -705,7 +705,7 @@ export default function StudentDashboard() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="p-10 bg-white/60 backdrop-blur-3xl rounded-[3rem] border border-white/50 text-center text-slate-400 font-medium">
+                                    <div className="p-10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] border border-white/50 dark:border-slate-800/50 text-center text-slate-400 font-medium">
                                         No active network detected.
                                     </div>
                                 )
@@ -713,14 +713,14 @@ export default function StudentDashboard() {
                         </section>
 
                         {user?.role === 'student' && (
-                            <div className="bg-white/60 backdrop-blur-3xl rounded-[3rem] p-10 border border-white/50 shadow-2xl shadow-teal-900/5 relative overflow-hidden group hover:-translate-y-2 transition-all hover:shadow-teal-900/20">
+                            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] p-10 border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 relative overflow-hidden group hover:-translate-y-2 transition-all hover:shadow-teal-900/20">
                                 <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-br from-teal-500/10 to-indigo-500/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform"></div>
                                 <div className="relative z-10">
-                                    <div className="w-16 h-16 bg-white/50 rounded-2xl flex items-center justify-center mb-8 border border-white/60 shadow-lg shadow-teal-900/5 group-hover:scale-110 transition-transform duration-500">
+                                    <div className="w-16 h-16 bg-white/50 rounded-2xl flex items-center justify-center mb-8 border border-white/60 shadow-lg shadow-teal-900/5 dark:shadow-teal-900/20 group-hover:scale-110 transition-transform duration-500">
                                         <Sparkles className="text-teal-500" size={28} />
                                     </div>
-                                    <h3 className="text-3xl font-black text-slate-900 mb-4 leading-tight group-hover:text-teal-600 transition-colors">Build your <br />academic legacy.</h3>
-                                    <p className="text-slate-500 mb-10 font-medium leading-relaxed">Expand your portfolio by contributing new research and innovations.</p>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight group-hover:text-teal-600 transition-colors">Build your <br />academic legacy.</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 mb-10 font-medium leading-relaxed">Expand your portfolio by contributing new research and innovations.</p>
                                     <Link href="/upload" className="block w-full text-center py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-teal-500 hover:text-white hover:scale-[1.02] transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3">
                                         New Submission <ArrowRight size={18} />
                                     </Link>
@@ -747,7 +747,7 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
             animate={{ opacity: 1, y: 0 }}
             onClick={onClick}
             className={`
-                bg-white/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 transition-all group shadow-2xl shadow-teal-900/5 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden h-full
+                bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 transition-all group shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden h-full
                 ${isPending ? 'hover:border-amber-400/50' :
                     isApproved ? 'hover:border-teal-400/50' :
                         'hover:border-rose-400/50'}
@@ -766,7 +766,7 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
                 <div className="flex gap-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); onShare(); }}
-                        className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
+                        className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
                     >
                         <Share2 size={16} />
                     </button>
@@ -774,7 +774,7 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
                         <Link
                             onClick={(e) => e.stopPropagation()}
                             href={isPending ? `/upload?edit=${project.id}` : `/project/edit/${project.id}`}
-                            className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
+                            className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
                         >
                             <Edit size={16} />
                         </Link>
@@ -782,21 +782,21 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
                 </div>
             </div>
 
-            <h3 className="font-black text-slate-900 text-2xl mb-4 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
+            <h3 className="font-black text-slate-900 dark:text-white text-2xl mb-4 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
 
             <div className="flex gap-3 mb-6">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border
-                    ${project.userRole === 'leader' ? 'bg-indigo-900 text-white border-indigo-900 shadow-md' : 'bg-slate-100 text-slate-600 border-slate-200'}
+                    ${project.userRole === 'leader' ? 'bg-indigo-900 text-white border-indigo-900 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200'}
                 `}>
                     {project.userRole === 'leader' ? <User size={10} className="fill-white" /> : <Users size={10} />}
                     {project.userRole === 'leader' ? 'Lead Researcher' : 'Contributor'}
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 border border-slate-200 text-[10px] font-black uppercase tracking-wider">
                     {project.category}
                 </span>
             </div>
 
-            <p className="text-slate-500 text-sm mb-10 line-clamp-3 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{project.abstract}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-10 line-clamp-3 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{project.abstract}</p>
 
             {(isRejected || project.remarks) && (project.remarks || project.admin_feedback) && (
                 <div className="bg-rose-500/5 p-5 rounded-2xl border border-rose-500/10 flex items-start gap-4 mb-4">
@@ -829,7 +829,7 @@ const StatCard = ({ label, value, icon: Icon, color }: any) => (
             <Icon size={32} />
         </div>
         <div>
-            <p className="text-5xl font-black text-slate-900 tracking-tighter mb-1">{value}</p>
+            <p className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">{value}</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{label}</p>
         </div>
     </div>
@@ -838,7 +838,7 @@ const StatCard = ({ label, value, icon: Icon, color }: any) => (
 const TechBar = ({ label, percent, color }: { label: string, percent: string, color: string }) => (
     <div className="group/bar">
         <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest group-hover/bar:text-indigo-600 transition-colors">{label}</span>
+            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest group-hover/bar:text-indigo-600 transition-colors">{label}</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tabular-nums">{percent}</span>
         </div>
         <div className="h-3 rounded-full bg-slate-900/5 p-0.5 overflow-hidden">

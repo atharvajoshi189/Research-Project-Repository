@@ -172,6 +172,7 @@ export default function AllotmentPage() {
 
                         {/* 1. Project Details */}
                         <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                            <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
                             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm">1</span>
@@ -214,6 +215,7 @@ export default function AllotmentPage() {
 
                         {/* 2. Group Formation */}
                         <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+                            <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
                             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-sm">2</span>
@@ -264,6 +266,7 @@ export default function AllotmentPage() {
 
                         {/* 3. Guide Selection */}
                         <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+                            <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
                             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-sm">3</span>
@@ -284,6 +287,7 @@ export default function AllotmentPage() {
 
                         {/* Summary & Action */}
                         <div className="bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+                            <BentoGrid className="bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] opacity-10" />
                             <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-3xl opacity-50"></div>
 
                             <h3 className="text-lg font-bold mb-4 relative z-10">Access Summary</h3>

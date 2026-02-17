@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface ScrollBackgroundProps {
     activeSection: string;
@@ -14,8 +15,52 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
     const smoothScroll = useSpring(scrollY, { stiffness: 50, damping: 20 });
     const gridY = useTransform(smoothScroll, [0, 5000], [0, 500]); // Moves grid slowly
 
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
     // Define Deep, Premium Mesh Colors
     const getColors = () => {
+        if (isDark) {
+            switch (activeSection) {
+                case "features": // Emerald Dark
+                    return {
+                        bg: "#020617", // Slate 950
+                        blob1: "#064e3b", // Emerald-900
+                        blob2: "#065f46", // Emerald-800
+                        blob3: "#042f2e", // Emerald-950
+                        blob4: "#10b981", // Emerald-500 (Highlights)
+                        accent: "rgba(16, 185, 129, 0.1)"
+                    };
+                case "hall-of-fame": // Blue Dark
+                    return {
+                        bg: "#020617",
+                        blob1: "#1e3a8a", // Blue-900
+                        blob2: "#1e40af", // Blue-800
+                        blob3: "#172554", // Blue-950
+                        blob4: "#3b82f6", // Blue-500
+                        accent: "rgba(37, 99, 235, 0.1)"
+                    };
+                case "repo-pulse": // Teal Dark
+                    return {
+                        bg: "#020617",
+                        blob1: "#134e4a", // Teal-900
+                        blob2: "#115e59", // Teal-800
+                        blob3: "#042f2e", // Teal-950
+                        blob4: "#14b8a6", // Teal-500
+                        accent: "rgba(13, 148, 136, 0.1)"
+                    };
+                default: // Hero: Sky Dark
+                    return {
+                        bg: "#0f172a", // Slate 900
+                        blob1: "#0c4a6e", // Sky-900
+                        blob2: "#075985", // Sky-800
+                        blob3: "#082f49", // Sky-950
+                        blob4: "#0ea5e9", // Sky-500
+                        accent: "rgba(14, 165, 233, 0.1)"
+                    };
+            }
+        }
+
         switch (activeSection) {
             case "features": // Green Palette
                 return {
@@ -70,7 +115,7 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
             {/* --- MESH GRADIENT BLOBS --- */}
             {/* Blob 1: Top Left - Large Flowing */}
             <motion.div
-                className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] mix-blend-multiply opacity-60"
+                className={`absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-60 ${isDark ? 'mix-blend-screen' : 'mix-blend-multiply'}`}
                 animate={{
                     backgroundColor: colors.blob1,
                     x: [0, 50, 0],
@@ -87,7 +132,7 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
 
             {/* Blob 2: Middle-Top Right - Counter Flowing */}
             <motion.div
-                className="absolute top-[25%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] mix-blend-multiply opacity-60"
+                className={`absolute top-[25%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-60 ${isDark ? 'mix-blend-screen' : 'mix-blend-multiply'}`}
                 animate={{
                     backgroundColor: colors.blob2,
                     x: [0, -40, 0],
@@ -105,7 +150,7 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
 
             {/* Blob 3: Middle-Bottom Left - Pulse */}
             <motion.div
-                className="absolute top-[55%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] mix-blend-multiply opacity-50"
+                className={`absolute top-[55%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-50 ${isDark ? 'mix-blend-screen' : 'mix-blend-multiply'}`}
                 animate={{
                     backgroundColor: colors.blob3,
                     scale: [1, 1.2, 1],
@@ -123,7 +168,7 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
 
             {/* Blob 4: Bottom Right - Counter Flowing Lower */}
             <motion.div
-                className="absolute -bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] mix-blend-multiply opacity-60"
+                className={`absolute -bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-60 ${isDark ? 'mix-blend-screen' : 'mix-blend-multiply'}`}
                 animate={{
                     backgroundColor: colors.blob4,
                     x: [0, -30, 0],
@@ -140,7 +185,7 @@ export default function ScrollBackground({ activeSection }: ScrollBackgroundProp
             />
 
             {/* Noise Texture for Texture/Realism */}
-            <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            <div className={`absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] ${isDark ? 'mix-blend-overlay' : 'mix-blend-soft-light'}`} />
 
         </motion.div>
     );

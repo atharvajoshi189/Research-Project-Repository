@@ -79,7 +79,7 @@ export default function SettingsPage() {
     if (loading) return null;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-teal-100 flex justify-center items-center p-6 relative overflow-hidden">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-teal-100 flex justify-center items-center p-6 relative overflow-hidden">
             {/* Background Effects */}
             <BackgroundBlobs />
             <div className="fixed inset-0 z-0 pointer-events-none">
@@ -88,14 +88,14 @@ export default function SettingsPage() {
             </div>
 
 
-            <div className="max-w-4xl w-full bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col md:flex-row">
+            <div className="max-w-4xl w-full bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row">
 
                 {/* Sidebar / Info Panel */}
                 <div className="bg-slate-900 text-white p-10 md:w-1/3 flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[80px] opacity-20 -translate-y-1/2 translate-x-1/2"></div>
 
                     <div className="relative z-10">
-                        <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm border border-white/10">
+                        <div className="w-16 h-16 bg-white dark:bg-slate-900/10 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm border border-white/10">
                             <User size={32} className="text-teal-400" />
                         </div>
                         <h1 className="text-3xl font-bold mb-2">Account Settings</h1>
@@ -103,11 +103,11 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="relative z-10 mt-10 space-y-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-sm">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-900/5 border border-white/10 text-sm">
                             <ShieldCheck size={18} className="text-emerald-400" />
                             <span className="text-slate-300">Secure Environment</span>
                         </div>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                             Your data is encrypted and stored securely. Changes to your password will require you to log in again on other devices.
                         </p>
                     </div>
@@ -118,29 +118,29 @@ export default function SettingsPage() {
 
                     {/* Section A: General */}
                     <section>
-                        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                             <User size={20} className="text-teal-600" /> General Information
                         </h2>
                         <form onSubmit={handleUpdateProfile} className="space-y-5">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-3.5 text-slate-400" size={18} />
                                     <input
                                         type="email"
                                         value={email}
                                         disabled
-                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 font-bold rounded-xl cursor-not-allowed"
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold rounded-xl cursor-not-allowed"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
                                 <input
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl font-semibold text-slate-700 transition-all outline-none"
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl font-semibold text-slate-700 dark:text-white transition-all outline-none"
                                     placeholder="Enter your full name"
                                 />
                             </div>
@@ -154,19 +154,19 @@ export default function SettingsPage() {
 
                     {/* Section B: Security */}
                     <section>
-                        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                             <Lock size={20} className="text-rose-500" /> Security
                         </h2>
                         <form onSubmit={handleChangePassword} className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">New Password</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">New Password</label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-slate-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 rounded-xl font-semibold text-slate-700 transition-all outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 rounded-xl font-semibold text-slate-700 dark:text-white transition-all outline-none"
                                             placeholder="••••••••"
                                         />
                                         <button
@@ -179,12 +179,12 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Confirm Password</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Confirm Password</label>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 rounded-xl font-semibold text-slate-700 transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 rounded-xl font-semibold text-slate-700 dark:text-white transition-all outline-none"
                                         placeholder="••••••••"
                                     />
                                 </div>

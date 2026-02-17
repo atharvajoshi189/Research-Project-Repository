@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-export default function BentoGrid() {
+export default function BentoGrid({ className }: { className?: string }) {
     return (
         <motion.div
             initial={{
@@ -25,7 +26,12 @@ export default function BentoGrid() {
                     ease: "easeInOut"
                 }
             }}
-            className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"
+            className={cn(
+                "absolute inset-0 pointer-events-none",
+                "bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)]",
+                "bg-[size:24px_24px]",
+                className
+            )}
         />
     );
 }

@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { AIThemeProvider } from "@/context/AIThemeContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import ClientLayout from "@/components/ClientLayout";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -32,11 +33,18 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jakarta.variable} ${playfair.variable} font-sans antialiased`}>
         <AIThemeProvider>
-          <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-          </Suspense>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+              <ClientLayout>
+                {children}
+              </ClientLayout>
+            </Suspense>
+          </ThemeProvider>
         </AIThemeProvider>
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       </body>

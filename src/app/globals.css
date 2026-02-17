@@ -1,9 +1,23 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #FFFFFF;
-  --color-foreground: #1E293B;
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
+
+.dark {
+  --background: #020617;
+  /* Slate 950 - Deep dark */
+  --foreground: #f8fafc;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer utilities {
   .glass-card {

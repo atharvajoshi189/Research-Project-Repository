@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAITheme } from '@/context/AIThemeContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -158,7 +159,7 @@ export default function Navbar() {
                     >
                         {/* Unified Glass Background */}
                         <div
-                            className={`absolute inset-0 rounded-full transition-all duration-500 ease-in-out border bg-[rgba(255,255,255,0.65)] border-white/40 shadow-xl shadow-indigo-500/10`}
+                            className={`absolute inset-0 rounded-full transition-all duration-500 ease-in-out border bg-[rgba(255,255,255,0.65)] dark:bg-[rgba(2,6,23,0.65)] border-white/40 dark:border-slate-800/40 shadow-xl shadow-indigo-500/10`}
                             style={{
                                 backdropFilter: 'blur(12px)',
                             }}
@@ -186,10 +187,10 @@ export default function Navbar() {
                                             href={item.href}
                                             onMouseEnter={() => setHoveredIndex(index)}
                                             onMouseLeave={() => setHoveredIndex(null)}
-                                            className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 z-[10001] flex items-center gap-2 cursor-pointer text-slate-500 hover:text-slate-800
+                                            className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 z-[10001] flex items-center gap-2 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200
                                             ${isActive
-                                                    ? 'text-slate-900'
-                                                    : 'text-slate-500 hover:text-slate-800'
+                                                    ? 'text-slate-900 dark:text-white'
+                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                                                 }
                                         `}
                                         >
@@ -197,7 +198,7 @@ export default function Navbar() {
                                             {isActive && (
                                                 <motion.div
                                                     layoutId="activeNavPill"
-                                                    className={`absolute inset-0 rounded-full -z-10 pointer-events-none bg-white shadow-sm ring-1 ring-black/5`}
+                                                    className={`absolute inset-0 rounded-full -z-10 pointer-events-none bg-white dark:bg-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10`}
                                                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                                                 />
                                             )}
@@ -208,8 +209,8 @@ export default function Navbar() {
                                                     strokeWidth={isActive ? 2.5 : 2}
                                                     className={`transition-colors duration-300
                                                     ${isActive
-                                                            ? 'text-indigo-600'
-                                                            : 'text-slate-400 group-hover:text-indigo-500'
+                                                            ? 'text-indigo-600 dark:text-indigo-400'
+                                                            : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-400'
                                                         }
                                                 `}
                                                 />
@@ -222,11 +223,11 @@ export default function Navbar() {
                                 {/* Login/Signup for Non-Auth Users */}
                                 {!user && (
                                     <>
-                                        <div className="h-6 w-px bg-slate-200 mx-2"></div>
-                                        <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-indigo-600 px-3 py-2 transition-colors">
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                                        <Link href="/login" className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 transition-colors">
                                             Log In
                                         </Link>
-                                        <Link href="/signup" className="text-sm font-bold text-white bg-slate-900 px-4 py-2 rounded-full hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200">
+                                        <Link href="/signup" className="text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 px-4 py-2 rounded-full hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors shadow-lg shadow-slate-200 dark:shadow-none">
                                             Sign Up
                                         </Link>
                                     </>
@@ -238,7 +239,7 @@ export default function Navbar() {
                                 {/* Mobile Menu Toggle */}
                                 <button
                                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                    className={`md:hidden p-2 rounded-full transition-colors text-slate-700 hover:bg-slate-100`}
+                                    className={`md:hidden p-2 rounded-full transition-colors text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800`}
                                 >
                                     <Menu size={20} />
                                 </button>
@@ -250,7 +251,7 @@ export default function Navbar() {
                                         onMouseLeave={() => setIsProfileOpen(false)}
                                     >
                                         <button
-                                            className={`flex items-center gap-2 p-1 rounded-full transition-all border bg-white border-slate-200 hover:shadow-md text-slate-700`}
+                                            className={`flex items-center gap-2 p-1 rounded-full transition-all border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:shadow-md text-slate-700 dark:text-slate-200`}
                                         >
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm bg-gradient-to-br from-indigo-500 to-purple-600 text-white`}>
                                                 {user.email?.charAt(0).toUpperCase()}
@@ -263,17 +264,17 @@ export default function Navbar() {
                                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    className={`absolute right-0 top-full mt-3 w-56 rounded-2xl shadow-xl overflow-hidden border backdrop-blur-xl bg-white/90 border-slate-100`}
+                                                    className={`absolute right-0 top-full mt-3 w-56 rounded-2xl shadow-xl overflow-hidden border backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-slate-100 dark:border-slate-800`}
                                                 >
-                                                    <div className="p-3 border-b border-white/5">
-                                                        <p className={`text-sm font-bold text-slate-800`}>{user.user_metadata?.full_name || 'User'}</p>
-                                                        <p className="text-xs opacity-60 truncate">{user.email}</p>
+                                                    <div className="p-3 border-b border-white/5 dark:border-slate-800/50">
+                                                        <p className={`text-sm font-bold text-slate-800 dark:text-slate-200`}>{user.user_metadata?.full_name || 'User'}</p>
+                                                        <p className="text-xs opacity-60 truncate text-slate-500 dark:text-slate-400">{user.email}</p>
                                                     </div>
                                                     <div className="p-1">
-                                                        <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-indigo-600`}>
+                                                        <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400`}>
                                                             <LayoutDashboard size={16} /> Dashboard
                                                         </Link>
-                                                        <div className={`h-px my-1 mx-2 bg-slate-100`}></div>
+                                                        <div className={`h-px my-1 mx-2 bg-slate-100 dark:bg-slate-800`}></div>
                                                         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-500/10 transition-colors">
                                                             <LogOut size={16} /> Sign Out
                                                         </button>
@@ -283,10 +284,11 @@ export default function Navbar() {
                                         </AnimatePresence>
                                     </div>
                                 ) : (
-                                    <Link href="/login" className={`hidden md:flex p-2 rounded-full transition-colors cursor-pointer text-slate-600 hover:bg-slate-100`}>
+                                    <Link href="/login" className={`hidden md:flex p-2 rounded-full transition-colors cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800`}>
                                         <User size={20} />
                                     </Link>
                                 )}
+                                <ThemeToggle />
                             </div>
                         </div>
 
@@ -297,7 +299,7 @@ export default function Navbar() {
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className={`md:hidden border-t overflow-hidden pointer-events-auto border-slate-100 bg-white/95`}
+                                    className={`md:hidden border-t overflow-hidden pointer-events-auto border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95`}
                                 >
                                     <nav className="flex flex-col p-4 space-y-2">
                                         {navItems.map((item) => (
@@ -305,16 +307,16 @@ export default function Navbar() {
                                                 key={item.href}
                                                 href={item.href}
                                                 onClick={() => setIsMobileMenuOpen(false)}
-                                                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold tracking-tight transition-colors cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-indigo-600`}
+                                                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold tracking-tight transition-colors cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400`}
                                             >
                                                 <item.icon size={18} />
                                                 {item.label}
                                             </Link>
                                         ))}
                                         {!user && (
-                                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-100/10">
-                                                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className={`w-full text-center py-2 rounded-xl border cursor-pointer border-slate-200 text-slate-700`}>Log In</Link>
-                                                <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)} className={`w-full text-center py-2 rounded-xl font-bold cursor-pointer bg-black text-white`}>Sign Up</Link>
+                                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-100/10 dark:border-slate-800/50">
+                                                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className={`w-full text-center py-2 rounded-xl border cursor-pointer border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200`}>Log In</Link>
+                                                <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)} className={`w-full text-center py-2 rounded-xl font-bold cursor-pointer bg-black dark:bg-white text-white dark:text-black`}>Sign Up</Link>
                                             </div>
                                         )}
                                     </nav>

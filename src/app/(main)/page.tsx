@@ -240,7 +240,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full min-h-screen text-slate-900 overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
+    <div className="relative w-full min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
 
       {/* 1. Dynamic Scroll Background */}
       <ScrollBackground activeSection={activeSection} />
@@ -451,13 +451,13 @@ export default function Home() {
 
 
         {/* Bento Grid Featured */}
-        <section ref={featuresRef} className="px-4 pb-32 max-w-[90rem] mx-auto -mt-32 relative z-20">
+        <section ref={featuresRef} className="px-4 pb-32 max-w-[90rem] mx-auto relative z-20">
           <div className="flex items-end justify-between mb-12 px-2">
             <div>
-              <h2 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Featured Work</h2>
-              <p className="text-slate-500">Hand-picked excellence from this semester.</p>
+              <h2 className="text-4xl font-bold text-foreground mb-2 tracking-tight">Featured Work</h2>
+              <p className="text-slate-500 dark:text-slate-400">Hand-picked excellence from this semester.</p>
             </div>
-            <Link href="/search" className="hidden md:flex items-center gap-2 text-slate-900 font-bold border-b-2 border-slate-900 pb-0.5 hover:text-teal-600 hover:border-teal-600 transition-colors">
+            <Link href="/search" className="hidden md:flex items-center gap-2 text-foreground font-bold border-b-2 border-foreground pb-0.5 hover:text-teal-600 hover:border-teal-600 transition-colors">
               View All Archives <ArrowRight size={18} />
             </Link>
           </div>
