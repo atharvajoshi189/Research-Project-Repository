@@ -351,9 +351,11 @@ function AdminContent() {
     };
 
     return (
-        <div className="min-h-screen font-sans relative bg-[#F8FAFC] dark:bg-slate-950 overflow-hidden">
+        <div className="min-h-screen font-sans relative bg-[#F8FAFC] dark:bg-transparent overflow-hidden">
             {/* Background Effects */}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
@@ -662,7 +664,7 @@ function AdminContent() {
                                             }
                                         }
                                     }}
-                                    className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-all h-full"
+                                    className="bg-white dark:bg-slate-900/60 backdrop-blur-3xl p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-all h-full"
                                 >
                                     <div className="w-20 h-20 rounded-full bg-indigo-50 border-4 border-white dark:border-slate-700 shadow-lg flex items-center justify-center text-indigo-600 font-bold text-2xl mb-4">
                                         {(teacher.full_name || 'T')[0]}
@@ -712,7 +714,7 @@ function AdminContent() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {filteredUsers.map((u) => (
-                                    <div key={u.id} className="bg-white/70 dark:bg-slate-900/70 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors shadow-sm">
+                                    <div key={u.id} className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-3xl p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors shadow-sm">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-inner
                                                 ${u.role === 'teacher' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300' : 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300'}
