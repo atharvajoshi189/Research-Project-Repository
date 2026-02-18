@@ -299,8 +299,10 @@ export default function StudentDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-teal-100 relative overflow-x-hidden">
-            <BackgroundBlobs />
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent text-slate-900 dark:text-white font-sans selection:bg-teal-100 relative overflow-x-hidden">
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
