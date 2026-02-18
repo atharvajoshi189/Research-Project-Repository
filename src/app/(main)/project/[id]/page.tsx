@@ -300,9 +300,11 @@ export default function ProjectDetails() {
     });
 
     return (
-        <div className="min-h-screen w-full relative overflow-hidden bg-[#F8FAFC]">
+        <div className="min-h-screen w-full relative overflow-hidden bg-[#F8FAFC] dark:bg-transparent">
             {/* Background Effects */}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
