@@ -184,9 +184,11 @@ function SearchContent() {
     };
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden pb-20 bg-[#F8FAFC]">
+        <div className="relative min-h-screen w-full overflow-hidden pb-20 bg-[#F8FAFC] dark:bg-transparent">
             {/* Background Animations */}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
