@@ -265,9 +265,11 @@ function TeacherDashboardContent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans transition-colors duration-500 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent font-sans transition-colors duration-500 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
             {/* Background Effects */}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
@@ -293,7 +295,7 @@ function TeacherDashboardContent() {
                     {/* HOD Toggle & Controls */}
                     {(user?.role === 'hod' || user?.role === 'admin') && (
                         <div className="flex flex-col items-end gap-3">
-                            <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex">
+                            <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-md p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex">
                                 <button
                                     onClick={() => setViewMode('mine')}
                                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'mine' ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
@@ -324,40 +326,40 @@ function TeacherDashboardContent() {
                         {/* MASTER STATS CARDS (HOD Only) */}
                         {(user?.role === 'hod' || user?.role === 'admin') && viewMode === 'all' && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Projects</p>
-                                            <h3 className="text-3xl font-black text-slate-900">{totalProjects}</h3>
+                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">{totalProjects}</h3>
                                         </div>
-                                        <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Layers size={20} /></div>
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400"><Layers size={20} /></div>
                                     </div>
                                 </div>
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Active Teachers</p>
-                                            <h3 className="text-3xl font-black text-slate-900">{activeTeachersCount}</h3>
+                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">{activeTeachersCount}</h3>
                                         </div>
-                                        <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600"><Users size={20} /></div>
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded-lg text-emerald-600 dark:text-emerald-400"><Users size={20} /></div>
                                     </div>
                                 </div>
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Pending Allotments</p>
                                             <h3 className="text-3xl font-black text-rose-500">{pendingAllotmentsCount}</h3>
                                         </div>
-                                        <div className="bg-rose-50 p-2 rounded-lg text-rose-600"><AlertCircle size={20} /></div>
+                                        <div className="bg-rose-50 dark:bg-rose-900/20 p-2 rounded-lg text-rose-600 dark:text-rose-400"><AlertCircle size={20} /></div>
                                     </div>
                                 </div>
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Students</p>
-                                            <h3 className="text-3xl font-black text-slate-900">{totalStudentsCount}</h3>
+                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">{totalStudentsCount}</h3>
                                         </div>
-                                        <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600"><BookOpen size={20} /></div>
+                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-lg text-indigo-600 dark:text-indigo-400"><BookOpen size={20} /></div>
                                     </div>
                                 </div>
                             </div>
@@ -429,12 +431,11 @@ function TeacherDashboardContent() {
 
                         <div className="min-h-[400px]">
 
-                            {/* ACTIVE ALLOTMENTS / MASTER MATRIX */}
                             {activeTab === 'active' && (
-                                <div className="bg-white relative z-10 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ backgroundColor: 'white' }}>
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl relative z-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left">
-                                            <thead className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                                            <thead className="bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                                                 <tr>
                                                     <th className="p-6">Project Title</th>
                                                     <th className="p-6">Student Group</th>
@@ -586,12 +587,12 @@ function TeacherDashboardContent() {
                             {activeTab === 'pending_reviews' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {projects.filter(p => p.status === 'pending').length === 0 ? (
-                                        <div className="text-center p-12 bg-white rounded-[2rem] border border-slate-100 text-slate-400">
+                                        <div className="text-center p-12 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] border border-slate-100 dark:border-slate-800 text-slate-400">
                                             No pending projects to review.
                                         </div>
                                     ) : (
                                         projects.filter(p => p.status === 'pending').map((project) => (
-                                            <div key={project.id} className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
+                                            <div key={project.id} className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl border border-amber-100 dark:border-amber-900/30 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
                                                 <div>
                                                     <h3 className="font-bold text-slate-900 text-lg mb-1">{project.title}</h3>
                                                     <div className="flex gap-4 text-xs text-slate-500">
@@ -632,7 +633,7 @@ function TeacherDashboardContent() {
 
                             {/* UNASSIGNED TAB */}
                             {activeTab === 'unassigned' && (
-                                <div className="bg-white relative z-10 rounded-[2rem] border border-amber-100 shadow-xl shadow-amber-500/5 overflow-hidden p-8 text-center animate-in fade-in slide-in-from-right-4 duration-300" style={{ backgroundColor: 'white' }}>
+                                <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl relative z-10 rounded-[2rem] border border-amber-100 dark:border-amber-900/30 shadow-xl shadow-amber-500/5 overflow-hidden p-8 text-center animate-in fade-in slide-in-from-right-4 duration-300">
                                     <AlertCircle size={48} className="mx-auto text-amber-400 mb-4" />
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Unassigned Groups</h3>
                                     {unassignedProjects.length > 0 ? (
@@ -672,7 +673,7 @@ function TeacherDashboardContent() {
                             {activeTab === 'reviews' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {pendingReviews.map((project) => (
-                                        <div key={project.id} className="bg-white p-6 rounded-3xl border border-rose-100 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
+                                        <div key={project.id} className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
                                             <div>
                                                 <h3 className="font-bold text-slate-900 text-lg mb-1">{project.title}</h3>
                                                 <p className="text-sm text-slate-500">Submitted for approval.</p>
