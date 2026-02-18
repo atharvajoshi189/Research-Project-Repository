@@ -60,7 +60,7 @@ export default function StatsCards({ totalProjects, pendingProjects, totalStuden
                         hidden: { opacity: 0, y: 20 },
                         show: { opacity: 1, y: 0 }
                     }}
-                    className="group relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="group relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-slate-900/60 backdrop-blur-3xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className={`p-3 rounded-xl ${card.iconBg}`}>
