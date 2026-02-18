@@ -142,9 +142,11 @@ export default function AllotmentPage() {
     if (loading) return <NeuralLoading message="Initializing Allotment Matrix..." />;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans pt-24 pb-12 px-6 relative overflow-hidden">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent font-sans pt-24 pb-12 px-6 relative overflow-hidden">
             {/* Background Effects */}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <GridPulse />
                 <BentoGrid />
@@ -157,10 +159,10 @@ export default function AllotmentPage() {
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-4 border border-indigo-100">
                         <UserPlus size={14} /> Faculty Tools
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">
-                        Allotment <span className="text-indigo-600">Hub</span>
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">
+                        Allotment <span className="text-indigo-600 dark:text-indigo-400">Hub</span>
                     </h1>
-                    <p className="text-slate-500 text-lg max-w-2xl">
+                    <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl">
                         Form student groups, assign topics, and allot faculty guides in one streamlined workflow.
                     </p>
                 </header>
@@ -171,11 +173,11 @@ export default function AllotmentPage() {
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* 1. Project Details */}
-                        <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                        <section className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/20 relative overflow-hidden group">
                             <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm">1</span>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                <span className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm">1</span>
                                 Project Definition
                             </h2>
 
@@ -187,7 +189,7 @@ export default function AllotmentPage() {
                                         value={projectTitle}
                                         onChange={(e) => setProjectTitle(e.target.value)}
                                         placeholder="e.g. AI Based Traffic Management System"
-                                        className="w-full p-4 bg-slate-50 border-none rounded-xl text-slate-800 font-bold focus:ring-2 focus:ring-indigo-500 transition-all placeholder:font-normal"
+                                        className="w-full p-4 bg-slate-50 dark:bg-slate-950/50 border-none rounded-xl text-slate-800 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all placeholder:font-normal"
                                     />
                                 </div>
 
@@ -200,8 +202,8 @@ export default function AllotmentPage() {
                                                 onClick={() => setProjectCategory(cat as any)}
                                                 className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all
                                                     ${projectCategory === cat
-                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                        : 'border-slate-100 bg-white text-slate-500 hover:border-indigo-200'
+                                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                                                        : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:border-indigo-200 dark:hover:border-indigo-800'
                                                     }
                                                 `}
                                             >
@@ -214,11 +216,11 @@ export default function AllotmentPage() {
                         </section>
 
                         {/* 2. Group Formation */}
-                        <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+                        <section className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/20 relative overflow-hidden">
                             <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-sm">2</span>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                <span className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 text-sm">2</span>
                                 Student Group
                             </h2>
 
@@ -226,7 +228,7 @@ export default function AllotmentPage() {
                                 <input
                                     type="text"
                                     placeholder="Search students..."
-                                    className="w-full p-3 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-teal-500"
+                                    className="w-full p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl text-sm border-none focus:ring-2 focus:ring-teal-500 text-slate-800 dark:text-white placeholder:text-slate-400"
                                 />
                             </div>
 
@@ -237,17 +239,17 @@ export default function AllotmentPage() {
                                         onClick={() => toggleStudent(student.id)}
                                         className={`flex items-center justify-between p-3 rounded-xl cursor-pointer border transition-all
                                             ${selectedStudents.includes(student.id)
-                                                ? 'bg-teal-50 border-teal-500'
-                                                : 'bg-white border-slate-100 hover:border-slate-300'
+                                                ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-500 dark:border-teal-500/50'
+                                                : 'bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                             }
                                         `}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
                                                 {student.full_name?.[0] || 'S'}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-sm text-slate-800">{student.full_name}</p>
+                                                <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{student.full_name}</p>
                                                 <p className="text-[10px] text-slate-400">{student.email}</p>
                                             </div>
                                         </div>
@@ -265,18 +267,18 @@ export default function AllotmentPage() {
                     <div className="space-y-6">
 
                         {/* 3. Guide Selection */}
-                        <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+                        <section className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/20 relative overflow-hidden">
                             <BentoGrid className="opacity-20" />
                             <div className="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-sm">3</span>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                <span className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-sm">3</span>
                                 Faculty Guide
                             </h2>
 
                             <select
                                 value={selectedGuide}
                                 onChange={(e) => setSelectedGuide(e.target.value)}
-                                className="w-full p-4 bg-slate-50 border-none rounded-xl text-slate-800 font-bold focus:ring-2 focus:ring-amber-500 appearance-none cursor-pointer"
+                                className="w-full p-4 bg-slate-50 dark:bg-slate-950/50 border-none rounded-xl text-slate-800 dark:text-white font-bold focus:ring-2 focus:ring-amber-500 appearance-none cursor-pointer"
                             >
                                 <option value="" disabled>Select a Guide...</option>
                                 {teachers.map(t => (
