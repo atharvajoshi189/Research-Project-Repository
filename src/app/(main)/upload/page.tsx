@@ -375,12 +375,14 @@ export default function UploadProject() {
     } as any;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between font-sans text-slate-900 overflow-x-hidden relative">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent flex flex-col justify-between font-sans text-slate-900 overflow-x-hidden relative">
 
 
             {/* Background Gradients & Floating Blobs */}
             {isSuccess && <SuccessParticleBurst />}
-            <BackgroundBlobs />
+            <div className="dark:hidden">
+                <BackgroundBlobs />
+            </div>
 
             <div className="flex-grow flex items-center justify-center w-full p-4 relative z-10 pt-24 pb-12">
                 <motion.div
