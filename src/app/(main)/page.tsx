@@ -240,7 +240,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
+    <div className="relative w-full min-h-screen bg-background dark:bg-transparent text-foreground overflow-x-hidden selection:bg-teal-100 selection:text-teal-900">
 
       {/* 1. Dynamic Scroll Background */}
       <ScrollBackground activeSection={activeSection} />
