@@ -29,7 +29,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const showBackground = isAIActive || isAIModePage || (mounted && resolvedTheme === 'dark');
 
     return (
-        <div className={`flex flex-col min-h-screen transition-all duration-800 ease-in-out ${showBackground ? 'ai-mode-active' : 'text-slate-900'}`}>
+        <div className={`flex flex-col min-h-screen ${showBackground ? 'ai-mode-active' : 'text-slate-900'}`}>
             <LoadingScreen isLoading={isLoading} />
 
             {/* Background Effects */}
@@ -46,7 +46,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 {!isAIModePage && !isAuthPage && <Navbar />}
 
                 {/* Main Content Padding Logic */}
-                <main className={`flex-grow w-full transition-all duration-500 
+                <main className={`flex-grow w-full 
                     ${!isAIModePage && !isAuthPage ? 'pt-40' : ''} 
                     ${showBackground ? 'opacity-95' : ''}
                 `}>
