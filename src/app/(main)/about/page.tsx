@@ -3,11 +3,26 @@
 import { motion } from "framer-motion";
 import { Sparkles, Code2, Rocket, Users, Globe, ChevronRight, Zap, Coffee, Heart, Target } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 import GridPulse from '@/components/GridPulse';
 import BentoGrid from '@/components/BentoGrid';
+import NeuralLoading from "@/components/NeuralLoading";
 
 export default function AboutPage() {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (loading) {
+        return <NeuralLoading message="Accessing Departmental Records..." />;
+    }
+
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent text-slate-900 dark:text-white font-sans selection:bg-teal-100 relative overflow-x-hidden">
             <div className="dark:hidden">
@@ -19,7 +34,7 @@ export default function AboutPage() {
             </div>
 
             <div className="relative z-10 pt-24 pb-20">
-
+                [... rest of file content ...]
                 {/* Hero Section - Matching Reference Style */}
                 <section className="px-6 max-w-5xl mx-auto mb-24 text-center">
                     <motion.div
