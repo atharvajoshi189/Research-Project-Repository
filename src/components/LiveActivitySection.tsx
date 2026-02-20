@@ -78,9 +78,9 @@ const LiveActivitySection = () => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                             </div>
-                            <span className="text-teal-600 font-bold uppercase tracking-widest text-xs">Live Systems</span>
+                            <span className="text-teal-600 dark:text-teal-400 font-bold uppercase tracking-widest text-xs">Live Systems</span>
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                             Repository <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-600">Pulse</span>
                         </h2>
                     </div>
@@ -120,16 +120,16 @@ const LiveActivitySection = () => {
                     </div>
 
                     {/* Right Column: Live Graph Area */}
-                    <div className="lg:col-span-2 relative h-[300px] lg:h-auto bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden flex flex-col">
+                    <div className="lg:col-span-2 relative h-[300px] lg:h-auto bg-white dark:bg-slate-900/60 backdrop-blur-3xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-6 z-10">
-                            <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                                <Activity size={18} className="text-slate-400" />
+                            <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Activity size={18} className="text-slate-400 dark:text-slate-500" />
                                 Commit Velocity
                             </h3>
                             <div className="flex gap-2 text-xs font-medium text-slate-400">
-                                <span className="px-2 py-1 rounded bg-slate-100 text-slate-600">24H</span>
-                                <span className="px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">7D</span>
-                                <span className="px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">30D</span>
+                                <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">24H</span>
+                                <span className="px-2 py-1 rounded hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">7D</span>
+                                <span className="px-2 py-1 rounded hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">30D</span>
                             </div>
                         </div>
 
@@ -147,28 +147,28 @@ const LiveActivitySection = () => {
 
 const StatCard = ({ icon, label, value, color, trend }: any) => {
     const colorClasses: Record<string, string> = {
-        blue: "text-blue-600 bg-blue-50 border-blue-100",
-        purple: "text-purple-600 bg-purple-50 border-purple-100",
-        teal: "text-teal-600 bg-teal-50 border-teal-100",
-        amber: "text-amber-600 bg-amber-50 border-amber-100",
+        blue: "text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:border-blue-800",
+        purple: "text-purple-600 bg-purple-50 border-purple-100 dark:text-purple-400 dark:bg-purple-900/20 dark:border-purple-800",
+        teal: "text-teal-600 bg-teal-50 border-teal-100 dark:text-teal-400 dark:bg-teal-900/20 dark:border-teal-800",
+        amber: "text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-400 dark:bg-amber-900/20 dark:border-amber-800",
     };
 
     return (
         <motion.div
             whileHover={{ y: -4 }}
-            className={`p-4 rounded-2xl border bg-white shadow-sm flex flex-col justify-between h-32`}
+            className={`p-4 rounded-2xl border bg-white dark:bg-slate-900/60 backdrop-blur-3xl border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-32 transition-colors`}
         >
             <div className="flex items-start justify-between">
                 <div className={`p-2 rounded-xl ${colorClasses[color]} bg-opacity-50`}>
                     {icon}
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${color === 'teal' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${color === 'teal' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                     {trend}
                 </span>
             </div>
             <div>
-                <div className="text-2xl font-black text-slate-800 tracking-tight">{value}</div>
-                <div className="text-xs font-semibold text-slate-400">{label}</div>
+                <div className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{value}</div>
+                <div className="text-xs font-semibold text-slate-400 dark:text-slate-500">{label}</div>
             </div>
         </motion.div>
     );

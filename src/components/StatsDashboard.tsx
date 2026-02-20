@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
 import { FileText, Activity, Users } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { useTheme } from "next-themes";
 
 export default function StatsDashboard() {
     const [stats, setStats] = useState({
@@ -12,28 +13,32 @@ export default function StatsDashboard() {
         faculty: 0,
         users: 0,
     });
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDark = mounted && resolvedTheme === 'dark';
 
     const fetchStats = async () => {
-        // 1. Total Papers (Approved Projects)
         const { count: papersCount } = await supabase
             .from("projects")
             .select("*", { count: "exact", head: true })
             .eq("status", "approved");
 
-        // 2. Ongoing Projects (Pending)
         const { count: ongoingCount } = await supabase
             .from("projects")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending");
 
-        // 3. Faculty Contributors (Unique Guide Names)
         const { data: facultyData } = await supabase
             .from("projects")
             .select("guide_name");
 
         const uniqueFaculty = new Set(facultyData?.map((p: any) => p.guide_name).filter(Boolean)).size;
 
-        // 4. Total Users (Researchers/Students)
         const { count: usersCount } = await supabase
             .from("profiles")
             .select("*", { count: "exact", head: true });
@@ -49,14 +54,12 @@ export default function StatsDashboard() {
     useEffect(() => {
         fetchStats();
 
-        // Real-time Subscriptions
         const channel = supabase
             .channel('stats-db-changes')
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'projects' },
                 () => {
-                    console.log('Projects changed, refreshing stats...');
                     fetchStats();
                 }
             )
@@ -64,7 +67,6 @@ export default function StatsDashboard() {
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'profiles' },
                 () => {
-                    console.log('Profiles changed, refreshing stats...');
                     fetchStats();
                 }
             )
@@ -85,6 +87,7 @@ export default function StatsDashboard() {
                     color="from-blue-500 via-indigo-500 to-violet-500"
                     glow="bg-blue-500"
                     delay={0}
+                    isDark={isDark}
                 />
                 <Stat3DCard
                     icon={Activity}
@@ -93,6 +96,7 @@ export default function StatsDashboard() {
                     color="from-fuchsia-500 via-pink-500 to-rose-500"
                     glow="bg-fuchsia-500"
                     delay={0.1}
+                    isDark={isDark}
                 />
                 <Stat3DCard
                     icon={Users}
@@ -101,6 +105,7 @@ export default function StatsDashboard() {
                     color="from-emerald-500 via-teal-500 to-cyan-500"
                     glow="bg-emerald-500"
                     delay={0.2}
+                    isDark={isDark}
                 />
                 <Stat3DCard
                     icon={Users}
@@ -109,13 +114,14 @@ export default function StatsDashboard() {
                     color="from-amber-500 via-orange-500 to-red-500"
                     glow="bg-amber-500"
                     delay={0.3}
+                    isDark={isDark}
                 />
             </div>
         </div>
     );
 }
 
-const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
+const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay, isDark }: any) => {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const rotateX = useTransform(y, [-0.5, 0.5], ["10deg", "-10deg"]);
@@ -144,7 +150,12 @@ const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
         >
             <motion.div
                 style={{ rotateX, rotateY }}
-                className="relative h-32 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] overflow-hidden flex items-center p-4 transition-transform duration-200 group-hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)]"
+                className={`relative h-32 rounded-2xl border backdrop-blur-xl transition-all duration-500 flex items-center p-4 
+                    ${isDark
+                        ? 'bg-slate-900/60 border-white/5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]'
+                        : 'bg-white/60 border-white/60 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)]'
+                    }
+                    group-hover:shadow-2xl transition-transform duration-200`}
             >
                 {/* Fantastic Flux Background */}
                 <motion.div
@@ -161,19 +172,16 @@ const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
                     style={{ backgroundSize: "200% 200%" }}
                 />
 
-                {/* Holographic Border Shine */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${color} opacity-0 group-hover:opacity-50 transition-opacity duration-500 mix-blend-overlay`} style={{ maskImage: "linear-gradient(black, black), linear-gradient(black, black)", maskClip: "content-box, border-box", maskComposite: "exclude", padding: "2px" }} />
-
                 {/* Content Container (Horizontal Compact) */}
                 <div className="relative z-10 flex items-center gap-5 w-full" style={{ transform: "translateZ(20px)" }}>
                     {/* Glowing Icon Box */}
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 shadow-${glow}/30 ring-4 ring-white/50`}>
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 shadow-${glow}/30 ring-4 ${isDark ? 'ring-white/10' : 'ring-white/50'}`}>
                         <Icon size={28} strokeWidth={2} />
                     </div>
 
                     {/* Stats Text */}
                     <div className="flex flex-col">
-                        <h4 className="text-5xl font-black text-slate-800 tracking-tighter leading-none drop-shadow-sm">
+                        <h4 className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter leading-none drop-shadow-sm">
                             <Counter end={value} />
                         </h4>
                         <span className={`text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${color} bg-clip-text text-transparent opacity-80 group-hover:opacity-100 transition-opacity`}>
@@ -183,7 +191,7 @@ const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
                 </div>
 
                 {/* Particle Glow */}
-                <div className={`absolute -right-10 -bottom-10 w-32 h-32 ${glow} blur-[60px] opacity-30 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none`} />
+                <div className={`absolute -right-10 -bottom-10 w-32 h-32 ${glow} blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-300 pointer-events-none`} />
             </motion.div>
         </motion.div>
     );
@@ -191,9 +199,8 @@ const Stat3DCard = ({ icon: Icon, label, value, color, glow, delay }: any) => {
 
 const Counter = ({ end }: { end: number }) => {
     const nodeRef = useRef<HTMLSpanElement>(null);
-    const inView = useInView(nodeRef, { once: false }); // Reset every time it enters view
+    const inView = useInView(nodeRef, { once: false });
 
-    // Use a motion value for the number
     const count = useSpring(0, { stiffness: 50, damping: 20 });
     const rounded = useTransform(count, (latest) => Math.round(latest));
 
@@ -201,7 +208,7 @@ const Counter = ({ end }: { end: number }) => {
         if (inView) {
             count.set(end);
         } else {
-            count.set(0); // Reset to 0 when out of view to re-animate on scroll
+            count.set(0);
         }
     }, [inView, end, count]);
 
