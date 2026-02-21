@@ -308,7 +308,7 @@ export default function StudentDashboard() {
                 <BentoGrid />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
+            <div className="max-w-[95rem] mx-auto px-6 py-12 relative z-10">
 
                 {/* Header */}
                 <header className="mb-12 relative">
@@ -474,7 +474,7 @@ export default function StudentDashboard() {
                                     initial="hidden"
                                     whileInView="visible"
                                     viewport={{ once: true, margin: "-50px" }}
-                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-[350px]"
                                 >
                                     {projects.map((project, i) => (
                                         <motion.div
@@ -535,7 +535,7 @@ export default function StudentDashboard() {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: "-50px" }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-[350px]"
                         >
                             {recommendedProjects.map((project, i) => (
                                 <motion.div
