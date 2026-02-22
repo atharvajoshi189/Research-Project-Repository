@@ -348,18 +348,18 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mentees.length > 0 ? mentees.map((mentee) => (
-                                <div key={mentee.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/50 dark:border-slate-800/50 text-center shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 hover:-translate-y-2 hover:border-teal-400/50 transition-all duration-300 group">
-                                    <div className="w-20 h-20 mx-auto bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <div key={mentee.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-[1.5rem] border border-white dark:border-slate-800 text-center shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-2xl dark:shadow-teal-900/10 hover:-translate-y-1.5 hover:border-teal-400/50 transition-all duration-300 group">
+                                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-2xl mb-4 group-hover:scale-110 transition-transform">
                                         {(mentee.full_name || 'S')[0]}
                                     </div>
                                     <h3 className="font-black text-slate-800 dark:text-slate-200 text-lg mb-1">{mentee.full_name}</h3>
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">{mentee.college_id || 'No ID'}</p>
-                                    <div className="text-[10px] font-bold uppercase tracking-tighter bg-slate-900/5 dark:bg-white/5 py-1.5 px-3 rounded-lg inline-block text-slate-500 dark:text-slate-400">
+                                    <div className="text-[10px] font-bold uppercase tracking-tighter bg-slate-900/5 dark:bg-white/5 py-1.5 px-3 rounded-lg inline-block text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800">
                                         {mentee.section} • {mentee.academic_year}
                                     </div>
                                 </div>
                             )) : (
-                                <div className="col-span-4 p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[3rem] bg-white/30 backdrop-blur-xl">
+                                <div className="col-span-4 p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[2rem] bg-white/30 backdrop-blur-xl">
                                     <p className="font-medium text-lg">No students assigned yet.</p>
                                 </div>
                             )}
@@ -372,21 +372,21 @@ export default function StudentDashboard() {
                     <section className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="space-y-4">
                             {approvalRequests.length > 0 ? approvalRequests.map((proj) => (
-                                <div key={proj.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-amber-900/5 flex items-center justify-between group hover:border-amber-400/50 transition-all">
+                                <div key={proj.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white dark:border-slate-800 shadow-[0_10px_50px_-15px_rgba(0,0,0,0.08)] flex items-center justify-between group hover:border-amber-400/50 transition-all">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                                             <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Review Required</span>
                                         </div>
-                                        <h3 className="font-black text-slate-900 dark:text-white text-2xl mb-2 group-hover:text-amber-600 transition-colors">{proj.title}</h3>
+                                        <h3 className="font-black text-slate-900 dark:text-white text-2xl mb-2 group-hover:text-amber-600 transition-colors uppercase tracking-tight">{proj.title}</h3>
                                         <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-1 max-w-2xl font-medium">{proj.abstract}</p>
                                     </div>
-                                    <Link href={`/upload?edit=${proj.id}`} className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-amber-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-2">
+                                    <Link href={`/upload?edit=${proj.id}`} className="px-8 py-4 bg-slate-900 text-white font-black rounded-xl hover:bg-amber-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-2">
                                         Open Review <ArrowRight size={18} />
                                     </Link>
                                 </div>
                             )) : (
-                                <div className="p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[3rem] bg-white/30 backdrop-blur-xl">
+                                <div className="p-20 text-center text-slate-400 border-2 border-dashed border-slate-200/50 rounded-[2rem] bg-white/30 backdrop-blur-xl">
                                     <p className="font-medium text-lg">Your queue is clear. No pending approvals.</p>
                                 </div>
                             )}
@@ -411,10 +411,10 @@ export default function StudentDashboard() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {invitations.map((invite: any) => (
-                                        <div key={invite.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 shadow-2xl shadow-indigo-900/5 flex items-center justify-between group hover:border-indigo-400/50 transition-all">
+                                        <div key={invite.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-[1.5rem] border border-white dark:border-slate-800 shadow-[0_10px_50px_-15px_rgba(0,0,0,0.08)] flex items-center justify-between group hover:border-indigo-400/50 transition-all">
                                             <div>
                                                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 block">Collaboration Request</span>
-                                                <h3 className="font-black text-slate-900 dark:text-white text-xl mb-1">{invite.projects?.title || 'Untitled Project'}</h3>
+                                                <h3 className="font-black text-slate-900 dark:text-white text-xl mb-1 uppercase tracking-tight">{invite.projects?.title || 'Untitled Project'}</h3>
                                                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                                                     As <span className="text-indigo-600 capitalize font-bold">{invite.role}</span>
                                                     {invite.projects?.authors?.[0] && (
@@ -452,10 +452,10 @@ export default function StudentDashboard() {
                             </h2>
 
                             {projects.length === 0 ? (
-                                <div className="p-20 rounded-[3rem] border-2 border-dashed border-slate-200/60 text-center bg-white/30 backdrop-blur-xl">
+                                <div className="p-20 rounded-[2rem] border-2 border-dashed border-slate-200/60 text-center bg-white/30 backdrop-blur-xl">
                                     <p className="text-slate-500 dark:text-slate-400 text-lg font-medium mb-8">No active projects found in your workspace.</p>
                                     {user?.role === 'student' && (
-                                        <Link href="/upload" className="px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-105 transition-all inline-flex items-center gap-3 group">
+                                        <Link href="/upload" className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-105 transition-all inline-flex items-center gap-3 group">
                                             Start Your Submission <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                                         </Link>
                                     )}
@@ -749,85 +749,93 @@ const StatusCard = ({ project, onShare, onClick }: { project: any, onShare: any,
             animate={{ opacity: 1, y: 0 }}
             onClick={onClick}
             className={`
-                bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/50 dark:border-slate-800/50 transition-all group shadow-2xl shadow-teal-900/5 dark:shadow-teal-900/20 hover:shadow-teal-900/10 hover:-translate-y-2 cursor-pointer relative overflow-hidden h-full
+                bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-7 rounded-[2rem] border border-white dark:border-slate-800 transition-all group shadow-[0_10px_40px_-15px_rgba(0,0,0,0.06)] dark:shadow-2xl dark:shadow-teal-900/10 hover:shadow-[0_15px_60px_-20px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer relative overflow-hidden h-full flex flex-col min-h-[340px]
                 ${isPending ? 'hover:border-amber-400/50' :
                     isApproved ? 'hover:border-teal-400/50' :
                         'hover:border-rose-400/50'}
             `}
         >
-            <div className="flex justify-between items-start mb-8">
-                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border
-                    ${isPending ? 'bg-amber-50/10 text-amber-700 border-amber-500/20' :
-                        isApproved ? 'bg-teal-500/10 text-teal-700 border-teal-500/20' :
-                            'bg-rose-500/10 text-rose-700 border-rose-500/20'}
+            {/* Header: Status and Actions */}
+            <div className="flex justify-between items-center mb-6">
+                <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 border shadow-sm
+                    ${isPending ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                        isApproved ? 'bg-teal-50 text-teal-700 border-teal-100' :
+                            'bg-rose-50 text-rose-700 border-rose-100'}
                 `}>
-                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPending ? 'bg-amber-500' : isApproved ? 'bg-teal-500' : 'bg-rose-500'}`}></div>
+                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-all ${isPending ? 'bg-amber-500' : isApproved ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]' : 'bg-rose-500'}`}></div>
                     {project.status || 'Pending Review'}
                 </span>
 
                 <div className="flex gap-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); onShare(); }}
-                        className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
+                        className="w-9 h-9 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                     >
-                        <Share2 size={16} />
+                        <Share2 size={14} />
                     </button>
                     {(isPending || project.userRole === 'leader') && (
                         <Link
                             onClick={(e) => e.stopPropagation()}
                             href={isPending ? `/upload?edit=${project.id}` : `/project/edit/${project.id}`}
-                            className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
+                            className="w-9 h-9 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                         >
-                            <Edit size={16} />
+                            <Edit size={14} />
                         </Link>
                     )}
                 </div>
             </div>
 
-            <h3 className="font-black text-slate-900 dark:text-white text-2xl mb-4 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">{project.title}</h3>
+            {/* Title */}
+            <h3 className="font-black text-slate-900 dark:text-white text-xl mb-4 line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors uppercase tracking-tight">
+                {project.title}
+            </h3>
 
-            <div className="flex gap-3 mb-6">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border
-                    ${project.userRole === 'leader' ? 'bg-indigo-900 text-white border-indigo-900 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200'}
+            {/* Badges Section */}
+            <div className="flex flex-wrap gap-2 mb-5">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-sm transition-all
+                    ${project.userRole === 'leader' ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-100 dark:shadow-none' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700'}
                 `}>
                     {project.userRole === 'leader' ? <User size={10} className="fill-white" /> : <Users size={10} />}
-                    {project.userRole === 'leader' ? 'Lead Researcher' : 'Contributor'}
+                    {project.userRole === 'leader' ? 'Leader' : 'Contributor'}
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                <span className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700 text-[9px] font-black uppercase tracking-wider shadow-sm">
                     {project.category}
                 </span>
             </div>
 
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-10 line-clamp-3 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{project.abstract}</p>
+            {/* Abstract */}
+            <p className="text-slate-500 dark:text-slate-400 text-xs mb-8 line-clamp-2 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                {project.abstract}
+            </p>
 
-            {(isRejected || project.remarks) && (project.remarks || project.admin_feedback) && (
-                <div className="bg-rose-500/5 p-5 rounded-2xl border border-rose-500/10 flex items-start gap-4 mb-4">
-                    <AlertCircle size={20} className="text-rose-500 flex-shrink-0" />
-                    <div>
-                        <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Feedback Digest</p>
-                        <p className="text-xs text-rose-600/80 font-medium italic leading-relaxed">"{project.remarks || project.admin_feedback}"</p>
+            {/* Feedback / Footer */}
+            <div className="mt-auto">
+                {(isRejected || project.remarks) && (project.remarks || project.admin_feedback) && (
+                    <div className="bg-rose-500/5 p-4 rounded-xl border border-rose-500/10 flex items-start gap-3 mb-3">
+                        <AlertCircle size={16} className="text-rose-500 flex-shrink-0" />
+                        <p className="text-[10px] text-rose-600/80 font-medium italic leading-relaxed line-clamp-1">"{project.remarks || project.admin_feedback}"</p>
                     </div>
-                </div>
-            )}
+                )}
 
-            {isApproved && (
-                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-500/5 p-4 rounded-2xl border border-teal-500/10">
-                    <div className="w-5 h-5 bg-teal-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-                        <CheckCircle size={14} />
+                {isApproved && (
+                    <div className="flex items-center gap-2.5 text-[9px] font-black uppercase tracking-widest text-teal-600 bg-teal-500/5 p-3.5 rounded-xl border border-teal-500/10">
+                        <div className="w-5 h-5 bg-teal-500 rounded flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                            <CheckCircle size={12} />
+                        </div>
+                        Synchronized
                     </div>
-                    Synchronized with Repository
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* Subtle Gradient Shadow Reveal */}
-            <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-slate-200/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
+            {/* Hover Decor */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700"></div>
         </motion.div>
     );
 };
 
 const StatCard = ({ label, value, icon: Icon, color }: any) => (
-    <div className="bg-white/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/50 shadow-2xl shadow-teal-900/5 flex items-center gap-8 hover:-translate-y-2 transition-all duration-500 group">
-        <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-3xl shadow-xl transition-all group-hover:scale-110 group-hover:rotate-6 ${color}`}>
+    <div className="bg-white/80 backdrop-blur-xl p-10 rounded-[2rem] border border-white dark:border-slate-800 shadow-[0_15px_60px_-20px_rgba(0,0,0,0.06)] flex items-center gap-8 hover:-translate-y-2 transition-all duration-500 group">
+        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl shadow-xl transition-all group-hover:scale-110 group-hover:rotate-3 ${color}`}>
             <Icon size={32} />
         </div>
         <div>
@@ -843,12 +851,12 @@ const TechBar = ({ label, percent, color }: { label: string, percent: string, co
             <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest group-hover/bar:text-indigo-600 transition-colors">{label}</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tabular-nums">{percent}</span>
         </div>
-        <div className="h-3 rounded-full bg-slate-900/5 p-0.5 overflow-hidden">
+        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
             <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: percent }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className={`h-full rounded-full shadow-lg ${color}`}
+                className={`h-full rounded-full ${color}`}
             ></motion.div>
         </div>
     </div>
