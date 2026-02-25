@@ -15,15 +15,51 @@ const HallOfFame = () => {
     useEffect(() => {
         setMounted(true);
         const fetchDeepTech = async () => {
-            const { data } = await supabase
+            // Fetch the specific pinned projects by ID to ensure correct linking
+            const { data: pinnedData } = await supabase
+                .from('projects')
+                .select('*')
+                .in('id', [24, 31, 10]);
+
+            const { data: recentData } = await supabase
                 .from('projects')
                 .select('*')
                 .eq('status', 'approved')
                 .order('created_at', { ascending: false })
-                .limit(3);
+                .limit(10);
 
-            if (data) {
-                setProjects(data);
+            if (recentData || pinnedData) {
+                const pool = [...(pinnedData || []), ...(recentData || [])];
+
+                // Helper to find and remove from pool
+                const findProject = (id: number, keyword: string) => {
+                    let idx = pool.findIndex(p => p.id === id);
+                    if (idx === -1) idx = pool.findIndex(p => p.title.toLowerCase().includes(keyword));
+                    if (idx !== -1) return pool.splice(idx, 1)[0];
+                    return null;
+                };
+
+                const psyProject = findProject(24, 'psybridge');
+                const fedProject = findProject(31, 'federated');
+                const wildProject = findProject(10, 'wildlife');
+
+                // Apply Overrides and ensure IDs are correct
+                if (psyProject) {
+                    psyProject.title = "Psybridge: Transforming Therapy with AI-Driven Personality Insights";
+                    psyProject.authors = ["Aayushi Asole", "Sharwari Raut", "Vaibhavi Balbudhe", "Pratiksha Parate"];
+                }
+
+                if (fedProject) {
+                    fedProject.title = "A Decentralized Approach to Federated Learning network using Zero-Knowledge Proof";
+                    fedProject.authors = ["Atharva Bhede", "Atharva Naitam", "Ayush kshirsagar", "Nevin Oommen"];
+                }
+
+                if (wildProject) {
+                    wildProject.title = "Smart IoT-Based Wildlife Tracking & Intrusion Alert system";
+                    wildProject.authors = ["Rajas Tarapure", "Sarthak Thote", "Sujal Dange", "Aayush Jibkhate"];
+                }
+
+                setProjects([psyProject, fedProject, wildProject].filter(Boolean));
             }
         };
         fetchDeepTech();
@@ -81,7 +117,7 @@ const HallOfFame = () => {
                         <FameCard
                             rank={2}
                             title="Recent Innovation"
-                            name={Array.isArray(secondProject.authors) ? secondProject.authors[0] : (secondProject.authors || 'Unknown')}
+                            name={Array.isArray(secondProject.authors) ? secondProject.authors.join(', ') : (secondProject.authors || 'Unknown')}
                             project={secondProject.title}
                             description={secondProject.abstract}
                             icon={<Sparkles size={24} className="text-white" />}
@@ -99,7 +135,7 @@ const HallOfFame = () => {
                         <FameCard
                             rank={1}
                             title="Featured Project"
-                            name={Array.isArray(topProject.authors) ? topProject.authors[0] : (topProject.authors || 'Unknown')}
+                            name={Array.isArray(topProject.authors) ? topProject.authors.join(', ') : (topProject.authors || 'Unknown')}
                             project={topProject.title}
                             description={topProject.abstract}
                             icon={<Trophy size={24} className="text-white" />}
@@ -117,7 +153,7 @@ const HallOfFame = () => {
                         <FameCard
                             rank={3}
                             title="Honorable Mention"
-                            name={Array.isArray(thirdProject.authors) ? thirdProject.authors[0] : (thirdProject.authors || 'Unknown')}
+                            name={Array.isArray(thirdProject.authors) ? thirdProject.authors.join(', ') : (thirdProject.authors || 'Unknown')}
                             project={thirdProject.title}
                             description={thirdProject.abstract}
                             icon={<Award size={24} className="text-white" />}
