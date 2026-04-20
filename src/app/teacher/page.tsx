@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Users, FileClock, Search, MessageSquare, CheckCircle, Clock, ChevronRight, AlertCircle, BookOpen, Layers, LayoutGrid } from 'lucide-react';
+import { Users, FileClock, Search, MessageSquare, CheckCircle, Clock, ChevronRight, AlertCircle, BookOpen, Layers, LayoutGrid, FileSpreadsheet, FileType2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -14,6 +14,10 @@ import GridPulse from '@/components/GridPulse';
 import BentoGrid from '@/components/BentoGrid';
 
 import { useRealtimeProjects } from '@/hooks/useRealtimeProjects';
+
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const StatusBadge = ({ status }: { status: string }) => {
     const styles = {
@@ -264,6 +268,87 @@ function TeacherDashboardContent() {
         return t ? t.full_name : "Unknown Guide";
     };
 
+    // --- EXPORT LOGIC FOR hodce@stvincentngp.edu.in ---
+    const getExportData = () => {
+        return filteredProjects.map((p: any) => {
+             const allAuthors = Array.isArray(p.authors) ? p.authors : (p.authors ? [p.authors] : []);
+             const name = allAuthors[0] || 'Unknown';
+             const collaborators = allAuthors.slice(1).join(', ') || 'None';
+             const guideInfo = resolveGuide(p);
+             return {
+                Guide: guideInfo ? guideInfo.name : 'Unassigned',
+                Project: p.title || 'Untitled',
+                Details: p.abstract || p.description || 'No details provided',
+                Name: name,
+                Collaborators: collaborators,
+                Status: p.status || 'Pending',
+                Year: p.academic_year || 'N/A'
+            };
+        });
+    };
+
+    const downloadExcel = () => {
+        const data = getExportData();
+        if (data.length === 0) return toast.error("No data to export");
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
+        XLSX.writeFile(workbook, `department_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast.success("Excel Downloaded");
+    };
+
+    const downloadPDF = () => {
+        if (filteredProjects.length === 0) return toast.error("No data to export");
+
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFillColor(79, 70, 229); // Indigo 600
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text("All Monitored Projects Report", 14, 13);
+
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+        doc.text(`Total Projects: ${filteredProjects.length}`, 14, 35);
+
+        const tableData = filteredProjects.map((p: any) => {
+             const allAuthors = Array.isArray(p.authors) ? p.authors : (p.authors ? [p.authors] : []);
+             const name = allAuthors[0] || 'Unknown';
+             const collaborators = allAuthors.slice(1).join(', ') || 'None';
+             const guideInfo = resolveGuide(p);
+             return [
+                guideInfo ? guideInfo.name : 'Unassigned',
+                p.title || 'Untitled',
+                (p.abstract || p.description || 'No details provided').substring(0, 50) + '...',
+                name,
+                collaborators
+            ];
+        });
+
+        autoTable(doc, {
+            head: [['Guide', 'Project', 'Details', 'Name', 'Collaborators']],
+            body: tableData,
+            startY: 40,
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [249, 250, 251] },
+            columnStyles: {
+                0: { cellWidth: 30 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 60 },
+                3: { cellWidth: 20 },
+                4: { cellWidth: 'auto' }
+            }
+        });
+
+        doc.save(`department_report_${new Date().toISOString().split('T')[0]}.pdf`);
+        toast.success("PDF Downloaded");
+    };
+
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-transparent font-sans transition-colors duration-500 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
             {/* Background Effects */}
@@ -413,19 +498,32 @@ function TeacherDashboardContent() {
                                 )}
                             </div>
 
-                            {/* Project Type Filter Tabs */}
-                            <div className="flex bg-slate-100 p-1 rounded-lg">
-                                {['All', 'Micro Project', 'Mini Project', 'Final Year Project'].map((cat) => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setProjectCategoryFilter(cat as any)}
-                                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap
-                                            ${projectCategoryFilter === cat ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}
-                                        `}
-                                    >
-                                        {cat === 'Final Year Project' ? 'FYP' : cat.replace(' Project', '')}
-                                    </button>
-                                ))}
+                            {/* Right side controls: Export and Filter */}
+                            <div className="flex items-center gap-4">
+                                {user?.email === 'hodce@stvincentngp.edu.in' && (
+                                    <div className="flex bg-white p-1 rounded-lg border border-slate-200 gap-1 shadow-sm">
+                                        <button onClick={downloadExcel} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
+                                            <FileSpreadsheet size={14} /> Excel
+                                        </button>
+                                        <button onClick={downloadPDF} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors">
+                                            <FileType2 size={14} /> PDF
+                                        </button>
+                                    </div>
+                                )}
+                                {/* Project Type Filter Tabs */}
+                                <div className="flex bg-slate-100 p-1 rounded-lg">
+                                    {['All', 'Micro Project', 'Mini Project', 'Final Year Project'].map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setProjectCategoryFilter(cat as any)}
+                                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap
+                                                ${projectCategoryFilter === cat ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}
+                                            `}
+                                        >
+                                            {cat === 'Final Year Project' ? 'FYP' : cat.replace(' Project', '')}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 

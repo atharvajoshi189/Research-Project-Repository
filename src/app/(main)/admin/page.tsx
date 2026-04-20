@@ -252,43 +252,21 @@ function AdminContent() {
     });
 
     // --- DATA EXPORT ---
-    const [exportOpen, setExportOpen] = useState(false);
-
     const getExportData = () => {
-        return filteredProjects.map(p => ({
-            Title: p.title || 'Untitled',
-            Category: p.category || 'Uncategorized',
-            Academic_Year: p.academic_year || 'N/A',
-            Guide_Name: p.guide_name || 'Unassigned',
-            Authors: Array.isArray(p.authors) ? p.authors.join(', ') : (p.authors || ''),
-            Status: p.status || 'Pending',
-            Link: p.pdf_url || p.github_url || 'N/A'
-        }));
-    };
-
-    const downloadCSV = () => {
-        const data = getExportData();
-        if (data.length === 0) return toast.error("No data to export");
-
-        const headers = Object.keys(data[0]);
-        const rows = data.map(obj => headers.map(header => {
-            const val = obj[header as keyof typeof obj];
-            return `"${String(val).replace(/"/g, '""')}"`;
-        }));
-
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + headers.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `department_report_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setExportOpen(false);
-        toast.success("CSV Downloaded");
+        return filteredProjects.map(p => {
+             const allAuthors = Array.isArray(p.authors) ? p.authors : (p.authors ? [p.authors] : []);
+             const name = allAuthors[0] || 'Unknown';
+             const collaborators = allAuthors.slice(1).join(', ') || 'None';
+             return {
+                Guide: p.guide_name || 'Unassigned',
+                Project: p.title || 'Untitled',
+                Details: p.abstract || p.description || 'No details provided',
+                Name: name,
+                Collaborators: collaborators,
+                Status: p.status || 'Pending',
+                Year: p.academic_year || 'N/A'
+            };
+        });
     };
 
     const downloadExcel = () => {
@@ -299,7 +277,6 @@ function AdminContent() {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
         XLSX.writeFile(workbook, `department_report_${new Date().toISOString().split('T')[0]}.xlsx`);
-        setExportOpen(false);
         toast.success("Excel Downloaded");
     };
 
@@ -313,31 +290,43 @@ function AdminContent() {
         doc.rect(0, 0, 210, 20, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(14);
-        doc.text("Departmental Projects Report", 14, 13);
+        doc.text("All Monitored Projects Report", 14, 13);
 
         doc.setTextColor(50, 50, 50);
         doc.setFontSize(10);
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
         doc.text(`Total Projects: ${filteredProjects.length}`, 14, 35);
 
-        const tableData = filteredProjects.map(p => [
-            p.title || 'Untitled',
-            p.category || '-',
-            p.guide_name || 'Unassigned',
-            p.status || 'Pending'
-        ]);
+        const tableData = filteredProjects.map(p => {
+             const allAuthors = Array.isArray(p.authors) ? p.authors : (p.authors ? [p.authors] : []);
+             const name = allAuthors[0] || 'Unknown';
+             const collaborators = allAuthors.slice(1).join(', ') || 'None';
+             return [
+                p.guide_name || 'Unassigned',
+                p.title || 'Untitled',
+                (p.abstract || p.description || 'No details provided').substring(0, 50) + '...',
+                name,
+                collaborators
+            ];
+        });
 
         autoTable(doc, {
-            head: [['Title', 'Category', 'Guide', 'Status']],
+            head: [['Guide', 'Project', 'Details', 'Name', 'Collaborators']],
             body: tableData,
             startY: 40,
-            styles: { fontSize: 9, cellPadding: 3 },
+            styles: { fontSize: 8, cellPadding: 2 },
             headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [249, 250, 251] }
+            alternateRowStyles: { fillColor: [249, 250, 251] },
+            columnStyles: {
+                0: { cellWidth: 30 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 60 },
+                3: { cellWidth: 20 },
+                4: { cellWidth: 'auto' }
+            }
         });
 
         doc.save(`department_report_${new Date().toISOString().split('T')[0]}.pdf`);
-        setExportOpen(false);
         toast.success("PDF Downloaded");
     };
 
@@ -502,35 +491,22 @@ function AdminContent() {
                                 </div>
                                 <div className="flex items-center gap-3 relative">
 
-                                    {/* EXPORT DROPDOWN */}
-                                    <div className="relative">
+                                    {/* EXPORT BUTTONS */}
+                                    <div className="flex items-center gap-2">
                                         <button
-                                            onClick={() => setExportOpen(!exportOpen)}
+                                            onClick={downloadExcel}
                                             className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors border border-emerald-100 dark:border-emerald-900/30"
+                                            title="Download into Excel"
                                         >
-                                            <Download size={16} /> Export Data <ChevronDown size={14} className={`transition-transform ${exportOpen ? 'rotate-180' : ''}`} />
+                                            <FileSpreadsheet size={16} /> Excel
                                         </button>
-
-                                        <AnimatePresence>
-                                            {exportOpen && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: 10 }}
-                                                    className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-600 z-50 overflow-hidden"
-                                                >
-                                                    <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
-                                                        <FileText size={16} className="text-blue-500" /> Export CSV
-                                                    </button>
-                                                    <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
-                                                        <FileSpreadsheet size={16} className="text-emerald-500" /> Export Excel
-                                                    </button>
-                                                    <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left border-t border-slate-100 dark:border-slate-700">
-                                                        <FileType2 size={16} className="text-red-500" /> Export PDF
-                                                    </button>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                        <button
+                                            onClick={downloadPDF}
+                                            className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border border-red-100 dark:border-red-900/30"
+                                            title="Download into PDF"
+                                        >
+                                            <FileType2 size={16} /> PDF
+                                        </button>
                                     </div>
 
                                     <button onClick={handleSyncGuides} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors border border-indigo-100 dark:border-indigo-800">
