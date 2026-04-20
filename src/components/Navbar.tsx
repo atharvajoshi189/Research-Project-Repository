@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard, Settings, LogOut, ChevronDown, Sparkles, Users, FileClock } from 'lucide-react';
+import { Home, Grid, UploadCloud, BarChart3, Menu, User, Search, LayoutDashboard, Settings, LogOut, ChevronDown, Sparkles, Users, FileClock, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
@@ -79,6 +79,7 @@ export default function Navbar() {
     const navItems = [
         { label: 'Home', href: '/', icon: Home },
         { label: 'Browse', href: '/search', icon: Search },
+        { label: 'About', href: '/about', icon: Info },
         // Role Specific
         ...(user?.role === 'student' ? [
             { label: 'Upload', href: '/upload', icon: UploadCloud },
