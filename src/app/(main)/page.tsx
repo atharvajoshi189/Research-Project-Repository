@@ -272,10 +272,10 @@ export default function Home() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-[0.9] text-slate-900 mb-10"
+                  className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none text-slate-900 mb-10 uppercase"
                 >
                   Research <br />
-                  <span className="font-[family-name:var(--font-playfair)] italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500">Reimagined.</span>
+                  <span className="font-[family-name:var(--font-playfair)] italic font-light text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-blue-700 to-indigo-800 drop-shadow-sm">Reimagined.</span>
                 </motion.h1>
               </div>
 
@@ -303,8 +303,8 @@ export default function Home() {
                     {/* Glow Effect */}
                     <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full opacity-20 group-focus-within:opacity-50 blur-xl transition-opacity duration-500" />
 
-                    <div className={`relative bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 ${showDropdown ? 'rounded-3xl' : 'rounded-full'}`}>
-                      <div className="flex items-center pl-6 pr-2 py-2">
+                    <div className={`relative bg-white dark:bg-slate-900 backdrop-blur-xl border border-white dark:border-slate-800 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)] transition-all duration-300 ${showDropdown ? 'rounded-[2rem]' : 'rounded-3xl'}`}>
+                      <div className="flex items-center pl-8 pr-2 py-2">
                         <Search className="text-slate-400 w-5 h-5 flex-shrink-0 mr-4" />
                         <input
                           type="text"
@@ -313,10 +313,10 @@ export default function Home() {
                           onMouseDown={(e) => e.stopPropagation()} /* Prevent dragging */
                           onKeyDown={handleKeyDown}
                           onFocus={() => { if (query) setShowDropdown(true) }}
-                          placeholder="Find projects, topics, or authors..."
-                          className="bg-transparent w-full text-lg font-medium text-slate-800 placeholder-slate-400 focus:outline-none py-3"
+                          placeholder="Search the archive..."
+                          className="bg-transparent w-full text-lg font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none py-4"
                         />
-                        <button type="submit" className="p-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-transform active:scale-95">
+                        <button type="submit" className="p-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg">
                           <ArrowRight size={20} />
                         </button>
 
@@ -465,56 +465,25 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, margin: "-100px" }}
+            viewport={{ once: true, margin: "-100px" }}
             variants={{
               hidden: { opacity: 0 },
               visible: {
                 opacity: 1,
                 transition: {
-                  staggerChildren: 0.15
+                  staggerChildren: 0.1
                 }
               }
             }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[350px]"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {projects.slice(0, 8).map((project, i) => {
-              return (
-                <motion.div
-                  key={project.id}
-                  className="col-span-1 h-full"
-                  variants={{
-                    hidden: {
-                      opacity: 0,
-                      y: -200, // From top
-                      x: -800 + (i * 50), // From far left, staggered
-                      scale: 0.8,
-                      rotate: -30 + (i * 5) // Fanned rotation
-                    },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      scale: 1,
-                      x: 0,
-                      rotate: 0,
-                      transition: {
-                        type: "spring",
-                        stiffness: 80,
-                        damping: 15,
-                        mass: 1
-                      }
-                    }
-                  }}
-                >
-                  <Project3DCard
-                    project={project}
-                    spanClass="h-full" // Ensure card takes full height of wrapper
-                    index={i}
-                    // Disable internal animation of Project3DCard since we handle it here
-                    noAnimation={true}
-                  />
-                </motion.div>
-              );
-            })}
+            {projects.slice(0, 6).map((project, i) => (
+              <Project3DCard
+                key={project.id}
+                project={project}
+                index={i}
+              />
+            ))}
 
             {/* View More Card */}
             <motion.div

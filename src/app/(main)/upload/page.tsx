@@ -258,7 +258,6 @@ export default function UploadProject() {
             const missingFields: string[] = [];
             if (!title.trim()) missingFields.push("Project Title");
             if (!abstract.trim()) missingFields.push("Abstract");
-            if (!reportLink.trim()) missingFields.push("Project Report (Drive Link)");
             if (!guideId) missingFields.push("Project Guide");
             if (techStack.length === 0) missingFields.push("Tech Stack");
 
@@ -268,7 +267,7 @@ export default function UploadProject() {
                 return;
             }
 
-            if (!reportLink.includes("drive.google.com")) {
+            if (reportLink && !reportLink.includes("drive.google.com")) {
                 toast.error("Please provide a valid Google Drive link for the report.");
                 setLoading(false);
                 return;

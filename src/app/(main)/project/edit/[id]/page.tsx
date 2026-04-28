@@ -340,7 +340,7 @@ export default function EditProjectPage() {
     };
 
     const handleSave = async () => {
-        if (!title || !abstract || !reportLink || !guideName) {
+        if (!title || !abstract || !guideName) {
             toast.error("Please fill all required fields");
             return;
         }
