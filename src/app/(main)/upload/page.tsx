@@ -501,6 +501,7 @@ export default function UploadProject() {
                                                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-4 bg-slate-200/60 border-2 border-slate-300 rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer appearance-none">
                                                     <option>Final Year Project</option>
                                                     <option>Mini Project</option>
+                                                    <option>Micro Project</option>
                                                     <option>Research Paper</option>
                                                     <option>Hackathon Submission</option>
                                                 </select>

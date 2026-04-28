@@ -489,6 +489,7 @@ export default function EditProjectPage() {
                                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500/20 font-bold text-slate-800 outline-none cursor-pointer">
                                     <option>Final Year Project</option>
                                     <option>Mini Project</option>
+                                    <option>Micro Project</option>
                                     <option>Research Paper</option>
                                     <option>Hackathon Submission</option>
                                 </select>
