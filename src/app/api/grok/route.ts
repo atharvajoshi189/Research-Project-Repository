@@ -171,6 +171,15 @@ export async function POST(req: Request) {
                 `;
                 break;
 
+            case 'suggest_group_name':
+                systemPrompt += " You generate creative, techy project names.";
+                userPrompt = `
+                    Suggest ${context.count || 1} punchy, techy placeholder project titles (e.g., "Project Nexus", "Quantum-Forge", "Cyber-Sync", "Neural-Net-Alpha") for newly formed student groups.
+                    Return a JSON response with an array of strings:
+                    { "names": ["Name 1", "Name 2"] }
+                `;
+                break;
+
             default:
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         }
@@ -184,14 +193,14 @@ export async function POST(req: Request) {
             temperature: 0.7,
             max_tokens: 800, // Process more tokens for scripts
             // Only use json_object for models that definitely support it or when strictly required
-            response_format: ((action === 'insights' || action === 'comprehensive_analysis' || action === 'suggested_readings' || action === 'presentation_pitch' || action === 'project_health' || action === 'related_innovations') && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
+            response_format: ((action === 'insights' || action === 'comprehensive_analysis' || action === 'suggested_readings' || action === 'presentation_pitch' || action === 'project_health' || action === 'related_innovations' || action === 'suggest_group_name') && (modelName.includes('gpt') || modelName.includes('llama'))) ? { type: "json_object" } : undefined
         });
 
         const content = completion.choices[0].message.content;
 
         // Parse JSON if needed
         let data: any = content;
-        if (['insights', 'comprehensive_analysis', 'suggested_readings', 'presentation_pitch', 'project_health', 'related_innovations'].includes(action)) {
+        if (['insights', 'comprehensive_analysis', 'suggested_readings', 'presentation_pitch', 'project_health', 'related_innovations', 'suggest_group_name'].includes(action)) {
             try {
                 // If the model didn't return pure JSON, try to extract it
                 const jsonMatch = content?.match(/\{[\s\S]*\}/);

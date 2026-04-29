@@ -17,6 +17,7 @@ export default function SettingsPage() {
     // Form States
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
+    const [updating, setUpdating] = useState(false);
 
     // Password States
     const [newPassword, setNewPassword] = useState('');
@@ -40,15 +41,54 @@ export default function SettingsPage() {
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { error } = await supabase.auth.updateUser({
-            data: { full_name: fullName }
-        });
+        setUpdating(true);
+        
+        try {
+            const trimmedEmail = email.trim();
+            const trimmedName = fullName.trim();
 
-        if (error) {
-            toast.error(error.message);
-        } else {
-            toast.success("Profile updated successfully!");
+            if (!trimmedEmail || !trimmedEmail.includes('@')) {
+                throw new Error("Please enter a valid email address.");
+            }
+
+            // 1. Update Name (Auth & Profiles)
+            const { error: nameAuthError } = await supabase.auth.updateUser({
+                data: { full_name: trimmedName }
+            });
+            if (nameAuthError) throw new Error(`Name auth update failed: ${nameAuthError.message}`);
+
+            const { error: nameProfileError } = await supabase
+                .from('profiles')
+                .update({ full_name: trimmedName })
+                .eq('id', user.id);
+            if (nameProfileError) throw new Error(`Name profile update failed: ${nameProfileError.message}`);
+
+            // 2. Update Email if changed
+            if (trimmedEmail !== user.email) {
+                const { error: emailAuthError } = await supabase.auth.updateUser({
+                    email: trimmedEmail
+                });
+                
+                if (emailAuthError) {
+                    throw new Error(`Could not update email: ${emailAuthError.message}. Name was updated successfully.`);
+                }
+
+                const { error: emailProfileError } = await supabase
+                    .from('profiles')
+                    .update({ email: trimmedEmail })
+                    .eq('id', user.id);
+                if (emailProfileError) throw new Error(`Profile email update failed: ${emailProfileError.message}`);
+
+                toast.success("Profile updated! Please check your new email inbox to verify the email change.", { duration: 6000 });
+            } else {
+                toast.success("Profile updated successfully!");
+            }
+            
             router.refresh();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update profile", { duration: 5000 });
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -88,7 +128,7 @@ export default function SettingsPage() {
             </div>
 
 
-            <div className="max-w-4xl w-full bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row">
+            <div className="relative z-10 max-w-4xl w-full bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row">
 
                 {/* Sidebar / Info Panel */}
                 <div className="bg-slate-900 text-white p-10 md:w-1/3 flex flex-col justify-between relative overflow-hidden">
@@ -129,8 +169,9 @@ export default function SettingsPage() {
                                     <input
                                         type="email"
                                         value={email}
-                                        disabled
-                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold rounded-xl cursor-not-allowed"
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl font-semibold text-slate-700 dark:text-white transition-all outline-none"
+                                        placeholder="Enter your email"
                                     />
                                 </div>
                             </div>
@@ -144,8 +185,9 @@ export default function SettingsPage() {
                                     placeholder="Enter your full name"
                                 />
                             </div>
-                            <button type="submit" className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors flex items-center gap-2 text-sm">
-                                <Save size={16} /> Update Profile
+                            <button disabled={updating} type="submit" className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                {updating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={16} />} 
+                                {updating ? 'Updating...' : 'Update Profile'}
                             </button>
                         </form>
                     </section>

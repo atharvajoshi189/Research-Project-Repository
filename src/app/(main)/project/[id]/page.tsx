@@ -292,12 +292,28 @@ export default function ProjectDetails() {
                     id: c.id,
                     name: c.profile.full_name,
                     role: 'Contributor', // Or c.role from DB if dynamic
-                    initial: c.profile.full_name.charAt(0),
+                    initial: c.profile.full_name.charAt(0).toUpperCase(),
                     isLeader: false
                 });
             }
         }
     });
+
+    // Add Collaborators from project.authors array (for projects without explicit profile links)
+    if (project?.authors) {
+        const authorsList = Array.isArray(project.authors) ? project.authors : project.authors.split(',').map((a: string) => a.trim());
+        authorsList.forEach((authorName: string, index: number) => {
+            if (authorName && !allTeamMembers.some(m => m.name.toLowerCase() === authorName.toLowerCase())) {
+                allTeamMembers.push({
+                    id: `author-${index}`,
+                    name: authorName,
+                    role: 'Contributor',
+                    initial: authorName.charAt(0).toUpperCase(),
+                    isLeader: false
+                });
+            }
+        });
+    }
 
     return (
         <div className="min-h-screen w-full relative overflow-hidden bg-[#F8FAFC] dark:bg-transparent">

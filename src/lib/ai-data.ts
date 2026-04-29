@@ -18,7 +18,7 @@ export const getProjectMetadataForAI = async (): Promise<string> => {
             .select('id, title, abstract, tech_stack, authors, guide_name, academic_year')
             .eq('status', 'approved')
             .order('created_at', { ascending: false })
-            .limit(50);
+            .limit(200);
 
         if (error) {
             console.error('Error fetching project metadata for AI:', error);
@@ -38,8 +38,10 @@ export const getProjectMetadataForAI = async (): Promise<string> => {
             const parts = [
                 `ID: ${project.id}`,
                 `Title: ${project.title}`,
+                `Guide: ${project.guide_name || 'N/A'}`,
+                `Year: ${project.academic_year || 'N/A'}`,
                 `Tech: ${Array.isArray(project.tech_stack) ? project.tech_stack.join(', ') : project.tech_stack || 'N/A'}`,
-                `Authors: ${Array.isArray(project.authors) ? project.authors.slice(0, 2).join(', ') : project.authors || 'N/A'}`, // Limit authors
+                `Authors: ${Array.isArray(project.authors) ? project.authors.join(', ') : project.authors || 'N/A'}`,
                 `Summary: ${abstract}`,
             ];
             return parts.join(' | ');

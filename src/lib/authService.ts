@@ -16,18 +16,23 @@ export const signUpUser = async (
         options: {
             data: {
                 full_name: fullName,
+                name: fullName, // Provide both to satisfy any triggers
+                email: email,
                 role: role,
                 academic_year: academicYear,
+                academicYear: academicYear, // camelCase fallback
                 section: section,
-                college_id: collegeId
+                college_id: collegeId,
+                collegeId: collegeId // camelCase fallback
             }
         }
     });
 
     if (error) throw error;
 
-    // 2. Agar auth successful hai, toh profiles table mein role save karein
+    // 2. Agar auth successful hai, toh profiles, students, and teachers tables update karein
     if (data.user) {
+        // Update Profiles table
         const { error: profileError } = await supabase
             .from('profiles')
             .upsert([
@@ -35,13 +40,42 @@ export const signUpUser = async (
                     id: data.user.id,
                     full_name: fullName,
                     role: role,
-                    academic_year: academicYear || null,
-                    section: section || null,
-                    college_id: collegeId || null
+                    academic_year: academicYear || '2nd Year', // Prevent nulls
+                    section: section || 'Section A',
+                    college_id: collegeId || `ST${Math.floor(Math.random() * 10000)}`
                 }
             ]);
 
-        if (profileError) throw profileError;
+        if (profileError) console.error("Profile Insert Error:", profileError);
+
+        // Update specific table based on role to ensure they show up in dashboard
+        if (role === 'student') {
+            const { error: studentError } = await supabase
+                .from('students')
+                .upsert([
+                    {
+                        id: data.user.id,
+                        full_name: fullName,
+                        email: email,
+                        academic_year: academicYear || '2nd Year',
+                        section: section || 'Section A',
+                        college_id: collegeId || `ST${Math.floor(Math.random() * 10000)}`
+                    }
+                ]);
+            if (studentError) console.error("Student Insert Error:", studentError);
+        } else if (role === 'teacher' || role === 'faculty') {
+            const { error: teacherError } = await supabase
+                .from('teachers')
+                .upsert([
+                    {
+                        id: data.user.id,
+                        full_name: fullName,
+                        email: email,
+                        department: 'Computer Science'
+                    }
+                ]);
+            if (teacherError) console.error("Teacher Insert Error:", teacherError);
+        }
     }
 
     return data;

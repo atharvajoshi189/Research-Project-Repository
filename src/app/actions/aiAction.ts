@@ -34,13 +34,14 @@ export async function searchProjectsWithAI(userQuery: string) {
       Return a JSON object containing:
         1. "summary": A detailed, insightful response. 
           - If specific projects are found, summarize their core value or technical approach. 
-          - If searching for a student(e.g., "Soham"), mention their specific contributions.
+          - If searching for a student (e.g., "Soham"), mention their specific contributions.
+          - If searching for a guide (e.g., "Sunil Wanjari sir"), list all the projects they are guiding and summarize them. Ensure you match against the "Guide" field.
           - Example: "I found 1 project by Soham Rothe. His work on 'FitPlus' focuses on AI-based gym instruction..."
-        2. "matches": An array of matched project_ids from the list.Each match must have:
-        - "id": The exact project ID(uuid).
+        2. "matches": An array of matched project_ids from the list. Each match must have:
+        - "id": The exact project ID (uuid).
          - "reason": A brief explanation of why this project matches the query.
 
-      Respond ONLY in valid JSON.Do not include markdown formatting(like \`\`\`json).
+      Respond ONLY in valid JSON. Do not include markdown formatting (like \`\`\`json).
     `;
 
         console.log("Sending request to Grok API...");
